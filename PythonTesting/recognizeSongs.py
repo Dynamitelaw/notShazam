@@ -13,12 +13,14 @@ from skimage.feature import peak_local_max
 import numpy as np
 from statistics import mean
 from statistics import mode
-from collections import Counter
+from collections import Counter, defaultdict, namedtuple
 import os
+import math
+import heapq
 
 
 def generateConstellationMap(audioFilePath,
-                             fftResolution=2048,
+                             fftResolution=256,
                              downsampleFactor=1,
                              sampleLength=False):
     '''
@@ -45,49 +47,157 @@ def generateConstellationMap(audioFilePath,
 
     # Read the wav file (mono)
     samplingFrequency, signalData = wavfile.read(audioFilePath)
+    signalData = signalData[0:len(signalData):4]
 
     # Generate spectogram
     spectrogramData, frequencies, times, _ = plt.specgram(
         signalData, Fs=samplingFrequency, NFFT=fftResolution, noverlap=fftResolution/2, scale_by_freq=False)
 
-    spectrogramData = 10. * np.log10(spectrogramData)
+
+    #spectrogramData = 10. * np.log10(spectrogramData)
 
     plt.clf()
     plt.imshow(spectrogramData)
 
     #spectrogramData = np.transpose(spectrogramData)
-    peaks = peak_local_max(spectrogramData, min_distance=50)
-    plt.scatter(peaks[:,1], peaks[:,0])
+    #peaks = get_peaks_max_bins(spectrogramData, fftResolution)
+    peaks = get_peaks_max_bins(spectrogramData, fftResolution)
+    #peaks = get_peaks_skimage(spectrogramData)
+    #plt.scatter(peaks[:,1], peaks[:,0])
     #plt.show()
-
-    peaks = [tuple(row) for row in peaks]
-    peaks = sorted(list(set(peaks)),key=lambda row: row[1])
 
     return peaks
 
 
+def get_peaks_skimage(spectrogramData):
+    peaks = peak_local_max(spectrogramData, min_distance=50)
+    peaks = [tuple(row) for row in peaks]
+    peaks = sorted(list(set(peaks)),key=lambda row: row[1])
+    return peaks
+
+
+def get_bins(n, nfft):
+    bins = []
+    j = 0
+    for i in range(int(math.log2(nfft)) - n, int(math.log2(nfft))):
+        bins.append(j)
+        j += 2**i
+    bins.append(nfft + 1)
+    return bins
+
+
+def prune_binned_peaks(peaks, NFFT, time_bin_size=50):
+    bins = get_bins(6, NFFT)
+    time = time_bin_size
+    interval_peaks = defaultdict(list)
+    pruned_peaks = []
+    for peak in peaks:
+        if peak.time > time:
+            for binned_peaks in interval_peaks.values():
+                if len(binned_peaks) != 0:
+                    avg = mean(p.ampl for p in binned_peaks)
+                    pruned_peaks += list(filter(lambda p: p.ampl > 1.5*avg, binned_peaks))
+            interval_peaks.clear()
+            time = time + time_bin_size
+
+        interval_peaks[np.searchsorted(bins, peak.freq, side='right')].append(
+            peak)
+    print(len(pruned_peaks))
+    return pruned_peaks
+
+
+def get_peaks_max_bins(spectrogramData, NFFT, down=1):
+    Peak = namedtuple('Peak', ['ampl', 'freq', 'time'])
+    bins = get_bins(6, NFFT)
+    sample = 0
+    peaks = []
+    for i in range(down, spectrogramData.shape[1] - down, down):
+        fft_prev = spectrogramData[:, i-down]
+        fft = spectrogramData[:, i]
+        fft_next = spectrogramData[:, i+down]
+        peak_bins = defaultdict(list)
+        for j in range(1, len(fft) - 1):
+            if fft[j] > fft[j-1] and fft[j] > fft[j+1] \
+                    and fft[j] > fft_next[j] and fft[j] > fft_prev[j]:
+                peak = Peak(ampl=fft[j], freq=j, time=sample)
+                peak_bins[np.searchsorted(bins, peak.freq, side='right')].append(peak)
+        bin_peaks = [max(x, key=lambda p: p.ampl) for x in peak_bins.values()]
+        if len(bin_peaks) == 0:
+            continue
+        avg_peak_ampl = mean([p.ampl for p in bin_peaks])
+        for p in bin_peaks:
+            if p.ampl >= .005*avg_peak_ampl:
+                peaks.append(p)
+        peak_bins.clear()
+        bin_peaks.clear()
+        sample += 1
+    print(len(peaks))
+
+    return [(p.freq, p.time) for p in prune_binned_peaks(peaks, NFFT)]
+
+
+def get_peaks_all(spectrogramData, down=1):
+    sample = 0
+    peaks = []
+    for i in range(down, spectrogramData.shape[1] - down, down):
+        fft_prev = spectrogramData[:,i-down]
+        fft = spectrogramData[:,i]
+        fft_next = spectrogramData[:,i+down]
+        for j in range(1, len(fft) - 1):
+            if fft[j] > fft[j-1] and fft[j] > fft[j+1] \
+                    and fft[j] > fft_next[j] and fft[j] > fft_prev[j]:
+                peaks.append((j, sample))
+        sample += 1
+    return peaks
+
+
+def get_peaks_avg(spectrogramData, down=1):
+    learning = 0.2
+    sample = 0
+    peaks = []
+    exp_avg = np.zeros(spectrogramData.shape[0])
+    for i in range(down, spectrogramData.shape[1] - down, down):
+        fft_prev = spectrogramData[:,i-down]
+        fft = spectrogramData[:,i]
+        fft_next = spectrogramData[:,i+down]
+        for j in range(1, len(fft) - 1):
+            if fft[j] > fft[j-1] and fft[j] > fft[j+1] \
+                    and fft[j] > fft_next[j] and fft[j] > fft_prev[j] \
+                    and fft[j] >= exp_avg[j]:
+                peaks.append((j, sample))
+            exp_avg[j] = fft[j] if exp_avg[j] == 0.0 \
+                else exp_avg[j]*(1 - learning) + learning*fft[j]
+        sample += 1
+    print(len(peaks))
+    return peaks
 
 def generateFingerprints(points, songID):
     '''
     Generates fingerprints from a constellation map.
     Returns fingerprints as a list.
     '''
-
-    # Create target zones
-    targetZoneDuration = 5
+    # Create target zones by peaks
+    targetZoneSize = 5  #number of points to include in each target zone
     targetZones = []
-    for i in range(0, len(points), 1):
-        zone = []
-        for j in range(1, len(points) - i):
-            if points[i+j][1] - points[i][1] <= targetZoneDuration:
-                zone.append(points[i+j])
-            else:
-                break
-        targetZones.append(zone)
+    for i in range(0, len(points)-targetZoneSize, 1):
+        targetZones.append(points[i:i+targetZoneSize])
+
+    # Create target zones by time
+#   targetZoneDuration = 5
+#   targetZones = []
+#   for i in range(0, len(points), 1):
+#       zone = []
+#       for j in range(1, len(points) - i):
+#           if points[i+j][1] - points[i][1] <= targetZoneDuration:
+#               zone.append(points[i+j])
+#           else:
+#               break
+#       targetZones.append(zone)
 
     # Generate fingerprints
     fingerprints = []
-    for t in range(0, len(points)):
+#    for t in range(0, len(points)): # CHANGE THIS
+    for t in range(0, len(points)-targetZoneSize): # CHANGE THIS
         targetZone = targetZones[t]
         anchorPoint = points[t]
         anchorFrequency = anchorPoint[0]
