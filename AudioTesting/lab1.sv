@@ -1,20 +1,7 @@
 // CSEE 4840 Lab 1
 // By: Jose Rubianes & Tomin Perea-Chamblee
 
-`include "./starterkit/xck_generator.v"
-`include "./starterkit/xck_generator/xck_generator_0002.v"
-`include "./starterkit/Altera_UP_Audio_Bit_Counter.v"
-`include "./starterkit/Altera_UP_Audio_In_Deserializer.v"
-`include "./starterkit/Altera_UP_Audio_Out_Serializer.v"
-`include "./starterkit/Altera_UP_Clock_Edge.v"
-`include "./starterkit/Altera_UP_I2C.v"
-`include "./starterkit/Altera_UP_I2C_AV_Auto_Initialize.v"
-`include "./starterkit/Altera_UP_I2C_DC_Auto_Initialize.v"
-`include "./starterkit/Altera_UP_I2C_LCM_Auto_Initialize.v"
-`include "./starterkit/Altera_UP_Slow_Clock_Generator.v"
-`include "./starterkit/Altera_UP_SYNC_FIFO.v"
-`include "./starterkit/audio_and_video_config.v"
-`include "./starterkit/audio_codec.v"
+
 `include "./starterkit/audio_driver.sv"
 
 
@@ -59,7 +46,7 @@ module lab1( input logic		  CLOCK_50,
 	//reg downsampledAdvance = 0;
 	reg [12:0] counter = 0;
 	
-	 audio_driver (
+	audio_driver (
 	 	.CLOCK_50(clk), 
 	 	.reset(reset), 
 	 	.dac_left(dac_left_in), 
@@ -85,6 +72,7 @@ module lab1( input logic		  CLOCK_50,
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
+		//h0( .a({3'b0, FPGA_I2C_SCLK}),.y(HEX0) );
 		
 	always @(posedge advance) begin
 		counter <= counter + 1;
@@ -95,58 +83,10 @@ module lab1( input logic		  CLOCK_50,
 	always @(posedge counter[12]) begin
 		adc_out_buffer <= adc_left_out;
 	end
+	
 
 endmodule
 
-//Controller module
-module controller(input logic clk,
-		  input logic [3:0] KEY,
-		  input logic [7:0] dout,
-		  output logic [3:0] a,
-		  output logic [7:0] din,
-		  output logic we);
-
-
-	//Debounce button inputs 
-	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
-	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
-	
-	
-	//Signal for when an address has been changed
-	reg addressButtonPressed;	
-	always @(posedge clk) begin
-		addressButtonPressed <= !KEY3db | !KEY2db;
-	end
-	
-	//Incriment or decriment address value
-	always_ff @(posedge addressButtonPressed) begin
-		if (KEY2db && !KEY3db) begin
-			a <= a + 4'b1;
-		end
-		else if (!KEY2db && KEY3db) begin
-			a <= a - 4'b1;	
-		end		
-	end
-	
-	
-	//Signal for when an data should be changed
-	reg dataButtonPressed;
-	always @(posedge clk) begin
-		dataButtonPressed = !KEY1db | !KEY0db;
-	end
-	
-	//Incriment or decriment data value
-	assign we = dataButtonPressed;
-	always_ff @(posedge dataButtonPressed) begin  
-		if (KEY0db && !KEY1db) begin
-			din <= dout + 8'b1;
-		end
-		else if (!KEY0db && KEY1db) begin
-			din <= dout - 8'b1;	
-		end	
-	end
-
-endmodule
 
 //Seven segment hex decoder
 module hex7seg(input logic [3:0] a,

@@ -39,6 +39,21 @@ unsigned integer. The sampling rate is 48kHz.
 http://en.wikipedia.org/wiki/Pulse-code_modulation
 */
 
+`include "./xck_generator.v"
+`include "./xck_generator/xck_generator_0002.v"
+`include "./Altera_UP_Audio_Bit_Counter.v"
+`include "./Altera_UP_Audio_In_Deserializer.v"
+`include "./Altera_UP_Audio_Out_Serializer.v"
+`include "./Altera_UP_Clock_Edge.v"
+`include "./Altera_UP_I2C.v"
+`include "./Altera_UP_I2C_AV_Auto_Initialize.v"
+`include "./Altera_UP_I2C_DC_Auto_Initialize.v"
+`include "./Altera_UP_I2C_LCM_Auto_Initialize.v"
+`include "./Altera_UP_Slow_Clock_Generator.v"
+`include "./Altera_UP_SYNC_FIFO.v"
+`include "./audio_and_video_config.v"
+`include "./audio_codec.v"
+
 //`timescale 1 ps / 1 ps
 
 // synthesis translate_off
