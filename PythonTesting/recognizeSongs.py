@@ -60,7 +60,6 @@ def generateConstellationMap(audioFilePath,
     plt.imshow(spectrogramData)
 
     #spectrogramData = np.transpose(spectrogramData)
-    #peaks = get_peaks_max_bins(spectrogramData, fftResolution)
     peaks = get_peaks_max_bins(spectrogramData, fftResolution)
     #peaks = get_peaks_skimage(spectrogramData)
     #plt.scatter(peaks[:,1], peaks[:,0])
@@ -77,12 +76,15 @@ def get_peaks_skimage(spectrogramData):
 
 
 def get_bins(n, nfft):
+    bins_new = [0, 1, 4, 13, 24, 37, 116]
     bins = []
     j = 0
     for i in range(int(math.log2(nfft)) - n, int(math.log2(nfft))):
         bins.append(j)
         j += 2**i
-    bins.append(nfft + 1)
+    bins.append(int(nfft/2))
+    print(bins)
+    #print(bins_new)
     return bins
 
 
@@ -116,7 +118,11 @@ def get_peaks_max_bins(spectrogramData, NFFT, down=1):
         fft = spectrogramData[:, i]
         fft_next = spectrogramData[:, i+down]
         peak_bins = defaultdict(list)
-        for j in range(1, len(fft) - 1):
+        if fft[0] > fft[0+1] and fft[0] > fft_next[0] and fft[0] > fft_prev[0]:
+            peak = Peak(ampl=fft[0], freq=0, time=sample)
+            peak_bins[np.searchsorted(bins, peak.freq, side='right')].append(peak)
+            pass
+        for j in range(1, bins[-1]):
             if fft[j] > fft[j-1] and fft[j] > fft[j+1] \
                     and fft[j] > fft_next[j] and fft[j] > fft_prev[j]:
                 peak = Peak(ampl=fft[j], freq=j, time=sample)
@@ -223,11 +229,8 @@ def identifySample(sampleFingerprints, hashTable):
             for songData in hashTable[fingerprint[0]]:
                 possibleMatches.append(songData[0])
 
-    if (len(possibleMatches)):
         # print(possibleMatches)
-        return str(Counter(possibleMatches).most_common())
-    else:
-        return "UNKNOWN"
+    return Counter(possibleMatches).most_common()
 
 
 def main():
@@ -262,8 +265,17 @@ def main():
     for songFile in songFileList:
         peaks = generateConstellationMap("InputFiles/"+songFile, downsampleFactor=4, sampleLength=20)  #try to identify on first 20 seconds of sample
         sampleFingerprints = generateFingerprints(peaks, songFile.split("_")[0])
-        songID = identifySample(sampleFingerprints, hashTable)
-        print("   " + songFile + " => " + songID)
+        results = identifySample(sampleFingerprints, hashTable)
+        if len(results) == 0:
+            guess = "UNKNOWN"
+            confidence = 0
+        else:
+            guess = results[0][0]
+            if len(results) == 1:
+                confidence = 1
+            else:
+                confidence = (results[0][1] - results[1][1])/results[0][1]
+        print("   " + songFile + " => " + guess + " -\t confidence: " + str(confidence))
 
 
 main()
