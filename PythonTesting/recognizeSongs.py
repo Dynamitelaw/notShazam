@@ -223,13 +223,29 @@ def identifySample(sampleFingerprints, hashTable):
     Identify the sample based on the fingerprints in the hashtable.
     Returns the songID as a string.
     '''
+    times = defaultdict(list)
     possibleMatches = []
     for fingerprint in sampleFingerprints:
         if fingerprint[0] in hashTable:
             for songData in hashTable[fingerprint[0]]:
                 possibleMatches.append(songData[0])
+                times[songData[0]].append((songData[1], fingerprint[1][1]))
 
-        # print(possibleMatches)
+    for song in times:
+        x = []
+        y=[]
+        for point in times[song]:
+            x.append(point[0])
+            y.append(point[1])
+        np_x = np.array(x)
+        np_y = np.array(y)
+        del x, y
+        print(song + ": " + str(np.corrcoef(np_x, np_y)[0,1]))
+        print(np.cov(np_x, np_y))
+#       plt.clf()
+#       plt.scatter(x,y)
+#       plt.title(song)
+#       plt.show()
     return Counter(possibleMatches).most_common()
 
 
