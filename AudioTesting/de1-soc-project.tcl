@@ -16,7 +16,7 @@ foreach {name value} {
     MIN_CORE_JUNCTION_TEMP 0
     MAX_CORE_JUNCTION_TEMP 85
     CYCLONEII_RESERVE_NCEO_AFTER_CONFIGURATION "USE AS REGULAR IO"
-    NUM_PARALLEL_PROCESSORS 4
+    NUM_PARALLEL_PROCESSORS 3
 } { set_global_assignment -name $name $value }
 
 set_global_assignment -name TOP_LEVEL_ENTITY $moduleName

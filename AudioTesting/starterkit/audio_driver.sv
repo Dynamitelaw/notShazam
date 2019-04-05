@@ -64,7 +64,7 @@ module audio_driver (CLOCK_50, reset, dac_left, dac_right, adc_left, adc_right, 
 	input CLOCK_50;
 	input reset;
 	// I2C Audio/Video config interface
-	output FPGA_I2C_SCLK;
+	input FPGA_I2C_SCLK;
 	inout FPGA_I2C_SDAT;
 	// Audio CODEC
 	output AUD_XCK;

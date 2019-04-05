@@ -116,26 +116,31 @@ module lab1( input logic		  CLOCK_50,
 	always @(posedge clk) begin
 		if(~KEY[0]) begin
 			//Decrease input gain
-			I2C_SlaveAddress <= ;  //page 43 datasheet http://www.cs.columbia.edu/~sedwards/classes/2012/4840/Wolfson-WM8731-audio-CODEC.pdf
+			I2C_SlaveAddress <= 0011010;  //page 43 datasheet http://www.cs.columbia.edu/~sedwards/classes/2012/4840/Wolfson-WM8731-audio-CODEC.pdf
 			I2C_RegisterAddress <= 0;
 			I2C_write <= 1;
 			I2C_read <= 0;
-			I2C_dataSend <= {1, 0, 0, 5'b10000};
+			I2C_dataSend <= {1'b1, 1'b0, 1'b0, 5'b10000};
 			
 			I2C_start <= 0;
 		end
 		else if(~KEY[1]) begin
 			//Increase input gain
-			I2C_SlaveAddress <= ;
+			I2C_SlaveAddress <= 0011010;
 			I2C_RegisterAddress <= 0;
 			I2C_write <= 1;
 			I2C_read <= 0;
-			I2C_dataSend <= {1, 0, 0, 5'b10000};
+			I2C_dataSend <= {1'b1, 1'b0, 1'b0, 5'b10000};
 			
 			I2C_start <= 0;
 		end
 		else if(~KEY[2]) begin
 			I2C_start <= 1;
+		end
+		else begin
+			if (I2C_communicating) begin
+				I2C_start<= 0;
+			end
 		end
 	end
 

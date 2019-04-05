@@ -20,11 +20,11 @@ module I2C_Driver (
 	
 	//Outputs
 	output FPGA_I2C_SCLK,
-	inout FPGA_I2C_SDAT,
+	inout FPGA_I2C_SDAT
 	);
 	
 	parameter SCOUNTER_WIDTH = 7;
-	parameter SCOUNTER_MAX = 32;
+	parameter SCOUNTER_MAX = 7'd32;
 	parameter CLOCKCOUNTER_WIDTH = 10;
 	
 	reg SCLK;
@@ -39,7 +39,7 @@ module I2C_Driver (
 	reg read_Buffer;
 	reg [7:0] dataSend_Buffer;
 	
-	wire [26:0] packet = {SlaveAddress_Buffer, read_Buffer, 0, RegisterAddress_Buffer, 0, dataSend_Buffer, 0}; //Concatenate packet into wire array
+	wire [26:0] packet = {SlaveAddress_Buffer, read_Buffer, 1'b0, RegisterAddress_Buffer, 1'b0, dataSend_Buffer, 1'b0}; //Concatenate packet into wire array
 	
 	//Slow down clock
 	always @ (posedge CLOCK_50) clockCounter <= clockCounter + 1;
