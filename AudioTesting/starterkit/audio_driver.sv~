@@ -39,10 +39,25 @@ unsigned integer. The sampling rate is 48kHz.
 http://en.wikipedia.org/wiki/Pulse-code_modulation
 */
 
-`timescale 1 ps / 1 ps
+`include "./starterkit/xck_generator.v"
+`include "./starterkit/xck_generator/xck_generator_0002.v"
+`include "./starterkit/Altera_UP_Audio_Bit_Counter.v"
+`include "./starterkit/Altera_UP_Audio_In_Deserializer.v"
+`include "./starterkit/Altera_UP_Audio_Out_Serializer.v"
+`include "./starterkit/Altera_UP_Clock_Edge.v"
+`include "./starterkit/Altera_UP_I2C.v"
+`include "./starterkit/Altera_UP_I2C_AV_Auto_Initialize.v"
+`include "./starterkit/Altera_UP_I2C_DC_Auto_Initialize.v"
+`include "./starterkit/Altera_UP_I2C_LCM_Auto_Initialize.v"
+`include "./starterkit/Altera_UP_Slow_Clock_Generator.v"
+`include "./starterkit/Altera_UP_SYNC_FIFO.v"
+`include "./starterkit/audio_and_video_config.v"
+`include "./starterkit/audio_codec.v"
+
+//`timescale 1 ps / 1 ps
 
 // synthesis translate_off
-`define DOING_SIMULATION 1
+`define DOING_SIMULATION 0
 // synthesis translate_on
 
 module audio_driver (CLOCK_50, reset, dac_left, dac_right, adc_left, adc_right, advance, FPGA_I2C_SCLK, FPGA_I2C_SDAT, AUD_XCK, AUD_DACLRCK, AUD_ADCLRCK, AUD_BCLK, AUD_ADCDAT, AUD_DACDAT);
