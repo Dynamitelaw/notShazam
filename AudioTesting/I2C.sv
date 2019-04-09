@@ -54,7 +54,7 @@ module I2C_Driver (
 			communicating <= 0;
 			SerialCounter <= 0;
 			SCLK <= 1;
-			FPGA_I2C_SDAT <= 1;
+			FPGA_I2C_SDAT <= 1'bz;
 		end
 		else begin
 			//Control communicating
@@ -92,12 +92,13 @@ module I2C_Driver (
 				1 : FPGA_I2C_SDAT <= 0;
 				2 : SCLK <= 0;
 				
+				//End condition
 				SCOUNTER_MAX-2 : begin
 					FPGA_I2C_SDAT <= 0;
 					SCLK <= 1;
 				end
 				SCOUNTER_MAX-1 : begin
-					FPGA_I2C_SDAT <= 1;
+					FPGA_I2C_SDAT <= 1'bz;
 					SCLK <= 1;
 					communicating <= 0;
 				end

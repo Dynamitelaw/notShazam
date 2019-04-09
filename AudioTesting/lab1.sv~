@@ -3,7 +3,6 @@
 
 
 `include "./starterkit/audio_driver.sv"
-`include "I2C.sv"
 
 
 module lab1( input logic		  CLOCK_50,
@@ -24,9 +23,9 @@ module lab1( input logic		  CLOCK_50,
 		  output logic AUD_DACDAT
 		  );
 
-	logic [3:0] a = 4'b0000;// Address
-	logic [7:0] din, dout; // RAM data in and out
-	logic we; // RAM write enable
+	//Debounce button inputs 
+	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
+	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
 
 	logic clk;
 	assign clk = CLOCK_50;
@@ -44,7 +43,7 @@ module lab1( input logic		  CLOCK_50,
 	
 	reg [23:0] adc_out_buffer = 0;
 	
-	reg [12:0] counter = 0;  //downsample adance signal
+	reg [24:0] counter = 0;  //downsample adance signal
 	
 	audio_driver (
 	 	.CLOCK_50(clk), 
@@ -64,34 +63,11 @@ module lab1( input logic		  CLOCK_50,
 	 	.AUD_DACDAT(AUD_DACDAT)
 	 	);
 	 	
-	//Instantiate I2C driver
-	reg I2C_start;
-	wire I2C_communicating;
-	reg I2C_SlaveAddress;
-	reg I2C_RegisterAddress;
-	reg I2C_write;
-	reg I2C_read;
-	reg [7:0] I2C_dataSend;
-	wire [7:0] I2C_dataRecieved;
-
-	I2C_Driver i2c(
-		.CLOCK_50(CLOCK_50),
-		.reset(reset),
-		//Inputs
-		.start(I2C_start),
-		.communicating(I2C_communicating),
-	
-		.SlaveAddress(I2C_SlaveAddress),
-		.RegisterAddress(I2C_RegisterAddress),
-		.write(I2C_write),
-		.read(I2C_read),
-		.dataSend(I2C_dataSend),
-		.dataRecieved(I2C_dataRecieved),
-	
-		//Outputs
-		.FPGA_I2C_SCLK(FPGA_I2C_SCLK),
-		.FPGA_I2C_SDAT(FPGA_I2C_SDAT),
-		);	
+		
+	assign FPGA_I2C_SCLK = AudioDriver_I2C_ClkOut && driver_I2C_ClkOut;
+	always @(posedge FPGA_I2C_SCLK) begin
+		counter <= counter + 1;
+	end
 		
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
@@ -105,40 +81,12 @@ module lab1( input logic		  CLOCK_50,
 	always @(posedge advance) begin
 		counter <= counter + 1;
 		dac_left_in <= adc_left_out;
-		//dac_right_in <= adc_left_out;
 		dac_right_in <= adc_right_out;
 	end
 	
 	always @(posedge counter[12]) begin
 		adc_out_buffer <= adc_left_out;
 	end
-
-	always @(posedge clk) begin
-		if(~KEY[0]) begin
-			//Decrease input gain
-			I2C_SlaveAddress <= ;  //page 43 datasheet http://www.cs.columbia.edu/~sedwards/classes/2012/4840/Wolfson-WM8731-audio-CODEC.pdf
-			I2C_RegisterAddress <= 0;
-			I2C_write <= 1;
-			I2C_read <= 0;
-			I2C_dataSend <= {1, 0, 0, 5'b10000};
-			
-			I2C_start <= 0;
-		end
-		else if(~KEY[1]) begin
-			//Increase input gain
-			I2C_SlaveAddress <= ;
-			I2C_RegisterAddress <= 0;
-			I2C_write <= 1;
-			I2C_read <= 0;
-			I2C_dataSend <= {1, 0, 0, 5'b10000};
-			
-			I2C_start <= 0;
-		end
-		else if(~KEY[2]) begin
-			I2C_start <= 1;
-		end
-	end
-
 endmodule
 
 
@@ -168,4 +116,21 @@ module hex7seg(input logic [3:0] a,
 		endcase
 	end
 endmodule
+
+
+//Debouncer for push buttons
+module debouncer(input clk, input [3:0] buttonsIn, output logic [3:0] buttonsOut);
+	logic [20:0] timer = 21'b0;
+	
+	always_ff @(posedge clk) begin
+		timer <= timer - 21'b1;
+	end
+	
+	always_ff @(negedge clk) begin
+		if (timer == 0)
+			buttonsOut <= buttonsIn;
+	end
+
+endmodule
+
 
