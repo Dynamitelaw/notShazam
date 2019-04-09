@@ -1,0 +1,213 @@
+------------------------------------------------------------
+Timing Analyzer Summary
+------------------------------------------------------------
+
+Type  : Slow 1100mV 85C Model Setup 'I2C_Driver:i2c|clockCounter[9]'
+Slack : -15.490
+TNS   : -54.623
+
+Type  : Slow 1100mV 85C Model Setup 'audio_driver:comb_5|write'
+Slack : -7.162
+TNS   : -323.579
+
+Type  : Slow 1100mV 85C Model Setup 'counter[12]'
+Slack : -6.431
+TNS   : -144.727
+
+Type  : Slow 1100mV 85C Model Setup 'CLOCK_50'
+Slack : -5.032
+TNS   : -425.537
+
+Type  : Slow 1100mV 85C Model Hold 'CLOCK_50'
+Slack : -0.018
+TNS   : -0.018
+
+Type  : Slow 1100mV 85C Model Hold 'audio_driver:comb_5|write'
+Slack : 0.541
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Hold 'I2C_Driver:i2c|clockCounter[9]'
+Slack : 1.018
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Hold 'counter[12]'
+Slack : 4.279
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'audio_driver:comb_5|write'
+Slack : -0.724
+TNS   : -71.120
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'counter[12]'
+Slack : -0.724
+TNS   : -27.538
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'I2C_Driver:i2c|clockCounter[9]'
+Slack : -0.724
+TNS   : -12.667
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'comb_5|xck_source|xck_generator_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]'
+Slack : 1.233
+TNS   : 0.000
+
+Type  : Slow 1100mV 85C Model Minimum Pulse Width 'CLOCK_50'
+Slack : 8.421
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Setup 'I2C_Driver:i2c|clockCounter[9]'
+Slack : -16.323
+TNS   : -55.568
+
+Type  : Slow 1100mV 0C Model Setup 'audio_driver:comb_5|write'
+Slack : -7.559
+TNS   : -347.916
+
+Type  : Slow 1100mV 0C Model Setup 'counter[12]'
+Slack : -6.939
+TNS   : -155.867
+
+Type  : Slow 1100mV 0C Model Setup 'CLOCK_50'
+Slack : -4.985
+TNS   : -362.115
+
+Type  : Slow 1100mV 0C Model Hold 'CLOCK_50'
+Slack : -0.598
+TNS   : -18.962
+
+Type  : Slow 1100mV 0C Model Hold 'audio_driver:comb_5|write'
+Slack : 0.508
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Hold 'I2C_Driver:i2c|clockCounter[9]'
+Slack : 1.047
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Hold 'counter[12]'
+Slack : 4.753
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'audio_driver:comb_5|write'
+Slack : -0.724
+TNS   : -70.712
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'counter[12]'
+Slack : -0.724
+TNS   : -27.357
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'I2C_Driver:i2c|clockCounter[9]'
+Slack : -0.724
+TNS   : -12.563
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'comb_5|xck_source|xck_generator_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]'
+Slack : 1.233
+TNS   : 0.000
+
+Type  : Slow 1100mV 0C Model Minimum Pulse Width 'CLOCK_50'
+Slack : 8.339
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Setup 'I2C_Driver:i2c|clockCounter[9]'
+Slack : -5.955
+TNS   : -20.430
+
+Type  : Fast 1100mV 85C Model Setup 'CLOCK_50'
+Slack : -3.309
+TNS   : -241.113
+
+Type  : Fast 1100mV 85C Model Setup 'audio_driver:comb_5|write'
+Slack : -3.049
+TNS   : -125.014
+
+Type  : Fast 1100mV 85C Model Setup 'counter[12]'
+Slack : -2.540
+TNS   : -56.968
+
+Type  : Fast 1100mV 85C Model Hold 'CLOCK_50'
+Slack : -0.134
+TNS   : -2.302
+
+Type  : Fast 1100mV 85C Model Hold 'audio_driver:comb_5|write'
+Slack : 0.089
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Hold 'I2C_Driver:i2c|clockCounter[9]'
+Slack : 0.303
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Hold 'counter[12]'
+Slack : 1.829
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'counter[12]'
+Slack : -0.081
+TNS   : -0.161
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'I2C_Driver:i2c|clockCounter[9]'
+Slack : -0.004
+TNS   : -0.004
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'audio_driver:comb_5|write'
+Slack : 0.041
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'comb_5|xck_source|xck_generator_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]'
+Slack : 1.233
+TNS   : 0.000
+
+Type  : Fast 1100mV 85C Model Minimum Pulse Width 'CLOCK_50'
+Slack : 8.785
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Setup 'I2C_Driver:i2c|clockCounter[9]'
+Slack : -5.578
+TNS   : -18.340
+
+Type  : Fast 1100mV 0C Model Setup 'audio_driver:comb_5|write'
+Slack : -2.950
+TNS   : -123.700
+
+Type  : Fast 1100mV 0C Model Setup 'CLOCK_50'
+Slack : -2.773
+TNS   : -175.823
+
+Type  : Fast 1100mV 0C Model Setup 'counter[12]'
+Slack : -2.516
+TNS   : -56.886
+
+Type  : Fast 1100mV 0C Model Hold 'CLOCK_50'
+Slack : -0.415
+TNS   : -27.549
+
+Type  : Fast 1100mV 0C Model Hold 'audio_driver:comb_5|write'
+Slack : 0.045
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Hold 'I2C_Driver:i2c|clockCounter[9]'
+Slack : 0.285
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Hold 'counter[12]'
+Slack : 1.863
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'counter[12]'
+Slack : -0.035
+TNS   : -0.067
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'I2C_Driver:i2c|clockCounter[9]'
+Slack : 0.029
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'audio_driver:comb_5|write'
+Slack : 0.065
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'comb_5|xck_source|xck_generator_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]'
+Slack : 1.233
+TNS   : 0.000
+
+Type  : Fast 1100mV 0C Model Minimum Pulse Width 'CLOCK_50'
+Slack : 8.777
+TNS   : 0.000
+
+------------------------------------------------------------
