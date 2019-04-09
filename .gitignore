@@ -3,10 +3,19 @@
 *.qsf
 *.sdc
 *.qws
+*.rpt
+*.done
+*.jdi
+*.fit.*
+*.map.*
+*.pin
+*.sld
+*.sof
+*.sta.*
 c5_pin_model_dump.text
 
 
-/AudioTesting/output_files/**
-/AudioTesting/db/**
-/AudioTesting/incremental_db/**
+/Hardware/output_files/**
+/Hardware/db/**
+/Hardware/incremental_db/**
 
