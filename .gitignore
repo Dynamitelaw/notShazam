@@ -1,0 +1,12 @@
+*~
+*.qpf
+*.qsf
+*.sdc
+*.qws
+c5_pin_model_dump.text
+
+
+/AudioTesting/output_files/**
+/AudioTesting/db/**
+/AudioTesting/incremental_db/**
+
