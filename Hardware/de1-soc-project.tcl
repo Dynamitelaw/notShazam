@@ -4,7 +4,7 @@
 
 # $moduleName.sv should include a module named $moduleName
 
-set moduleName "lab1"
+set moduleName "FFT_Accelerator"
 set systemVerilogSource "${moduleName}.sv"
 
 project_new $moduleName -overwrite

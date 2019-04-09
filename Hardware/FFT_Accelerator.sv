@@ -5,7 +5,7 @@
 `include "./AudioCodecDrivers/audio_driver.sv"
 
 
-module lab1( input logic		  CLOCK_50,
+module FFT_Accelerator( input logic		  CLOCK_50,
 
 		  input logic [3:0] 	KEY, // Pushbuttons; KEY[0] is rightmost
 
@@ -62,13 +62,7 @@ module lab1( input logic		  CLOCK_50,
 	 	.AUD_ADCDAT(AUD_ADCDAT), 
 	 	.AUD_DACDAT(AUD_DACDAT)
 	 	);
-	 	
-		
-	assign FPGA_I2C_SCLK = AudioDriver_I2C_ClkOut && driver_I2C_ClkOut;
-	always @(posedge FPGA_I2C_SCLK) begin
-		counter <= counter + 1;
-	end
-		
+	 			
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
