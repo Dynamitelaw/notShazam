@@ -3,6 +3,7 @@
 
 
 `include "./AudioCodecDrivers/audio_driver.sv"
+`include "peaks.sv" // TODO remove later -- just included here to make sure peaks.sv compiles.
 
 
 module FFT_Accelerator( input logic		  CLOCK_50,
