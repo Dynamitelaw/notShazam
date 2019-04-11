@@ -46,6 +46,9 @@
  *                                                                            *
  ******************************************************************************/
 
+`include "../global_variables.sv"
+
+
 module audio_and_video_config (
 	// Inputs
 	clk,
@@ -67,12 +70,12 @@ parameter MIN_ROM_ADDRESS		= 6'h00;
 parameter MAX_ROM_ADDRESS		= 6'h32;
 
 //Input gain
-parameter AUD_LINE_IN_LC		= 9'h014;
-parameter AUD_LINE_IN_RC		= 9'h014;
+parameter AUD_LINE_IN_LC		= `AUDIO_IN_GAIN;
+parameter AUD_LINE_IN_RC		= `AUDIO_IN_GAIN;
 
 //Output gain
-parameter AUD_LINE_OUT_LC		= 9'h061;
-parameter AUD_LINE_OUT_RC		= 9'h061;
+parameter AUD_LINE_OUT_LC		= `AUDIO_OUT_GAIN;
+parameter AUD_LINE_OUT_RC		= `AUDIO_OUT_GAIN;
 
 parameter AUD_ADC_PATH			= 9'd149;
 parameter AUD_DAC_PATH			= 9'h006;
