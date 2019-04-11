@@ -4,6 +4,7 @@
 module peaks( 
 		input logic				CLOCK_50,
 		input logic 				valid_in,
+		input logic 				reset,
 		input logic[`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0],
 		output logic[`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0],
 		output logic[`FREQ_WIDTH -1:0] 		freqs_out[`PEAKS -1:0]
@@ -22,7 +23,7 @@ module peaks(
 	for (freq = 0; freq < `FREQS; freq=freq+1)
 	begin : peak_finders
 		if (freq == 0)
-			peak_finder(
+			peak_finder pf(
 				.peak(fft_curr[freq]),
 				.north(0),
 				.south(fft_curr[freq+1]),
@@ -31,7 +32,7 @@ module peaks(
 				.is_peak(is_peak[freq])
 			);
 		else if (freq == `PEAKS -1)
-			peak_finder(
+			peak_finder pf(
 				.peak(fft_curr[freq]),
 				.north(fft_curr[freq-1]),
 				.south(0),
@@ -39,7 +40,7 @@ module peaks(
 				.west(fft_next[freq]),
 				.is_peak(is_peak[freq])
 			);
-		peak_finder(
+		peak_finder pf(
 			.peak(fft_curr[freq]),
 			.north(fft_curr[freq-1]),
 			.south(fft_curr[freq+1]),
@@ -51,20 +52,33 @@ module peaks(
 	endgenerate
 
 
-	always_ff @(posedge valid_in) begin
+	always_ff @(posedge valid_in or posedge reset) begin
+		if (reset) begin
+		fft_prev <= '{`FREQS{0}};
+		fft_curr <= '{`FREQS{0}};
+		fft_next <= '{`FREQS{0}};
+
+		amplitudes_out <= '{`PEAKS{0}};
+		freqs_out <= '{`PEAKS{0}};
+		end
+		else 
+		begin
 		fft_prev <= fft_curr;
 		fft_curr <= fft_next;
 		fft_next <= fft_in;	
 
 		amplitudes_out <= amplitudes;
 		freqs_out <= freqs;
+		end
+
 	end
 
 	integer i;
-	always
+	always @(*)
 	begin
+		freqs = '{`PEAKS{0}};
+		amplitudes = '{`PEAKS{0}};
 		// BIN 1
-		amplitudes[0] = 0;
 		for (i = 0; i <= `BIN_1; i=i+1)
 		begin : max_bin_1
 			if (is_peak[i] && fft_curr[i] > amplitudes[0])
@@ -75,7 +89,6 @@ module peaks(
 		end
 
 		// BIN 2
-		amplitudes[1] = 0;
 		for (i = `BIN_1 + 1; i <= `BIN_2; i=i+1)
 		begin : max_bin_2
 			if (is_peak[i] && fft_curr[i] > amplitudes[1])
@@ -86,7 +99,6 @@ module peaks(
 		end
 
 		// BIN 3
-		amplitudes[2] = 0;
 		for (i = `BIN_2 + 1; i <= `BIN_3; i=i+1)
 		begin : max_bin_3
 			if (is_peak[i] && fft_curr[i] > amplitudes[2])
@@ -97,7 +109,6 @@ module peaks(
 		end
 
 		// BIN 4
-		amplitudes[3] = 0;
 		for (i = `BIN_3 + 1; i <= `BIN_4; i=i+1)
 		begin : max_bin_4
 			if (is_peak[i] && fft_curr[i] > amplitudes[3])
@@ -108,7 +119,6 @@ module peaks(
 		end
 
 		// BIN 5
-		amplitudes[4] = 0;
 		for (i = `BIN_4 + 1; i <= `BIN_5; i=i+1)
 		begin : max_bin_5
 			if (is_peak[i] && fft_curr[i] > amplitudes[4])
@@ -119,7 +129,6 @@ module peaks(
 		end
 
 		// BIN 6
-		amplitudes[5] = 0;
 		for (i = `BIN_5 + 1; i <= `BIN_6; i=i+1)
 		begin : max_bin_6
 			if (is_peak[i] && fft_curr[i] > amplitudes[5])
