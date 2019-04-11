@@ -47,7 +47,6 @@ struct song_data {
 };
 
 struct hash_pair {
-	//struct fingerprint key;
 	std::string fingerprint;
 	struct song_data value;
 };
@@ -61,30 +60,23 @@ std::vector<std::vector<uint8_t>> read_fft(std::string filename);
 
 std::list<hash_pair> hash_create(std::string song_name);
 
-std::list<peak> max_bins(
-	std::vector<std::vector<uint8_t>> fft, int nfft);
+std::list<peak> max_bins(std::vector<std::vector<uint8_t>> fft, int nfft);
 
-std::list<peak_raw> get_peak_max_bin(
-	std::vector<std::vector<uint8_t>> fft, 
-	int nfft, int start, int end);
+std::list<peak_raw> get_peak_max_bin(std::vector<std::vector<uint8_t>> fft, int nfft, int start, int end);
 
 std::list<peak> prune(std::list<peak_raw> peaks, int nfft, int max_time);
 
-std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
-	std::string song_name);
+std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, std::string song_name);
 
-std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<std::string, song_data> database,
-	std::list<std::string> song_list);
+std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints, std::unordered_multimap<std::string, song_data> database, std::list<std::string> song_list);
 
 int main()
 {
-
 	/*
 	 * Assumes fft spectrogram files 
 	 * are availible at ./song_name. 
-	 *
 	 */
+	
 	std::unordered_multimap<std::string, song_data> db;
 	std::list<std::string> song_names;
 	std::list<hash_pair> temp;
@@ -95,7 +87,7 @@ int main()
 	std::string temp_match;
 	std::string temp_s;
 	std::string output;
-	uint8_t max_count;
+	int max_count;
 
 	temp_s = "City Streets_by Harren"; 
 	song_names.push_back(temp_s);
@@ -141,8 +133,11 @@ int main()
 	std::cout << "Full database completed \n" << std::endl;
 	std::cout << "Next is identifying: \n" << std::endl;
 	
-	identify = hash_create("City Streets_by Harren_NOISY");
+	temp_s = "City Streets_by Harren"; 
+	
+	identify = hash_create(temp_s + "_NOISY");
 
+	std::cout << identify.size() << " ";
 	/*DEBUG*/
 	std::cout << "Noisy fingerprints generated" << std::endl;
 	
@@ -166,9 +161,94 @@ int main()
 
 	output = "Song Name: " + temp_match;
 	
-	/*DEBUG*/
 	std::cout << output << std::endl;
+	temp_s ="Marble Machine_by Wintergatan"; 
+	
+	identify = hash_create(temp_s + "_NOISY");
 
+	std::cout << identify.size() << " ";
+	/*DEBUG*/
+	std::cout << "Noisy fingerprints generated" << std::endl;
+	
+	results = identify_sample(identify, db, song_names);
+
+	/*DEBUG*/
+	std::cout << "Identify sample completed" << std::endl;
+
+	max_count = 0;
+	for(std::list<count_ID>::iterator iter = results.begin(); 
+		iter != results.end(); ++iter){	
+	
+		std::cout << (*iter).match << " |"  
+		<< (*iter).count << "| " << std::endl;
+		
+		if((*iter).count > max_count){
+			temp_match = (*iter).match;
+			max_count = (*iter).count;
+		}
+	}	
+
+	output = "Song Name: " + temp_match;
+	
+	std::cout << output << std::endl;
+	temp_s = "Never Gonna Give You Up_by Rick Astley"; 
+	
+	identify = hash_create(temp_s + "_NOISY");
+
+	std::cout << identify.size() << " ";
+	/*DEBUG*/
+	std::cout << "Noisy fingerprints generated" << std::endl;
+	
+	results = identify_sample(identify, db, song_names);
+
+	/*DEBUG*/
+	std::cout << "Identify sample completed" << std::endl;
+
+	max_count = 0;
+	for(std::list<count_ID>::iterator iter = results.begin(); 
+		iter != results.end(); ++iter){	
+	
+		std::cout << (*iter).match << " |"  
+		<< (*iter).count << "| " << std::endl;
+		
+		if((*iter).count > max_count){
+			temp_match = (*iter).match;
+			max_count = (*iter).count;
+		}
+	}	
+
+	output = "Song Name: " + temp_match;
+	
+	std::cout << output << std::endl;
+	temp_s = "Vivir Mi Vida_by Marc Anthony";
+	
+	identify = hash_create(temp_s + "_NOISY");
+
+	std::cout << identify.size() << " ";
+	/*DEBUG*/
+	std::cout << "Noisy fingerprints generated" << std::endl;
+	
+	results = identify_sample(identify, db, song_names);
+
+	/*DEBUG*/
+	std::cout << "Identify sample completed" << std::endl;
+
+	max_count = 0;
+	for(std::list<count_ID>::iterator iter = results.begin(); 
+		iter != results.end(); ++iter){	
+	
+		std::cout << (*iter).match << " |"  
+		<< (*iter).count << "| " << std::endl;
+		
+		if((*iter).count > max_count){
+			temp_match = (*iter).match;
+			max_count = (*iter).count;
+		}
+	}	
+
+	output = "Song Name: " + temp_match;
+	
+	std::cout << output << std::endl;
 
 	return 0;
 }
@@ -215,33 +295,6 @@ std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints,
 }
 
 
-std::vector<std::vector<uint8_t>> read_fft(std::string filename)
-{
-	std::fstream file;
-	std::string line;
-	std::vector<std::vector<uint8_t>> fft;
-	file.open(filename.c_str());
-	 
-	while(getline(file, line)){
-		std::istringstream ss(line);
-		std::vector<uint8_t> line_vector;
-		do{
-		  std::string word;
-		  int temp;
-		  uint8_t utemp;
-
-		  ss >> word;
-		  temp = atoi(word.c_str());
-		  utemp = (uint8_t) temp;
-
-		  line_vector.push_back(utemp);
-		} while(ss);
-		fft.push_back(line_vector);
-	}
-	file.close();
-	
-	return fft;
-}
 
 std::list<hash_pair> hash_create(std::string song_name)
 {	
@@ -273,9 +326,142 @@ std::list<hash_pair> hash_create(std::string song_name)
 	return hash_entries;
 }
 
-/* Gets complete set of raw peaks */
-std::list<peak> max_bins(
-	std::vector<std::vector<uint8_t>> fft, int nfft)
+
+/* get peak max bins, returns for one bin */
+std::list<peak_raw> get_peak_max_bin(
+	std::vector<std::vector<uint8_t>> fft, 
+	int nfft, int start, int end)
+{
+	std::list<peak_raw> peaks;
+	uint8_t columns;
+	int sample;
+
+	columns = fft[0].size();
+	sample = 1;
+	// first bin
+	if(!start && end){
+	   for(uint8_t j = 1; j < columns-2; j++){
+		if(fft[0][j] > fft[0][j-1] && //west
+			fft[0][j] > fft[0][j+1] && //east
+			fft[0][j] > fft[1][j]){ //south
+		
+		  struct peak_raw current;
+		  current.freq = 0;
+		  current.ampl = fft[0][j];
+		  current.time = sample;
+		  peaks.push_back(current);
+		  sample++;
+		}
+	   }
+	}
+	// remaining bins
+	else{
+	 for(uint8_t i = start; i < end - 2; i++){
+	   for(uint8_t j = 1; j < columns-2; j++){
+		if(fft[i][j] > fft[i][j-1] && //west
+			fft[i][j] > fft[i][j+1] && //east
+			fft[i][j] > fft[i-1][j] && //north
+			fft[i][j] > fft[i+1][j]){ //south
+		
+		  struct peak_raw current;
+		  current.freq = i;
+		  current.ampl = fft[i][j];
+		  current.time = sample;
+		  peaks.push_back(current);
+		  sample++;
+		}
+	   }
+	 }
+	}
+	return peaks;
+}
+
+/* prune a bin of peaks, returns processed std::list */
+std::list<peak> prune(std::list<peak_raw> peaks, int nfft, int max_time)
+{
+	int num_samples;
+	int time;
+	int num;
+	int den;
+	std::list<peak> pruned;
+
+	time = 0;
+	num_samples = 10;
+	while(time < max_time)
+	{
+	  num = 0;
+	  den = 0;
+	  std::list<peak_raw> current;
+	  
+	  for(std::list<peak_raw>::iterator it = peaks.begin(); 
+			  it != peaks.end(); ++it){
+		  if((*it).time > time && 
+			(*it).time < time + num_samples){
+			current.push_back((*it));
+			num += (*it).ampl;
+			den++;
+		  }
+	  }	
+	  
+	  if(den){
+	  	for(std::list<peak_raw>::iterator it = current.begin(); 
+				it != current.end(); ++it){
+			double avg = (1.+ (double) num)*1./((double) den);
+			double ampl_data = (*it).ampl;
+			 if(ampl_data >= 1.5*avg){
+				struct peak new_peak;
+				new_peak.freq = (*it).freq;
+				new_peak.time = (*it).time;
+				pruned.push_back(new_peak);
+			 }
+		}	
+	  }  
+	  
+	  time += num_samples;
+	}
+	return pruned;
+}
+
+std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
+	std::string song_name)
+{
+	uint8_t target_zone_t = 5;
+	std::list<hash_pair> fingerprints;
+
+	//probably should check that the list is at least five elements
+	for(std::list<peak>::iterator 
+		it = pruned.begin(); it != pruned.end(); ++it){
+		
+		struct peak anchor_point = *it;
+		for(uint8_t i = 0; i < target_zone_t; i++)
+		{
+			
+			struct peak other_point = *(std::next(it,i));
+			struct fingerprint f;
+			f.anchor = anchor_point.freq;
+			f.point = other_point.freq;
+			f.delta	= other_point.time - anchor_point.time;
+			struct song_data sdata;
+			sdata.song_name = song_name;
+			sdata.time_pt = anchor_point.time;
+			struct hash_pair entry;
+			entry.fingerprint = std::to_string(f.anchor) +
+				std::to_string(f.point) +
+				std::to_string(f.delta);
+			entry.value = sdata;
+			fingerprints.push_back(entry);
+		}
+
+		if(std::next(it, target_zone_t - 1) == pruned.end())
+			break;
+	}	
+
+	return fingerprints;
+}
+
+
+/* Gets complete set of processed peaks */
+std::list<peak> max_bins(std::vector<std::vector<uint8_t>> fft, int nfft)
 {
 	std::list<peak> peaks;
 	std::list<peak_raw> temp_raw;
@@ -344,133 +530,30 @@ std::list<peak> max_bins(
 	return peaks;
 }
 
-/* get peak max bins, returns for one bin */
-std::list<peak_raw> get_peak_max_bin(
-	std::vector<std::vector<uint8_t>> fft, 
-	int nfft, int start, int end)
+std::vector<std::vector<uint8_t>> read_fft(std::string filename)
 {
-	std::list<peak_raw> peaks;
-	uint8_t columns;
-	int sample;
+	std::fstream file;
+	std::string line;
+	std::vector<std::vector<uint8_t>> fft;
+	file.open(filename.c_str());
+	 
+	while(getline(file, line)){
+		std::istringstream ss(line);
+		std::vector<uint8_t> line_vector;
+		do{
+		  std::string word;
+		  int temp;
+		  uint8_t utemp;
 
-	columns = fft[0].size();
-	sample = 1;
-	// first bin
-	if(!start && end){
-	   for(uint8_t j = 1; j < columns-2; j++){
-		if(fft[0][j] > fft[0][j-1] && //west
-			fft[0][j] > fft[0][j+1] && //east
-			fft[0][j] > fft[1][j]){ //south
-		
-		  struct peak_raw current;
-		  current.freq = 0;
-		  current.ampl = fft[0][j];
-		  current.time = sample;
-		  peaks.push_back(current);
-		  sample++;
-		}
-	   }
+		  ss >> word;
+		  temp = atoi(word.c_str());
+		  utemp = (uint8_t) temp;
+
+		  line_vector.push_back(utemp);
+		} while(ss);
+		fft.push_back(line_vector);
 	}
-	// remaining bins
-	else{
-	 for(uint8_t i = start; i < end - 2; i++){
-	   for(uint8_t j = 1; j < columns-2; j++){
-		if(fft[i][j] > fft[i][j-1] && //west
-			fft[i][j] > fft[i][j+1] && //east
-			fft[i][j] > fft[i-1][j] && //north
-			fft[i][j] > fft[i+1][j]){ //south
-		
-		  struct peak_raw current;
-		  current.freq = i;
-		  current.ampl = fft[i][j];
-		  current.time = sample;
-		  peaks.push_back(current);
-		  sample++;
-		}
-	   }
-	 }
-	}
-	return peaks;
-}
-
-/* prune a bin of peaks, returns processed std::list */
-std::list<peak> prune(std::list<peak_raw> peaks, int nfft, int max_time)
-{
-	int num_samples;
-	int time;
-	int num;
-	int den;
-	std::list<peak> pruned;
-
-	time = 0;
-	num_samples = 50;
-	while(time < max_time)
-	{
-	  num = 0;
-	  den = 0;
-	  std::list<peak_raw> current;
-	  
-	  for(std::list<peak_raw>::iterator it = peaks.begin(); 
-			  it != peaks.end(); ++it){
-		  if((*it).time > time && 
-			(*it).time < time + num_samples){
-			current.push_back((*it));
-			num += (*it).ampl;
-			den++;
-		  }
-	  }	
-	  
-	  if(den){
-	  	for(std::list<peak_raw>::iterator it = current.begin(); 
-				it != current.end(); ++it){
-			 if((*it).ampl > (num/den)){
-				struct peak new_peak;
-				new_peak.freq = (*it).freq;
-				new_peak.time = (*it).time;
-				pruned.push_back(new_peak);
-			 }
-		}	
-	  }  
-	  
-	  time += num_samples;
-	}
-	return pruned;
-}
-
-std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
-	std::string song_name)
-{
-	uint8_t target_zone_t = 5;
-	std::list<hash_pair> fingerprints;
-
-	//probably should check that the list is at least five elements
-	for(std::list<peak>::iterator 
-		it = pruned.begin(); it != pruned.end(); ++it){
-		
-		struct peak anchor_point = *it;
-		for(uint8_t i = 1; i <= target_zone_t; i++)
-		{
-			
-			struct peak other_point = *(std::next(it,i));
-			struct fingerprint f;
-			f.anchor = anchor_point.freq;
-			f.point = other_point.freq;
-			f.delta	= other_point.time - anchor_point.time;
-			struct song_data sdata;
-			sdata.song_name = song_name;
-			sdata.time_pt = anchor_point.time;
-			struct hash_pair entry;
-			entry.fingerprint = std::to_string(f.anchor) +
-				std::to_string(f.point) +
-				std::to_string(f.delta);
-			//entry.key = f.anchor f.point d.delta;
-			entry.value = sdata;
-			fingerprints.push_back(entry);
-		}
-
-		if(std::next(it, 5) == pruned.end())
-			break;
-	}	
-
-	return fingerprints;
+	file.close();
+	
+	return fft;
 }
