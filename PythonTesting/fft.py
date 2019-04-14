@@ -30,7 +30,7 @@ def generateFFT(audioDirPath, songName, fftResolution,
     
     for i in range(0, spectrogramData.shape[0] - 1):
         for j in range(0, spectrogramData.shape[1] - 1):
-            f.write((str(int(spectrogramData[i,j])) + " "))
+            f.write((str(spectrogramData[i,j]) + " "))
         f.write("\n")
     
     f.close()
