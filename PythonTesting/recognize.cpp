@@ -53,6 +53,12 @@ struct hash_pair {
 struct count_ID {
 	std::string match;
 	int count;
+	int num_hashes;
+};
+
+struct database_info{
+	std::string song_name;
+	int hash_count;
 };
 
 std::vector<std::vector<long double>> read_fft(std::string filename);
@@ -71,7 +77,7 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 
 std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints, 
 	std::unordered_multimap<std::string, song_data> database, 
-	std::list<std::string> song_list);
+	std::list<database_info> song_list);
 
 int main()
 {
@@ -81,56 +87,74 @@ int main()
 	 */
 	
 	std::unordered_multimap<std::string, song_data> db;
-	std::list<std::string> song_names;
+	std::list<database_info> song_names;
 	std::list<hash_pair> temp;
 	std::list<hash_pair> identify;
 	std::list<count_ID> results;
 	std::pair <std::string, song_data> temp_db;
+	struct database_info temp_db_info;
 	struct hash_pair pair;
 	std::string temp_match;
 	std::string temp_s;
 	std::string output;
 	int max_count;
+	int hash_count;
 
-	temp_s = "City Streets_by Harren"; 
-	song_names.push_back(temp_s);
+	temp_s = "City Streets_by Harren";
+	hash_count = 0;
 	temp = hash_create(temp_s);
 	for(std::list<hash_pair>::iterator it = temp.begin(); 
 			  it != temp.end(); ++it){	
 		temp_db.first = (*it).fingerprint;
 		temp_db.second = (*it).value;
 		db.insert(temp_db);
+		hash_count++;	
 	}	
+	temp_db_info.song_name = temp_s;
+	temp_db_info.hash_count = hash_count;
+	song_names.push_back(temp_db_info);
 
 	temp_s ="Marble Machine_by Wintergatan"; 
-	song_names.push_back(temp_s);
+	hash_count = 0;
 	temp = hash_create(temp_s);
 	for(std::list<hash_pair>::iterator it = temp.begin(); 
 			  it != temp.end(); ++it){	
 		temp_db.first = (*it).fingerprint;
 		temp_db.second = (*it).value;
 		db.insert(temp_db);
+		hash_count++;		
 	}	
+	temp_db_info.song_name = temp_s;
+	temp_db_info.hash_count = hash_count;
+	song_names.push_back(temp_db_info);
 
 	temp_s = "Never Gonna Give You Up_by Rick Astley"; 
-	song_names.push_back(temp_s);
+	hash_count = 0;
 	temp = hash_create(temp_s);
 	for(std::list<hash_pair>::iterator it = temp.begin(); 
 			  it != temp.end(); ++it){	
 		temp_db.first = (*it).fingerprint;
 		temp_db.second = (*it).value;
 		db.insert(temp_db);
+		hash_count++;		
 	}	
+	temp_db_info.song_name = temp_s;
+	temp_db_info.hash_count = hash_count;
+	song_names.push_back(temp_db_info);
 	
 	temp_s = "Vivir Mi Vida_by Marc Anthony";
-	song_names.push_back(temp_s);
+	hash_count = 0;
 	temp = hash_create(temp_s);
 	for(std::list<hash_pair>::iterator it = temp.begin(); 
 			  it != temp.end(); ++it){	
 		temp_db.first = (*it).fingerprint;
 		temp_db.second = (*it).value;
-		db.insert(temp_db);
+		db.insert(temp_db);	
+		hash_count++;	
 	}	
+	temp_db_info.song_name = temp_s;
+	temp_db_info.hash_count = hash_count;
+	song_names.push_back(temp_db_info);
 
 	/*DEBUG*/
 	std::cout << "Full database completed \n\n" << std::endl;
@@ -152,12 +176,15 @@ int main()
 	for(std::list<count_ID>::iterator iter = results.begin(); 
 		iter != results.end(); ++iter){	
 	
+		long double count_percent;
+		count_percent = (long double) (*iter).count;
+		count_percent = count_percent/(*iter).num_hashes;	
 		std::cout << (*iter).match << " |"  
-		<< (*iter).count << "| " << std::endl;
+		<< count_percent << "| " << std::endl;
 		
-		if((*iter).count > max_count){
+		if(count_percent > max_count){
 			temp_match = (*iter).match;
-			max_count = (*iter).count;
+			max_count = count_percent;
 		}
 	}	
 
@@ -181,13 +208,16 @@ int main()
 	max_count = 0;
 	for(std::list<count_ID>::iterator iter = results.begin(); 
 		iter != results.end(); ++iter){	
-	
+
+		long double count_percent;
+		count_percent = (long double) (*iter).count;
+		count_percent = count_percent/(*iter).num_hashes;	
 		std::cout << (*iter).match << " |"  
-		<< (*iter).count << "| " << std::endl;
+		<< count_percent << "| " << std::endl;
 		
-		if((*iter).count > max_count){
+		if(count_percent > max_count){
 			temp_match = (*iter).match;
-			max_count = (*iter).count;
+			max_count = count_percent;
 		}
 	}	
 
@@ -211,13 +241,16 @@ int main()
 	max_count = 0;
 	for(std::list<count_ID>::iterator iter = results.begin(); 
 		iter != results.end(); ++iter){	
-	
-		std::cout << (*iter).match << " |"  
-		<< (*iter).count << "| " << std::endl;
 		
-		if((*iter).count > max_count){
+		long double count_percent;
+		count_percent = (long double) (*iter).count;
+		count_percent = count_percent/(*iter).num_hashes;	
+		std::cout << (*iter).match << " |"  
+		<< count_percent << "| " << std::endl;
+		
+		if(count_percent > max_count){
 			temp_match = (*iter).match;
-			max_count = (*iter).count;
+			max_count = count_percent;
 		}
 	}	
 
@@ -241,25 +274,23 @@ int main()
 	max_count = 0;
 	for(std::list<count_ID>::iterator iter = results.begin(); 
 		iter != results.end(); ++iter){	
-	
-		std::cout << (*iter).match << " |"  
-		<< (*iter).count << "| " << std::endl;
 		
-		if((*iter).count > max_count){
+		long double count_percent;
+		count_percent = (long double) (*iter).count;
+		count_percent = count_percent/(*iter).num_hashes;	
+		std::cout << (*iter).match << " |"  
+		<< count_percent << "| " << std::endl;
+		
+		if(count_percent > max_count){
 			temp_match = (*iter).match;
-			max_count = (*iter).count;
-		}
+			max_count = count_percent;
+		}	
 	}	
 
 	output = "Song Name: " + temp_match;
 	std::cout << "***************************" << std::endl;
 	std::cout << output << std::endl;
 	std::cout << "***************************" << std::endl;
-
-	
-	
-	
-	
 
 	return 0;
 }
@@ -370,13 +401,10 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 		while(it !=peaks.end()){
 
 			long double ampl_data = (*it).ampl;
-			if(ampl_data <= .125*avg){
-				peaks.erase(it++);
-			}
+			if(ampl_data <= .125*avg)
+			{peaks.erase(it++);}
 			else
-			{
-				++it;
-			}
+			{++it;}
 		}	
 	  }  
 	
@@ -542,14 +570,15 @@ std::vector<std::vector<long double>> read_fft(std::string filename)
 
 std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints, 
 	std::unordered_multimap<std::string, song_data> database,
-	std::list<std::string> song_list)
+	std::list<database_info> song_list)
 {
 	std::list<count_ID> results;
-	for(std::list<std::string>::iterator iter = song_list.begin(); 
+	for(std::list<database_info>::iterator iter = song_list.begin(); 
 		iter != song_list.end(); ++iter){	
 		struct count_ID new_count;
 		new_count.count = 0;
-		new_count.match = (*iter);
+		new_count.match = (*iter).song_name;
+		new_count.num_hashes = (*iter).hash_count;
 		results.push_back(new_count);
 	}	
 
