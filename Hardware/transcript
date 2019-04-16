@@ -1,0 +1,165 @@
+# //  Questa Sim-64
+# //  Version 10.3d linux_x86_64 Oct  6 2014
+# //
+# //  Copyright 1991-2014 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY INFORMATION
+# //  WHICH IS THE PROPERTY OF MENTOR GRAPHICS CORPORATION OR ITS
+# //  LICENSORS AND IS SUBJECT TO LICENSE TERMS.
+# //
+# Loading project AdvDgtl_Lab
+# reading /tools2/mentor/ams_13_2d/questasim/v10.3d/linux_x86_64/../modelsim.ini
+# Loading project notShazam
+# Compile of SynthesisTesting.sv failed with 1 errors.
+# Compile of SynthesisTesting.sv failed with 1 errors.
+# Compile of SynthesisTesting.sv failed with 1 errors.
+# Compile of SynthesisTesting.sv failed with 1 errors.
+# Compile of SynthesisTesting.sv failed with 1 errors.
+# Compile of SynthesisTesting.sv failed with 1 errors.
+# Compile of SynthesisTesting.sv failed with 1 errors.
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+vsim work.SynthesisTesting
+# vsim 
+# Start time: 17:27:59 on Apr 16,2019
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+# Loading work.debouncer
+# ** Error: (vsim-3037) /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv(87): Missing instance name in instantiation of 'audio_driver'.
+#         Region: :SynthesisTesting
+# Loading work.hex7seg
+# Error loading design
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+vsim work.SynthesisTesting
+# vsim 
+# Start time: 17:28:51 on Apr 16,2019
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+# Loading work.debouncer
+# Loading work.audio_driver
+# Loading work.audio_and_video_config
+# Loading work.Altera_UP_Slow_Clock_Generator
+# Loading work.Altera_UP_I2C_AV_Auto_Initialize
+# Loading work.Altera_UP_I2C
+# Loading work.audio_codec
+# Loading work.Altera_UP_Clock_Edge
+# Loading work.Altera_UP_Audio_In_Deserializer
+# Loading work.Altera_UP_Audio_Bit_Counter
+# Loading work.Altera_UP_SYNC_FIFO
+# ** Error: (vsim-3033) /homes/user3/fall16/jer2201/notShazam/Hardware/./AudioCodecDrivers/./Altera_UP_SYNC_FIFO.v(127): Instantiation of 'scfifo' failed. The design unit was not found.
+#         Region: :SynthesisTesting:aDriver:codec:Audio_In_Deserializer:Audio_In_Left_Channel_FIFO
+#         Searched libraries:
+#             /homes/user3/fall16/jer2201/ee6321/labs/project/work
+# ** Error: (vsim-3033) /homes/user3/fall16/jer2201/notShazam/Hardware/./AudioCodecDrivers/./Altera_UP_SYNC_FIFO.v(127): Instantiation of 'scfifo' failed. The design unit was not found.
+#         Region: :SynthesisTesting:aDriver:codec:Audio_In_Deserializer:Audio_In_Right_Channel_FIFO
+#         Searched libraries:
+#             /homes/user3/fall16/jer2201/ee6321/labs/project/work
+# Loading work.Altera_UP_Audio_Out_Serializer
+# ** Error: (vsim-3033) /homes/user3/fall16/jer2201/notShazam/Hardware/./AudioCodecDrivers/./Altera_UP_SYNC_FIFO.v(127): Instantiation of 'scfifo' failed. The design unit was not found.
+#         Region: :SynthesisTesting:aDriver:codec:Audio_Out_Serializer:Audio_Out_Left_Channel_FIFO
+#         Searched libraries:
+#             /homes/user3/fall16/jer2201/ee6321/labs/project/work
+# ** Error: (vsim-3033) /homes/user3/fall16/jer2201/notShazam/Hardware/./AudioCodecDrivers/./Altera_UP_SYNC_FIFO.v(127): Instantiation of 'scfifo' failed. The design unit was not found.
+#         Region: :SynthesisTesting:aDriver:codec:Audio_Out_Serializer:Audio_Out_Right_Channel_FIFO
+#         Searched libraries:
+#             /homes/user3/fall16/jer2201/ee6321/labs/project/work
+# Loading work.hex7seg
+# Error loading design
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+vsim work.SynthesisTesting
+# vsim 
+# Start time: 17:29:48 on Apr 16,2019
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+run
+# ** Warning: (vsim-3534) [FOFIR] - Failed to open file "data_file.dat" for reading.
+# No such file or directory. (errno = ENOENT)    : /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv(36)
+#    Time: 0 ps  Iteration: 0  Instance: :SynthesisTesting
+# data_file handle was NULL
+# ** Note: $finish    : /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv(39)
+#    Time: 0 ps  Iteration: 0  Instance: :SynthesisTesting
+# 1
+# Break in Module SynthesisTesting at /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv line 39
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+restart
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+run
+# ** Warning: (vsim-3534) [FOFIR] - Failed to open file "GeneratedParameter/Test.txt" for reading.
+# No such file or directory. (errno = ENOENT)    : /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv(36)
+#    Time: 0 ps  Iteration: 0  Instance: :SynthesisTesting
+# data_file handle was NULL
+# ** Note: $finish    : /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv(39)
+#    Time: 0 ps  Iteration: 0  Instance: :SynthesisTesting
+# 1
+# Break in Module SynthesisTesting at /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv line 39
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+restart
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+run
+# ** Warning: (vsim-3534) [FOFIR] - Failed to open file "GeneratedParameters/Test.txt" for reading.
+# No such file or directory. (errno = ENOENT)    : /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv(36)
+#    Time: 0 ps  Iteration: 0  Instance: :SynthesisTesting
+# data_file handle was NULL
+# ** Note: $finish    : /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv(39)
+#    Time: 0 ps  Iteration: 0  Instance: :SynthesisTesting
+# 1
+# Break in Module SynthesisTesting at /homes/user3/fall16/jer2201/notShazam/Hardware/SynthesisTesting.sv line 39
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+restart
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+run
+#        5
+# 
+#        3
+# 
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+restart
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+run
+#        5
+# 
+#        3
+# 
+# Compile of SynthesisTesting.sv was successful with warnings.
+# Compile of FFT_Accelerator.sv was successful with warnings.
+# 2 compiles, 0 failed with no errors.
+restart
+# ** Warning: (vsim-8891) All optimizations are turned off because the -novopt switch is in effect. This will cause your simulation to run very slowly. If you are using this switch to preserve visibility for Debug or PLI features please see the User's Manual section on Preserving Object Visibility with vopt.
+# Loading sv_std.std
+# Loading work.SynthesisTesting
+run
+#        5
+# 
+#        3
+# 
+#        9
+# 

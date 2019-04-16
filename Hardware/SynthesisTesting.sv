@@ -6,7 +6,7 @@
 `include "peaks.sv" // TODO remove later -- just included here to make sure peaks.sv compiles.
 
 
-module FFT_Accelerator( input logic		  CLOCK_50,
+module SynthesisTesting( input logic		  CLOCK_50,
 
 		  input logic [3:0] 	KEY, // Pushbuttons; KEY[0] is rightmost
 
@@ -24,6 +24,28 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 		  output logic AUD_DACDAT
 		  );
 
+
+	integer               data_file    ; // file handler
+	integer               scan_file    ; // file handler
+	logic   signed [21:0] captured_data;
+	`define NULL 0    
+
+	integer i;
+	parameter fileLength = 3;
+	initial begin
+		data_file = $fopen("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/Test.txt", "r");
+		if (data_file == `NULL) begin
+			$display("data_file handle was NULL");
+			$finish;
+		end
+
+		for (i=0; i<fileLength; i=i+1) begin
+			scan_file = $fscanf(data_file, "%d\n", captured_data); 
+			$display("%d\n", captured_data);
+		end
+	end
+	
+	/*
 	//Debounce button inputs 
 	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
 	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
@@ -81,6 +103,7 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 	always @(posedge counter[12]) begin
 		adc_out_buffer <= adc_left_out;
 	end
+	*/
 endmodule
 
 

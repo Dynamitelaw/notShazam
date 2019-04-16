@@ -8,17 +8,17 @@ function FFT = myFFT(x)
         %disp("==================");
         stageInputBuffer = stageOutputBuffer;
         for module = 0:modulesPerStage-1
-            k = 0;
-            if stage == 0
-                k = 0;
-            else
-                k = mod(module, 2^stage);
-            end
-            %disp(k);
+            mask = [zeros(1, stages-1),  ones(1, 50)];
+            p = [mask(1+stage:length(mask)), zeros(1, stage) ];
+            p = p(1:stages);
+            k = p & de2bi(module, stages);
+            k = bi2de(k);
+                
             index0 = bi2de(circshift(de2bi(2*module, stages), stage));
             index1 = bi2de(circshift(de2bi(2*module+1, stages), stage));
+            %disp([index0 , index1]);
             
-            moduleOutput = myButterfly([stageInputBuffer(index0+1), stageInputBuffer(index1+1)], k, 2^(stage+1));
+            moduleOutput = myButterfly([stageInputBuffer(index0+1), stageInputBuffer(index1+1)], k, N);
             stageOutputBuffer(index0+1) = moduleOutput(1);
             stageOutputBuffer(index1+1) = moduleOutput(2);
         end
