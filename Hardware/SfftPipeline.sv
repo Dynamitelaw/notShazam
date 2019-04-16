@@ -20,6 +20,14 @@
  	output logic OutputValid
  	);
  	
+
+ 	integer ShuffledIndexes [`NFFT][`SFFT_PIPELINE_DEPTH];
+ 	integer j;
+ 	initial begin
+	 	for (j=0; j<`NFFT; j=j+1) begin
+	 		ShuffledIndexes[j][0] = j;
+	 	end
+	end
  	
  	//Buffer array for storing N previous samples
  	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0];
@@ -66,7 +74,7 @@ module Radix2(
 	input b[`SFFT_INPUT_WIDTH -1:0],
 	
 	output reg A[`SFFT_INPUT_WIDTH -1:0],
-	output reg B[`SFFT_INPUT_WIDTH -1:0],
+	output reg B[`SFFT_INPUT_WIDTH -1:0]
 	);
 
 endmodule

@@ -6,25 +6,30 @@ function shuffledArray = shuffleInput(x)
     numberOfIterations = log2(N)-1;
     
     for i = 0:numberOfIterations-1
-       disp("=============");
+       %disp('=============');
        %i
        for subArray = 0:2^(i-1)
           %disp(subArray);
           inputSubset = inputIndexes(subArray*(N/2^i)+1:(subArray+1)*(N/2^i));
-          disp(inputSubset);
-          outputSubset = 1:length(inputSubset);
+          %disp(inputSubset);
+          %outputSubset = 1:length(inputSubset);
           for index = 0:length(inputSubset)-1
              if mod(index,2) == 0
-                 outputSubset(uint8(index/2)+1) = inputSubset(index+1);
+                 %outputSubset(uint8(index/2)+1) = inputSubset(index+1);
+                 outputIndexes(uint8(index/2)+1 + subArray*(N/2^i)) = inputSubset(index+1);
              else
-                 outputSubset(length(inputSubset)/2+uint8(index/2)) = inputSubset(index+1);
+                 %outputSubset(length(inputSubset)/2+uint8(index/2)) = inputSubset(index+1);
+                 outputIndexes(length(inputSubset)/2+uint8(index/2) + subArray*(N/2^i)) = inputSubset(index+1);
              end
              
           end
           
-          disp(outputSubset);
-          disp(" ");
+          %disp(outputSubset);
+          %disp(' ');
        end
-        
+       %disp(outputIndexes);
+       inputIndexes = outputIndexes;
     end
+    
+    shuffledArray = x(outputIndexes);
 end
