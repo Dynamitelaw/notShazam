@@ -27,8 +27,9 @@ module SynthesisTesting( input logic		  CLOCK_50,
 
 	integer               data_file    ; // file handler
 	integer               scan_file    ; // file handler
-	logic   signed [21:0] captured_data;
+	logic   unsigned [3:0] captured_data;
 	`define NULL 0    
+	reg [3:0] fileRead [2:0];
 
 	integer i;
 	parameter fileLength = 3;
@@ -42,10 +43,11 @@ module SynthesisTesting( input logic		  CLOCK_50,
 		for (i=0; i<fileLength; i=i+1) begin
 			scan_file = $fscanf(data_file, "%d\n", captured_data); 
 			$display("%d\n", captured_data);
+			fileRead[i] <= captured_data;
 		end
 	end
 	
-	/*
+	
 	//Debounce button inputs 
 	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
 	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
@@ -89,9 +91,13 @@ module SynthesisTesting( input logic		  CLOCK_50,
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
 		h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
-		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
-		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
-		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
+		//sh2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
+		//h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
+		//h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
+		
+		h2( .a(fileRead[0]),.y(HEX2) ),
+		h1( .a(fileRead[1]),.y(HEX1) ),
+		h0( .a(fileRead[2]),.y(HEX0) );
 		//h0( .a({3'b0, FPGA_I2C_SCLK}),.y(HEX0) );
 		
 	always @(posedge advance) begin
@@ -103,7 +109,7 @@ module SynthesisTesting( input logic		  CLOCK_50,
 	always @(posedge counter[12]) begin
 		adc_out_buffer <= adc_left_out;
 	end
-	*/
+	
 endmodule
 
 

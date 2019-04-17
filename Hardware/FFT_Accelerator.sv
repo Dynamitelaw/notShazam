@@ -5,7 +5,6 @@
 `include "./AudioCodecDrivers/audio_driver.sv"
 `include "peaks.sv" // TODO remove later -- just included here to make sure peaks.sv compiles.
 
-
 module FFT_Accelerator( input logic		  CLOCK_50,
 
 		  input logic [3:0] 	KEY, // Pushbuttons; KEY[0] is rightmost
@@ -24,6 +23,32 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 		  output logic AUD_DACDAT
 		  );
 
+
+	//Read in generated parameters into ROM
+	reg [`nFFT -1:0] shuffledInputIndexes [`NFFT -1:0];
+	
+	reg [`nFFT -1:0] kValues [`nFFT*(`NFFT / 2) -1:0];
+	
+	reg [`nFFT -1:0] aIndexes [`nFFT*(`NFFT / 2) -1:0];
+	reg [`nFFT -1:0] bIndexes [`nFFT*(`NFFT / 2) -1:0];
+	
+	reg [`SFFT_FLOATING_POINT_ACCURACY:0] realCoefficents [(`NFFT / 2) -1:0];
+	reg [`SFFT_FLOATING_POINT_ACCURACY:0] imagCoefficents [(`NFFT / 2) -1:0];
+	
+	initial begin
+		$readmemh("GeneratedParameters/InputShuffledIndexes.txt", shuffledInputIndexes, 0);
+		
+		$readmemh("GeneratedParameters/Ks.txt", kValues, 0);
+		
+		$readmemh("GeneratedParameters/aIndexes.txt", aIndexes, 0);
+		$readmemh("GeneratedParameters/bIndexes.txt", bIndexes, 0);
+		
+		$readmemh("GeneratedParameters/realCoefficients.txt", realCoefficents, 0);
+		$readmemh("GeneratedParameters/imaginaryCoefficients.txt", imagCoefficents, 0);
+	end
+	
+	
+	
 	//Debounce button inputs 
 	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
 	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
@@ -70,7 +95,7 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
-		//h0( .a({3'b0, FPGA_I2C_SCLK}),.y(HEX0) );
+
 		
 	always @(posedge advance) begin
 		counter <= counter + 1;
@@ -81,6 +106,7 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 	always @(posedge counter[12]) begin
 		adc_out_buffer <= adc_left_out;
 	end
+	
 endmodule
 
 

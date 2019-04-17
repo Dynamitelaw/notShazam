@@ -9,6 +9,7 @@ program : output_files/lab1.sof
 # Compile the project
 
 output_files/lab1.sof : FFT_Accelerator.qpf FFT_Accelerator.sv
+	matlab -nodisplay -nosplash -nodesktop -r "run('../MatlabTesting/GenerateRomFiles.m');exit;"
 	quartus_sh --flow compile FFT_Accelerator
 
 # Create the project files from a Tcl script
