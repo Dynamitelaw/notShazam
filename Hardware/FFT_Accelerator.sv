@@ -22,6 +22,9 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 		  input logic AUD_BCLK,
 		  input logic AUD_ADCDAT,
 		  output logic AUD_DACDAT
+		  
+		  //Driver IO ports
+		  //TODO add read port for software driver
 		  );
 
 	
@@ -89,7 +92,7 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 	wire [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
 	wire [`TIME_COUNTER_WIDTH -1:0] peaksCounterOut;
 	
-	/*	
+		
 	peaks peakFinder( 
 		.CLOCK_50(clk),
 		.reset(reset),
@@ -101,7 +104,7 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 		.freqs_out(peakFreqsOut),
 		.counter_out(peaksCounterOut)
 		);
-	*/
+	
 	 			
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
