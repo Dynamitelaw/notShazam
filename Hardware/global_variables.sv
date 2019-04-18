@@ -7,6 +7,7 @@
 
 `define FINAL_AMPL_WIDTH 24
 `define INPUT_AMPL_WIDTH 32
+`define TIME_COUNTER_WIDTH 25
 
 `define PEAKS 6 // Changing this requires many changes in code
 

@@ -7,7 +7,8 @@ module peaks(
 		input logic 				reset,
 		input logic[`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0],
 		output logic[`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0],
-		output logic[`FREQ_WIDTH -1:0] 		freqs_out[`PEAKS -1:0]
+		output logic[`FREQ_WIDTH -1:0] 		freqs_out[`PEAKS -1:0],
+		output logic[`TIME_COUNTER_WIDTH] 	counter_out
 	);
 
 	logic[`FINAL_AMPL_WIDTH -1:0] 		amplitudes[`PEAKS -1:0];
@@ -57,12 +58,14 @@ module peaks(
 		fft_prev <= '{`FREQS{0}};
 		fft_curr <= '{`FREQS{0}};
 		fft_next <= '{`FREQS{0}};
-
+		
+		counter_out <= {`TIME_COUNTER_WIDTH{0}};
 		amplitudes_out <= '{`PEAKS{0}};
 		freqs_out <= '{`PEAKS{0}};
 		end
 		else 
 		begin
+		counter_out <= counter_out + 1;
 		fft_prev <= fft_curr;
 		fft_curr <= fft_next;
 		fft_next <= fft_in;	
