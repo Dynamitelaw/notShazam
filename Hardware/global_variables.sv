@@ -1,17 +1,19 @@
 // FFT Macros
 `define NFFT 8 // if change this, change FREQ_WIDTH. Must be power of 2
+`define nFFT 3  //log2(NFFT)
+
 `define FREQS (`NFFT / 2)
 `define FREQ_WIDTH 4 // if change NFFT, change this
 
 `define FINAL_AMPL_WIDTH 24
-`define INPUT_AMPL_WIDTH 24
+`define INPUT_AMPL_WIDTH 32
+`define TIME_COUNTER_WIDTH 25
 
 `define PEAKS 6 // Changing this requires many changes in code
 
-`define SFFT_PIPELINE_WIDTH 128  // Must be power of 2
-`define SFFT_PIPELINE_DEPTH 3  // Must be log2(NFFT)
 `define SFFT_INPUT_WIDTH 24
 `define SFFT_OUTPUT_WIDTH `INPUT_AMPL_WIDTH
+`define SFFT_FIXED_POINT_ACCURACY 7
 
 // Audio Codec Macros
 `define AUDIO_IN_GAIN 9'h014
