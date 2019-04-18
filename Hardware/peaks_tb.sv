@@ -8,6 +8,7 @@ module peaks_tb();
 	logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0];
 	logic signed [`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0];
 	logic[`FREQ_WIDTH -1:0] 	freqs_out[`PEAKS -1:0];
+	logic[`TIME_COUNTER_WIDTH -1:0] counter_out;
 
 
 	genvar j;
