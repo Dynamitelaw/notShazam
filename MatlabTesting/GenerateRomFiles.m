@@ -35,7 +35,7 @@ fclose(fileID);
 %Generate coefficients
 disp('Generating complex coefficients');
 
-expr = '[^\n]*`define SFFT_FLOATING_POINT_ACCURACY[^\n]*'; %Parse floating point accuracy from global variables
+expr = '[^\n]*`define SFFT_FIXED_POINT_ACCURACY[^\n]*'; %Parse floating point accuracy from global variables
 defineFPA = regexp(filetext,expr,'match');
 defineFPA_array = split(defineFPA, ' ');
 floatingPointAccuracy = str2num([char(defineFPA_array(3))]);
@@ -45,18 +45,18 @@ imaginaryFileID = fopen('../Hardware/GeneratedParameters/imaginaryCoefficients.t
 
 for k = 0:N/2-1
    if k == 0
-       k = 0.0000001;
+       k = 0.00000001;
    end
    w =  exp(-2i*pi*k/N);
    realCoef = uint32(num2fixpt(real(w), ufix(floatingPointAccuracy+1), 2^(-floatingPointAccuracy)) * 2^(floatingPointAccuracy));
    imagCoef = uint32(num2fixpt(imag(w), ufix(floatingPointAccuracy+1), 2^(-floatingPointAccuracy)) * 2^(floatingPointAccuracy));
      
-   fprintf(realFileID,'%s\n',dec2hex(realCoef));
-   fprintf(imaginaryFileID,'%s\n',dec2hex(imagCoef));
+   fprintf(realFileID,'%s\n',dec2hex(realCoef, (floatingPointAccuracy+1)/4));
+   fprintf(imaginaryFileID,'%s\n',dec2hex(imagCoef, (floatingPointAccuracy+1)/4));
    
-   %disp(w);
-   %disp(q2dec([dec2hex(realCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
-   %disp(q2dec([dec2hex(imagCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
+   disp(w);
+   disp(q2dec([dec2hex(realCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
+   disp(q2dec([dec2hex(imagCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
 end
 
 fclose(realFileID);

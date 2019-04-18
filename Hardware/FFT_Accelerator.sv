@@ -23,31 +23,6 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 		  output logic AUD_DACDAT
 		  );
 
-
-	//Read in generated parameters into ROM
-	reg [`nFFT -1:0] shuffledInputIndexes [`NFFT -1:0];
-	
-	reg [`nFFT -1:0] kValues [`nFFT*(`NFFT / 2) -1:0];
-	
-	reg [`nFFT -1:0] aIndexes [`nFFT*(`NFFT / 2) -1:0];
-	reg [`nFFT -1:0] bIndexes [`nFFT*(`NFFT / 2) -1:0];
-	
-	reg [`SFFT_FLOATING_POINT_ACCURACY:0] realCoefficents [(`NFFT / 2) -1:0];
-	reg [`SFFT_FLOATING_POINT_ACCURACY:0] imagCoefficents [(`NFFT / 2) -1:0];
-	
-	initial begin
-		$readmemh("GeneratedParameters/InputShuffledIndexes.txt", shuffledInputIndexes, 0);
-		
-		$readmemh("GeneratedParameters/Ks.txt", kValues, 0);
-		
-		$readmemh("GeneratedParameters/aIndexes.txt", aIndexes, 0);
-		$readmemh("GeneratedParameters/bIndexes.txt", bIndexes, 0);
-		
-		$readmemh("GeneratedParameters/realCoefficients.txt", realCoefficents, 0);
-		$readmemh("GeneratedParameters/imaginaryCoefficients.txt", imagCoefficents, 0);
-	end
-	
-	
 	
 	//Debounce button inputs 
 	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons

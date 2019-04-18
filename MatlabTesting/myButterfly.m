@@ -1,4 +1,5 @@
 function bufferfly = myButterfly(x, k, N)
+    %disp(real(x)*2^7);
     bufferfly = [0, 0];
     w = exp(-2i*pi*k/N);
     %w = real(w);

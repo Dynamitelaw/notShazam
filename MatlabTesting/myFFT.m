@@ -17,14 +17,17 @@ function FFT = myFFT(x)
                 
             index0 = bi2de(circshift(de2bi(2*module, stages), stage));
             index1 = bi2de(circshift(de2bi(2*module+1, stages), stage));
-            disp([index0 , index1, k]);
+            %disp([index0 , index1, k]);
             
             moduleOutput = myButterfly([stageInputBuffer(index0+1), stageInputBuffer(index1+1)], k, N);
+            %disp(real(moduleOutput)*2^7);
+            %disp(" ");
             %moduleOutput = myButterfly([stageInputBuffer(index0+1), stageInputBuffer(index1+1)], k, 2^(stage+1));
             stageOutputBuffer(index0+1) = moduleOutput(1);
             stageOutputBuffer(index1+1) = moduleOutput(2);
         end
-        %disp(stageOutputBuffer);
+        disp(real(stageInputBuffer) * 2^7);
+        disp(real(stageOutputBuffer) * 2^7);
     end
     
     FFT = stageOutputBuffer;
