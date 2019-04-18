@@ -1,9 +1,10 @@
 // CSEE 4840 Lab 1
-// By: Jose Rubianes & Tomin Perea-Chamblee
+// By: Jose Rubianes & Tomin Perea-Chamblee & Eitan Kaplan
 
 
 `include "./AudioCodecDrivers/audio_driver.sv"
-`include "peaks.sv" // TODO remove later -- just included here to make sure peaks.sv compiles.
+`include "SfftPipeline.sv"
+`include "peaks.sv"
 
 module FFT_Accelerator( input logic		  CLOCK_50,
 
@@ -62,6 +63,45 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 	 	.AUD_ADCDAT(AUD_ADCDAT), 
 	 	.AUD_DACDAT(AUD_DACDAT)
 	 	);
+	 	
+	//Instantiate SFFT pipeline
+	reg [23:0] audioInMono;  //Convert stereo input to mono
+	always @ (*) begin
+		audioInMono = adc_right_out + adc_left_out;
+	end
+	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0];
+ 	wire SfftOutputValid;
+ 
+ 	SFFT_Pipeline sfft(
+	 	.clk(clk),
+	 	.reset(reset),
+	 	
+	 	.SampleAmplitudeIn(audioInMono),
+	 	.advanceSignal(advance),
+	 	
+	 	.SFFT_Out(SFFT_Out),
+	 	.OutputValid(SfftOutputValid)
+	 	);
+	 	
+	//Instantiate Peak finder
+	wire [`FINAL_AMPL_WIDTH -1:0] peakAmplitudesOut [`PEAKS -1:0];
+	wire [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
+	wire [`TIME_COUNTER_WIDTH -1:0] peaksCounterOut;
+	
+	/*	
+	peaks peakFinder( 
+		.CLOCK_50(clk),
+		.reset(reset),
+		
+		.valid_in(SfftOutputValid),
+		.fft_in(SFFT_Out[`FREQS -1:0]),
+		
+		.amplitudes_out(peakAmplitudesOut),
+		.freqs_out(peakFreqsOut),
+		.counter_out(peaksCounterOut)
+		);
+	*/
 	 			
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit

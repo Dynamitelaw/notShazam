@@ -65,7 +65,7 @@
 	// Input Sampling
 	//_________________________
 	
- 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};;
+ 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
  		
  	//Shift buffer to hold N most recent samples
  	integer i;
@@ -162,7 +162,8 @@
 		//Connect intra-pipeline buses
 		for (s=1; s<pipelineDepth; s=s+1)
 		begin : InternalBusConnections
-			for (k=0; k<`NFFT; k=k+1) begin
+			for (k=0; k<`NFFT; k=k+1) 
+			begin : InternalBusConnections_Sub
 				assign Pipeline[s].StageInReal[k] = Pipeline[s-1].StageOutReal[k];
 				assign Pipeline[s].StageInImag[k] = Pipeline[s-1].StageOutImag[k];
 			end
@@ -172,7 +173,8 @@
 		end
 		
 		//Conect pipeline input stage
-		for (k=0; k<`NFFT; k=k+1) begin
+		for (k=0; k<`NFFT; k=k+1) 
+		begin : InputBusConnections
 			assign Pipeline[0].StageInReal[k] = shuffledSamples[k];
 		end
 		assign Pipeline[0].StageInImag = '{default:0};  //No imaginary input components
@@ -181,7 +183,8 @@
 		assign inputReceived = ~Pipeline[0].idle;
 		
 		//Connect pipeline outputs
-		for (k=0; k<`NFFT; k=k+1) begin
+		for (k=0; k<`NFFT; k=k+1) 
+		begin : OutputBusConnections
 			assign SFFT_Out[k] = Pipeline[pipelineDepth-1].StageOutReal[k];  //Only output real components
 		end
 		assign OutputValid = Pipeline[pipelineDepth-1].outputReady;
