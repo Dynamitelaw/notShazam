@@ -10,7 +10,7 @@
 	`define FREQ_WIDTH 4 // if change NFFT, change this
 
 	`define FINAL_AMPL_WIDTH 24
-	`define INPUT_AMPL_WIDTH 24
+	`define INPUT_AMPL_WIDTH 32
 
 	`define PEAKS 6 // Changing this requires many changes in code
 

@@ -178,18 +178,7 @@
 		assign Pipeline[pipelineDepth-1].nextStageIdle = 0;
 		
 	endgenerate
-	
-	/*
- 	 * Testbench probes
- 	 */
-	wire [`SFFT_INPUT_WIDTH -1:0] SAMPLE_PROBE [`NFFT -1:0];
- 	genvar z;
- 	generate
- 		for (z=0; z<`NFFT; z=z+1) begin
- 			assign SAMPLE_PROBE[z] = SampleBuffers[z];
- 		end
- 	endgenerate
- 	
+	 	
  endmodule
  
  
@@ -334,46 +323,6 @@
  			end
  		end
  	end
- 	
- 	/*
- 	 * Testbench probes
- 	 */
- 	reg [`nFFT -1:0] INDEXA_PROBE;
- 	reg [`nFFT -1:0] INDEXB_PROBE;
- 	always @ (*) begin
- 		INDEXA_PROBE = aIndexes[btflyCounter];
- 		INDEXB_PROBE = bIndexes[btflyCounter];
- 	end
- 	
- 	reg [`nFFT -1:0] K_PROBE;
- 	always @ (*) begin
- 		K_PROBE = kValues[btflyCounter]; 
- 	end
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] BUFFER_PROBE [`NFFT -1:0];
- 	genvar z;
- 	generate
- 		for (z=0; z<`NFFT; z=z+1) begin
- 			assign BUFFER_PROBE[z] = StageInReal_Buffer[z];
- 		end
- 	endgenerate
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] INPUT_PROBE [`NFFT -1:0];
- 	genvar y;
- 	generate
- 		for (y=0; y<`NFFT; y=y+1) begin
- 			assign INPUT_PROBE[y] = StageInReal[y];
- 		end
- 	endgenerate
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] OUTPUT_PROBE [`NFFT -1:0];
- 	genvar x;
- 	generate
- 		for (x=0; x<`NFFT; x=x+1) begin
- 			assign OUTPUT_PROBE[x] = StageOutReal[x];
- 		end
- 	endgenerate
-
  	
  endmodule
  
