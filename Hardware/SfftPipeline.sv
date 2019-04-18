@@ -6,7 +6,12 @@
  
  
  /*
-  * Top level pipeline modle
+  * Top level SFFT pipeline module.
+  *
+  * Samples the input signal <SampleAmplitudeIn> at the rising edge of <advanceSignal>. Begins processing the FFT immediately.
+  * Only outputs the real components of the FFT result. Will raise <OutputValid> high for 1 cycle when the output is finished.
+  *
+  * Max sampling frequency = CLK_FREQ / (NFFT/2+1). Output indeterminate if exceeded.
   */
  module SFFT_Pipeline(
  	input clk,
@@ -23,9 +28,11 @@
  	
  	parameter pipelineDepth = `nFFT;
  	
-	/*
-	 * ROM for static parameters
-	 */
+	//___________________________
+	//
+	// ROM for static parameters
+	//___________________________
+	
 	reg [`nFFT -1:0] shuffledInputIndexes [`NFFT -1:0];
 	
 	reg [`nFFT -1:0] kValues [`nFFT*(`NFFT / 2) -1:0];
@@ -38,21 +45,26 @@
 	
 	//Load values into ROM from generated text files
 	initial begin
-		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/InputShuffledIndexes.txt", shuffledInputIndexes, 0);
+		//NOTE: These filepaths must be changed to their absolute paths if simulating with Vsim. Otherwise they should be relative to Hardware directory
+		//NOTE: If simulating with Vsim, make sure to run the Matlab script GenerateRomFiles.m if you change any global variables
 		
-		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/Ks.txt", kValues, 0);
+		$readmemh("GeneratedParameters/InputShuffledIndexes.txt", shuffledInputIndexes, 0);
 		
-		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/aIndexes.txt", aIndexes, 0);
-		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/bIndexes.txt", bIndexes, 0);
+		$readmemh("GeneratedParameters/Ks.txt", kValues, 0);
 		
-		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/realCoefficients.txt", realCoefficents, 0);
-		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/imaginaryCoefficients.txt", imagCoefficents, 0);
+		$readmemh("GeneratedParameters/aIndexes.txt", aIndexes, 0);
+		$readmemh("GeneratedParameters/bIndexes.txt", bIndexes, 0);
+		
+		$readmemh("GeneratedParameters/realCoefficients.txt", realCoefficents, 0);
+		$readmemh("GeneratedParameters/imaginaryCoefficients.txt", imagCoefficents, 0);
 	end
 	
 	
-	/*
-	 * Input Sampling
-	 */
+	//_________________________
+	//
+	// Input Sampling
+	//_________________________
+	
  	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};;
  		
  	//Shift buffer to hold N most recent samples
@@ -62,12 +74,10 @@
  			if (i==0) begin
  				//load most recent sample into buffer 0
  				SampleBuffers[i] <= SampleAmplitudeIn;
- 				//SampleBuffers[i] <= 42;
  			end
  			else begin
  				//Shift buffer contents down by 1 
  				SampleBuffers[i] <= SampleBuffers[i-1];
- 				//SampleBuffers[i] <= i;
  			end
  		end	
  	end 
@@ -79,11 +89,10 @@
  	parameter extensionBits = `SFFT_OUTPUT_WIDTH - `SFFT_FIXED_POINT_ACCURACY - `SFFT_INPUT_WIDTH - 1;
  	always @ (*) begin
  		for (j=0; j<`NFFT; j=j+1) begin
- 			shuffledSamples[j] = {{extensionBits{SampleBuffers[shuffledInputIndexes[j]][`SFFT_INPUT_WIDTH -1]}},SampleBuffers[shuffledInputIndexes[j]] << `SFFT_FIXED_POINT_ACCURACY};
+ 			shuffledSamples[j] = {{extensionBits{SampleBuffers[shuffledInputIndexes[j]][`SFFT_INPUT_WIDTH -1]}}, SampleBuffers[shuffledInputIndexes[j]] << `SFFT_FIXED_POINT_ACCURACY};  //Left shift input by fixed-point accuracy, and sign extend to match output width
  		end
  	end	
- 	
- 	
+ 	 	
  	//Notify pipeline of new input
  	reg newSampleReady;
 	wire inputReceived;
@@ -102,9 +111,11 @@
 	end	
 	
 	
-	/*
-	 * Generate pipeline structure
-	 */
+	//_______________________________
+	//
+	// Generate pipeline structure
+	//_______________________________
+	
 	genvar s;
 	genvar k;
 	generate
@@ -183,7 +194,7 @@
  
  
  /*
-  * Performs a single stage of the FFT butterfly calculation. Buffers inputs and outputs
+  * Performs a single stage of the FFT butterfly calculation. Buffers inputs and outputs.
   */
  module pipelineStage(
  	input clk,
@@ -223,9 +234,10 @@
  	reg [bCounterWidth -1:0] btflyCounter;
  	
  	
- 	/*
- 	 * Instantiate butterfly module
- 	 */
+ 	//_______________________________
+	//
+	// Instantiate butterfly module
+	//_______________________________
  	
  	//Inputs
  	reg [`SFFT_OUTPUT_WIDTH -1:0] aInReal;
@@ -271,9 +283,12 @@
  		wInImag = imagCoefficents[kValues[btflyCounter]];
  	end
  	
- 	/*
- 	 * Pipeline stage behaviour
- 	 */
+ 	
+ 	//_______________________________
+	//
+	// Pipeline stage behaviour
+	//_______________________________
+
  	parameter pipelineWidth = `NFFT /2;
  	integer i;
  	always @ (posedge clk) begin
@@ -288,7 +303,7 @@
  		
  		else begin
  			if ((idle==1) && (inputReady==1) && (outputReady==0)) begin
- 				//Next stage has recieved our old outputs, we're idle, and previous stage has new inputs. Start processing
+ 				//Next stage has recieved our old outputs, we're idle, and previous stage has new inputs. Buffer input and start processing
  				idle <= 0;
  				for (i=0; i<`NFFT; i=i+1) begin
  					StageInReal_Buffer[i] <= StageInReal[i];
@@ -299,12 +314,10 @@
  			else if (idle==0) begin
  				//Write A output
  				StageOutReal[aIndexes[btflyCounter]] <= AOutReal;
- 				//StageOutReal[aIndexes[btflyCounter]] <= aIndexes[btflyCounter];
  				StageOutImag[aIndexes[btflyCounter]] <= AOutImag;
  				
  				//Write B output
  				StageOutReal[bIndexes[btflyCounter]] <= BOutReal;
- 				//StageOutReal[bIndexes[btflyCounter]] <= bIndexes[btflyCounter];
  				StageOutImag[bIndexes[btflyCounter]] <= BOutImag;
  				
  				//Increment counter
@@ -328,7 +341,7 @@
  
  
  /*
-  * Performs a single 2-radix FFT. Performed continuously, does not buffer output
+  * Performs a single 2-radix FFT. Performed continuously and asynchrounously. Does not buffer input or output
   */
 module butterfly(
 	//Inputs
@@ -360,7 +373,7 @@ module butterfly(
 	    	wImag_Extended = { {extensionBits{wImag[`SFFT_FIXED_POINT_ACCURACY]}}, wImag};
 	end
 	
-	//We need to divide our b inputs by 2^FixedPointAccuracy due to the multiplying 2 fixed point numbers
+	//We need to divide our b inputs by 2^FixedPointAccuracy due to the multiplication of 2 fixed point numbers
 	reg [`SFFT_OUTPUT_WIDTH -1:0] bReal_Adjusted;
 	reg [`SFFT_OUTPUT_WIDTH -1:0] bImag_Adjusted;
 	
