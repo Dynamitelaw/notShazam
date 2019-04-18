@@ -8,7 +8,7 @@ module peaks(
 		input logic[`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0],
 		output logic[`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0],
 		output logic[`FREQ_WIDTH -1:0] 		freqs_out[`PEAKS -1:0],
-		output logic[`TIME_COUNTER_WIDTH] 	counter_out
+		output logic[`TIME_COUNTER_WIDTH -1:0] 	counter_out
 	);
 
 	logic[`FINAL_AMPL_WIDTH -1:0] 		amplitudes[`PEAKS -1:0];
