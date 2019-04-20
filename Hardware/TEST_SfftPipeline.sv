@@ -16,7 +16,7 @@
 
 	`define SFFT_INPUT_WIDTH 24
 	`define SFFT_OUTPUT_WIDTH `INPUT_AMPL_WIDTH
-	`define SFFT_FLOATING_POINT_ACCURACY 7
+	`define SFFT_FIXED_POINT_ACCURACY 7
  */
  
  `include "global_variables.sv"

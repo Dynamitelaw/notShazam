@@ -5,9 +5,10 @@ module peaks_tb();
 	logic				CLOCK_50 = 0;
 	logic 				valid_in;
 	logic 				reset;
-	logic[`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0];
-	logic[`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0];
+	logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0];
+	logic signed [`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0];
 	logic[`FREQ_WIDTH -1:0] 	freqs_out[`PEAKS -1:0];
+	logic[`TIME_COUNTER_WIDTH -1:0] counter_out;
 
 
 	genvar j;
@@ -49,7 +50,7 @@ module peaks_tb();
 		fft_in = '{	1, 2, 
 				3, 4,
 				5, 4, 
-				7, 0, 8, 
+				7, 0, -8, 
 				0, 0, 0, 0, 
 				1, 0, 0};
 		valid_in = 1;

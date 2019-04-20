@@ -5,18 +5,18 @@ module peaks(
 		input logic				CLOCK_50,
 		input logic 				valid_in,
 		input logic 				reset,
-		input logic[`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0],
-		output logic[`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0],
-		output logic[`FREQ_WIDTH -1:0] 		freqs_out[`PEAKS -1:0],
+		input logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0],
+		output logic signed [`FINAL_AMPL_WIDTH -1:0] 	amplitudes_out[`PEAKS -1:0],
+		output logic [`FREQ_WIDTH -1:0] 		freqs_out[`PEAKS -1:0],
 		output logic[`TIME_COUNTER_WIDTH -1:0] 	counter_out
 	);
 
-	logic[`FINAL_AMPL_WIDTH -1:0] 		amplitudes[`PEAKS -1:0];
-	logic[`FREQ_WIDTH -1:0] 		freqs[`PEAKS -1:0];
+	logic signed [`FINAL_AMPL_WIDTH -1:0] 		amplitudes[`PEAKS -1:0];
+	logic [`FREQ_WIDTH -1:0] 		freqs[`PEAKS -1:0];
 
-	logic[`INPUT_AMPL_WIDTH -1:0] 	fft_prev[`FREQS -1:0];
-	logic[`INPUT_AMPL_WIDTH -1:0] 	fft_curr[`FREQS -1:0];
-	logic[`INPUT_AMPL_WIDTH -1:0] 	fft_next[`FREQS -1:0];
+	logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_prev[`FREQS -1:0];
+	logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_curr[`FREQS -1:0];
+	logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_next[`FREQS -1:0];
 	logic			 	is_peak[`FREQS -1:0];
 
 	genvar freq;
@@ -32,7 +32,7 @@ module peaks(
 				.west(fft_next[freq]),
 				.is_peak(is_peak[freq])
 			);
-		else if (freq == `PEAKS -1)
+		else if (freq == `FREQS -1)
 			peak_finder pf(
 				.peak(fft_curr[freq]),
 				.north(fft_curr[freq-1]),
@@ -41,6 +41,7 @@ module peaks(
 				.west(fft_next[freq]),
 				.is_peak(is_peak[freq])
 			);
+		else
 		peak_finder pf(
 			.peak(fft_curr[freq]),
 			.north(fft_curr[freq-1]),
@@ -59,7 +60,7 @@ module peaks(
 		fft_curr <= '{`FREQS{0}};
 		fft_next <= '{`FREQS{0}};
 		
-		counter_out <= {`TIME_COUNTER_WIDTH{0}};
+		counter_out <= `TIME_COUNTER_WIDTH'b0;
 		amplitudes_out <= '{`PEAKS{0}};
 		freqs_out <= '{`PEAKS{0}};
 		end
@@ -137,7 +138,7 @@ module peaks(
 			if (is_peak[i] && fft_curr[i] > amplitudes[5])
 			begin
 				amplitudes[5] = fft_curr[i];
-				freqs[6]      = i;
+				freqs[5]      = i;
 			end
 		end
 
@@ -147,11 +148,11 @@ endmodule
 
 
 module peak_finder (
-		input logic[`INPUT_AMPL_WIDTH -1:0] 	peak,
-		input logic[`INPUT_AMPL_WIDTH -1:0] 	north,
-		input logic[`INPUT_AMPL_WIDTH -1:0] 	south,
-		input logic[`INPUT_AMPL_WIDTH -1:0] 	east,
-		input logic[`INPUT_AMPL_WIDTH -1:0] 	west,
+		input logic signed [`INPUT_AMPL_WIDTH -1:0] 	peak,
+		input logic signed [`INPUT_AMPL_WIDTH -1:0] 	north,
+		input logic signed [`INPUT_AMPL_WIDTH -1:0] 	south,
+		input logic signed [`INPUT_AMPL_WIDTH -1:0] 	east,
+		input logic signed [`INPUT_AMPL_WIDTH -1:0] 	west,
 		output logic				is_peak
 	);
 	assign is_peak = (peak >= north) && (peak >= south) && (peak >= east) && (peak >= west) ;
