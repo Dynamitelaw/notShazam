@@ -52,7 +52,6 @@ struct hash_pair {
 };
 
 struct count_ID {
-	std::string match;
 	int count;
 	int num_hashes;
 };
@@ -76,8 +75,9 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time);
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
 	std::string song_name);
 
-std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<std::string, song_data> database, 
+std::unordered_map<std::string, count_ID> identify_sample(
+	std::list<hash_pair> sample_prints, 
+	std::unordered_multimap<std::string, song_data> database,
 	std::list<database_info> song_list);
 
 int main()
@@ -90,7 +90,7 @@ int main()
 	std::unordered_multimap<std::string, song_data> db;
 	std::list<database_info> song_names;
 	std::set<std::string> sample_set;
-	std::list<count_ID> results;
+	std::unordered_map<std::string, count_ID> results;
 	struct hash_pair pair;
 	std::string temp_match;
 	std::string temp_s;
@@ -187,20 +187,21 @@ int main()
 
 		temp_match = "";	
 		max_count = 0;
-		for(std::list<count_ID>::iterator iter = results.begin(); 
-			iter != results.end(); ++iter){	
+		for(std::list<database_info>::iterator iter = song_names.begin(); 
+			iter != song_names.end(); ++iter){	
 	
-			float count_percent;
-			count_percent = (float) iter->count;
-			count_percent = count_percent/iter->num_hashes;	
+		float count_percent;
+		count_percent = (float) results[iter->song_name].count;
+		count_percent = count_percent/results[iter->song_name].num_hashes;	
 				
-			std::cout << "-" << iter->match << 
-				" /" << count_percent << "/" << std::endl;
+		std::cout << "-" << iter->song_name << 
+			" /" << count_percent << "/" << std::endl;
 		
-			if(count_percent > max_count){
-				temp_match = iter->match;
-				max_count = count_percent;
+		if(count_percent > max_count){
+			temp_match = iter->song_name;
+			max_count = count_percent;
 			}
+		
 		}
 
 		if(temp_match == temp_s)
@@ -229,10 +230,12 @@ int main()
 }
 
 
-std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints, 
+std::unordered_map<std::string, count_ID> identify_sample(
+	std::list<hash_pair> sample_prints, 
 	std::unordered_multimap<std::string, song_data> database,
 	std::list<database_info> song_list)
 {
+	/*
 	std::list<count_ID> results;
 	for(std::list<database_info>::iterator iter = song_list.begin(); 
 		iter != song_list.end(); ++iter){	
@@ -241,6 +244,16 @@ std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints,
 		new_count.match = iter->song_name;
 		new_count.num_hashes = iter->hash_count;
 		results.push_back(new_count);
+	}	
+	*/
+
+	std::unordered_map<std::string, count_ID> results;
+	for(std::list<database_info>::iterator iter = song_list.begin(); 
+		iter != song_list.end(); ++iter){	
+		
+		results[iter->song_name].num_hashes = iter->hash_count;
+		results[iter->song_name].count = 0;
+
 	}	
 
 	//for fingerpint in sampleFingerprints
@@ -255,6 +268,8 @@ std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints,
 	    for(std::unordered_multimap<std::string,song_data>::iterator
 			    it = ret.first; it != ret.second; ++it){
 		
+		results[it->second.song_name].count++;
+		/*
 		std::string song;
 		song = it->second.song_name;
 		for(std::list<count_ID>::iterator i = results.begin(); 
@@ -265,7 +280,8 @@ std::list<count_ID> identify_sample(std::list<hash_pair> sample_prints,
 				i->count += 1;
 			}
 
-		}	
+		}
+		*/	
 	    }    
 		
 	}
