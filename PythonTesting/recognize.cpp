@@ -165,9 +165,10 @@ int main()
 		identify = hash_create(temp_s + "_NOISY");
 		
 		std::cout << temp_s << + "_NOISY" << std::endl;
-		results = identify_sample(identify, db, song_names);
 
 		/* To avoid double counting */
+		
+		/*
 		sample_set = std::set<std::string>();
 		std::list<hash_pair>::iterator it = identify.begin();
 		while( it != identify.end()){		
@@ -180,7 +181,10 @@ int main()
 			else
 				{identify.erase(it++);}
 		}
+		*/
 		
+		results = identify_sample(identify, db, song_names);
+
 		temp_match = "";	
 		max_count = 0;
 		for(std::list<count_ID>::iterator iter = results.begin(); 
