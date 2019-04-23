@@ -2,7 +2,9 @@
  * Userspace program that communicates with the fft_accelerator device driver
  * through ioctls
  *
- * Stephen A. Edwards
+ * Eitan Kaplan
+ *
+ * Based on vga_ball.c by Stephen A. Edwards
  * Columbia University
  */
 
@@ -25,13 +27,13 @@ int fft_accelerator_fd;
 void print_peaks() {
   fft_accelerator_arg_t vla;
   
-  if (ioctl(fft_accelerator_fd, VGA_BALL_READ_PEAKS, &vla)) {
-      perror("ioctl(VGA_BALL_READ_PEAKS) failed");
+  if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
+      perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
       return;
   }
-  fft_accelerator_peaks_t peaks = vla.peaks;
+  fft_accelerator_peaks_t *peaks = vla.peaks;
   for (int p = 0; p < BINS; p++){
-    printf("(time: %d, frequency: %d, amplitude: %f) \n", peaks.time, peaks.freq[p], peaks.ampl[p]);
+    printf("(time: %d, frequency: %d, amplitude: %f) \n", peaks->time, peaks->freq[p], peaks->ampl[p]);
   }
 }
 
