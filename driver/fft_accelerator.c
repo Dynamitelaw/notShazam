@@ -60,7 +60,8 @@ static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peaks) {
 	int i;
 	
 	// THIS PART IS NOT FULLY PARAMETRIZED -- ioread*() calls may need to change if bit widths change.
-	peaks->time = ioread8(TIME_COUNT(dev.virtbase)); 
+	// peaks->time = ioread8(TIME_COUNT(dev.virtbase)); 
+	peaks->time = 66;
 	for (i = 0; i < BINS; i++){
 		// peaks->freq[i] = ioread8(FREQUENCIES(dev.virtbase) + i*FREQ_WIDTH_BYTES);
 		// ampl_fixed = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
