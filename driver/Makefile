@@ -10,7 +10,7 @@ else
 	KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
         PWD := $(shell pwd)
 
-default: module bounce
+default: module usr
 
 module:
 	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} modules

@@ -57,15 +57,14 @@ static double ampl_fixed_to_float(uint32_t fixed){
 // and make sure addresses match with hardware.
 static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peaks) {
 	uint32_t ampl_fixed;
-	double ampl_float;
 	int i;
 	
 	// THIS PART IS NOT FULLY PARAMETRIZED -- ioread*() calls may need to change if bit widths change.
 	peaks->time = ioread32(TIME_COUNT(dev.virtbase)); // What happens when we read a 25 bit register with ioread32?
 	for (i = 0; i < BINS; i++){
 		peaks->freq[i] = ioread8(FREQUENCIES(dev.virtbase) + i*FREQ_WIDTH_BYTES);
-		ampl = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
-		peaks->ampl[i] = ampl_fixed_to_float(ampl);
+		ampl_fixed = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
+		peaks->ampl[i] = ampl_fixed_to_float(ampl_fixed);
 	}
 }
 
@@ -84,8 +83,8 @@ static long fft_accelerator_ioctl(struct file *f, unsigned int cmd, unsigned lon
 	switch (cmd) {
 
 	case FFT_ACCELERATOR_READ_PEAKS:
-		fft_accelerator_read(&peaks);
-		if (copy_to_user(((fft_accelerator_arg_t *) arg)->peaks, vla.peaks,
+		fft_accelerator_read_peaks(&peaks);
+		if (copy_to_user(((fft_accelerator_arg_t *) arg)->peaks, &peaks,
 				 sizeof(fft_accelerator_peaks_t)))
 			return -EACCES;
 		break;
@@ -116,7 +115,6 @@ static struct miscdevice fft_accelerator_misc_device = {
  */
 static int __init fft_accelerator_probe(struct platform_device *pdev)
 {
-        fft_accelerator_position_t start = {0x10, 0x10, 0x0 };
 	int ret;
 
 	/* Register ourselves as a misc device: creates /dev/fft_accelerator */
@@ -143,9 +141,6 @@ static int __init fft_accelerator_probe(struct platform_device *pdev)
 		goto out_release_mem_region;
 	}
         
-	/* Set an initial position */
-        write_position(&start);
-
 	return 0;
 
 out_release_mem_region:
