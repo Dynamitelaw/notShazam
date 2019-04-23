@@ -6,7 +6,9 @@
 `include "SfftPipeline.sv"
 `include "peaks.sv"
 
-module FFT_Accelerator( input logic		  CLOCK_50,
+module FFT_Accelerator( 
+		  input logic clk,
+		  input logic reset,
 
 		  input logic [3:0] 	KEY, // Pushbuttons; KEY[0] is rightmost
 
@@ -21,10 +23,15 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 		  input logic AUD_ADCLRCK,
 		  input logic AUD_BCLK,
 		  input logic AUD_ADCDAT,
-		  output logic AUD_DACDAT
+		  output logic AUD_DACDAT,
 		  
 		  //Driver IO ports
 		  //TODO add read port for software driver
+		  input logic [7:0] writedata,
+		  input logic write,
+		  input chipselect,
+		  input logic [2:0] address,
+		  output logic [7:0] readdata
 		  );
 
 	
@@ -32,7 +39,7 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
 	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
 
-	assign clk = CLOCK_50;
+	//assign clk = CLOCK_50;
 
 	//Instantiate audio controller
 	reg [23:0] dac_left_in;
@@ -40,8 +47,6 @@ module FFT_Accelerator( input logic		  CLOCK_50,
 	
 	wire [23:0] adc_left_out;
 	wire [23:0] adc_right_out;
-	
-	wire reset = ~KEY[3];
 	
 	wire advance;
 	
