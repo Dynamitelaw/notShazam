@@ -35,14 +35,13 @@ void print_peaks() {
       return;
   }
   for (int p = 0; p < BINS; p++){
-    printf("(time: %ud, frequency: %ud, amplitude: %d) \n", peaks.time, peaks.freq[p], peaks.ampl[p]);
+    printf("(time: %u, frequency: %u, amplitude: %d) \n", peaks.time, peaks.freq[p], peaks.ampl[p]);
   }
 }
 
 
 int main()
 {
-  fft_accelerator_arg_t vla;
   int i;
   static const char filename[] = "/dev/fft_accelerator";
 

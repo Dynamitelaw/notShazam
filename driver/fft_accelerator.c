@@ -56,18 +56,17 @@ static int32_t ampl_fixed_to_float(int32_t fixed){
 // TODO rewrite this.  Right now it is a sketch. Double check subleties with bit widths,
 // and make sure addresses match with hardware.
 static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peaks) {
-	// int32_t ampl_fixed;
+	int32_t ampl_fixed;
 	int i;
 	
 	// THIS PART IS NOT FULLY PARAMETRIZED -- ioread*() calls may need to change if bit widths change.
-	// peaks->time = ioread8(TIME_COUNT(dev.virtbase)); 
-	peaks->time = 66;
+	peaks->time = ioread8(TIME_COUNT(dev.virtbase) + 7); 
 	for (i = 0; i < BINS; i++){
+		peaks->freq[i] = ioread8(dev.virtbase + i);
 		// peaks->freq[i] = ioread8(FREQUENCIES(dev.virtbase) + i*FREQ_WIDTH_BYTES);
+		ampl_fixed = ioread32(dev.virtbase + i);
 		// ampl_fixed = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
-		// peaks->ampl[i] = ampl_fixed_to_float(ampl_fixed);
-		peaks->freq[i] = 0;
-		peaks->ampl[i] = 0;
+		peaks->ampl[i] = ampl_fixed_to_float(ampl_fixed);
 	}
 }
 
@@ -82,12 +81,21 @@ static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peaks) {
 static long fft_accelerator_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
 	fft_accelerator_peaks_t peaks;
+	fft_accelerator_peaks_t *dest;
+	fft_accelerator_arg_t arg_k;
+
+	if (copy_from_user(&arg_k, (fft_accelerator_arg_t *) arg, sizeof(fft_accelerator_arg_t)))
+		return -EACCES;
 
 	switch (cmd) {
 
 	case FFT_ACCELERATOR_READ_PEAKS:
+		printk("about to read peaks\n");
 		fft_accelerator_read_peaks(&peaks);
-		if (copy_to_user(((fft_accelerator_arg_t *) arg)->peaks, &peaks,
+		printk("Read Peaks\n");
+		dest = arg_k.peaks;
+		printk("derefed peaks dest\n");
+		if (copy_to_user(dest, &peaks,
 				 sizeof(fft_accelerator_peaks_t)))
 			return -EACCES;
 		break;
