@@ -22,8 +22,8 @@
  	input advanceSignal,
  	
  	//Outputs
- 	output wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0],
- 	output wire OutputValid
+ 	output logic [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0],
+ 	output logic OutputValid
  	);
  	
  	parameter pipelineDepth = `nFFT;
