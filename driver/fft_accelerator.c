@@ -48,15 +48,16 @@ struct fft_accelerator_dev {
 	void __iomem *virtbase; /* Where registers can be accessed in memory */
 } dev;
 
-// TODO write this.
-static float fixed_to_float(uint32_t fixed){}
+static double ampl_fixed_to_float(uint32_t fixed){
+	return ((double)fixed / (double)(1 << AMPL_FRACTIONAL_BITS));
+}
 
 
 // TODO rewrite this.  Right now it is a sketch. Double check subleties with bit widths,
 // and make sure addresses match with hardware.
 static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peaks) {
 	uint32_t ampl_fixed;
-	float ampl_float;
+	double ampl_float;
 	int i;
 	
 	// THIS PART IS NOT FULLY PARAMETRIZED -- ioread*() calls may need to change if bit widths change.
@@ -64,7 +65,7 @@ static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peaks) {
 	for (i = 0; i < BINS; i++){
 		peaks->freq[i] = ioread8(FREQUENCIES(dev.virtbase) + i*FREQ_WIDTH_BYTES);
 		ampl = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
-		peaks->ampl[i] = fixed_to_float(ampl);
+		peaks->ampl[i] = ampl_fixed_to_float(ampl);
 	}
 }
 
