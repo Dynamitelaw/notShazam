@@ -26,14 +26,16 @@ int fft_accelerator_fd;
 /* Read and print the position */
 void print_peaks() {
   fft_accelerator_arg_t vla;
+  fft_accelerator_peaks_t peaks;
+
+  vla.peaks = &peaks;
   
   if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
       perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
       return;
   }
-  fft_accelerator_peaks_t *peaks = vla.peaks;
   for (int p = 0; p < BINS; p++){
-    printf("(time: %ud, frequency: %ud, amplitude: %d) \n", peaks->time, peaks->freq[p], peaks->ampl[p]);
+    printf("(time: %ud, frequency: %ud, amplitude: %d) \n", peaks.time, peaks.freq[p], peaks.ampl[p]);
   }
 }
 
