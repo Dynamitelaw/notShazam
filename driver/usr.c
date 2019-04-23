@@ -33,7 +33,7 @@ void print_peaks() {
   }
   fft_accelerator_peaks_t *peaks = vla.peaks;
   for (int p = 0; p < BINS; p++){
-    printf("(time: %d, frequency: %d, amplitude: %f) \n", peaks->time, peaks->freq[p], peaks->ampl[p]);
+    printf("(time: %ud, frequency: %ud, amplitude: %d) \n", peaks->time, peaks->freq[p], peaks->ampl[p]);
   }
 }
 

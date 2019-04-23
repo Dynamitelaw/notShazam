@@ -17,7 +17,7 @@ module:
 
 clean:
 	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} clean
-	${RM} hello bounce
+	${RM} usr
 
 
 endif 
