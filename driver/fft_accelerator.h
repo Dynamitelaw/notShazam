@@ -13,7 +13,7 @@
 
 
 typedef struct {
-	double ampl[BINS];
+	int32_t ampl[BINS];
  	uint8_t freq[BINS];
 	uint32_t time;
 } fft_accelerator_peaks_t;
