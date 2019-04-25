@@ -57,26 +57,25 @@ module peaks(
 	integer j;
 	always_ff @(posedge valid_in or posedge reset) begin
 		if (reset) begin
-		fft_prev <= '{`FREQS{0}};
-		fft_curr <= '{`FREQS{0}};
-		fft_next <= '{`FREQS{0}};
+			fft_prev <= '{`FREQS{0}};
+			fft_curr <= '{`FREQS{0}};
+			fft_next <= '{`FREQS{0}};
 		
-		counter_out <= `TIME_COUNTER_WIDTH'b0;
-		amplitudes_out <= '{`PEAKS{0}};
-		freqs_out <= '{`PEAKS{0}};
+			counter_out <= `TIME_COUNTER_WIDTH'b0;
+			amplitudes_out <= '{`PEAKS{0}};
+			freqs_out <= '{`PEAKS{0}};
 		end
-		else 
-		begin
-		counter_out <= counter_out + 1;
-		fft_prev <= fft_curr;
-		fft_curr <= fft_next;
-		fft_next <= fft_in;	
+		else begin
+			counter_out <= counter_out + 1;
+			fft_prev <= fft_curr;
+			fft_curr <= fft_next;
+			fft_next <= fft_in;	
 
-		for (j = 0; j < `BINS; j = j + 1) 
-		begin: 
-			amplitudes_out[j] <= amplitudes[j][`INPUT_AMPL_WIDTH -1: `INPUT_AMPL_WIDTH - `FINAL_AMPL_WIDTH];
-		end
-		freqs_out <= freqs;
+			for (j = 0; j < `PEAKS; j = j + 1) 
+			begin 
+				amplitudes_out[j] <= amplitudes[j][`INPUT_AMPL_WIDTH -1: `INPUT_AMPL_WIDTH - `FINAL_AMPL_WIDTH];
+			end
+			freqs_out <= freqs;
 		end
 
 	end
