@@ -65,6 +65,10 @@ std::vector<std::vector<float>> read_fft(std::string filename);
 
 std::list<hash_pair> hash_create(std::string song_name);
 
+std::vector<std::vector<float>> read_fft_noise(std::string filename);
+
+std::list<hash_pair> hash_create_noise(std::string song_name);
+
 std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft);
 
 std::list<peak_raw> get_peak_max_bin(std::vector<std::vector<float>> fft, 
@@ -162,27 +166,10 @@ int main()
 		std::cout << "{" <<  num_db << "} ";
 		temp_s = line; 
 		std::list<hash_pair> identify;
-		identify = hash_create(temp_s + "_NOISY");
+		identify = hash_create_noise(temp_s + "_NOISY");
 		
 		std::cout << temp_s << + "_NOISY" << std::endl;
 
-		/* To avoid double counting */
-		
-		/*
-		sample_set = std::set<std::string>();
-		std::list<hash_pair>::iterator it = identify.begin();
-		while( it != identify.end()){		
-		
-			std::pair<std::set<std::string>::iterator, bool> ret;
-			ret = sample_set.insert((*it).fingerprint);
-
-			if(ret.second)
-				{++it;}
-			else
-				{identify.erase(it++);}
-		}
-		*/
-		
 		results = identify_sample(identify, db, song_names);
 
 		temp_match = "";	
@@ -235,18 +222,6 @@ std::unordered_map<std::string, count_ID> identify_sample(
 	std::unordered_multimap<std::string, song_data> database,
 	std::list<database_info> song_list)
 {
-	/*
-	std::list<count_ID> results;
-	for(std::list<database_info>::iterator iter = song_list.begin(); 
-		iter != song_list.end(); ++iter){	
-		struct count_ID new_count;
-		new_count.count = 0;
-		new_count.match = iter->song_name;
-		new_count.num_hashes = iter->hash_count;
-		results.push_back(new_count);
-	}	
-	*/
-
 	std::unordered_map<std::string, count_ID> results;
 	for(std::list<database_info>::iterator iter = song_list.begin(); 
 		iter != song_list.end(); ++iter){	
@@ -269,19 +244,6 @@ std::unordered_map<std::string, count_ID> identify_sample(
 			    it = ret.first; it != ret.second; ++it){
 		
 		results[it->second.song_name].count++;
-		/*
-		std::string song;
-		song = it->second.song_name;
-		for(std::list<count_ID>::iterator i = results.begin(); 
-			i != results.end(); ++i){	
-		
-			if(i->match == song.c_str())
-			{
-				i->count += 1;
-			}
-
-		}
-		*/	
 	    }    
 		
 	}
@@ -305,6 +267,20 @@ std::list<hash_pair> hash_create(std::string song_name)
 	return hash_entries;
 }
 
+std::list<hash_pair> hash_create_noise(std::string song_name)
+{	
+	std::vector<std::vector<float>> fft;
+	fft = read_fft_noise(song_name);	
+
+	std::cout << fft[0].size() << " " << fft.size() << std::endl;	
+	std::list<peak> pruned_peaks;
+	pruned_peaks = max_bins(fft, NFFT);
+
+	std::list<hash_pair> hash_entries;
+	hash_entries = generate_fingerprints(pruned_peaks, song_name);
+
+	return hash_entries;
+}
 
 /* get peak max bins, returns for one bin */
 std::list<peak_raw> get_peak_max_bin(
@@ -513,6 +489,40 @@ std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft)
 	
 	return peaks;
 }
+std::vector<std::vector<float>> read_fft_noise(std::string filename)
+{
+	std::fstream file;
+	std::string line;
+	std::vector<std::vector<float>> fft;
+	file.open(filename.c_str());
+	 
+	while(getline(file, line)){
+	   if(!line.empty()){
+		std::istringstream ss(line);
+		std::vector<float> line_vector;
+		int counter = 0;
+		do{
+		  std::string word;
+		  std::string::size_type sz;
+		  float temp;
+
+		  ss >> word;
+		  if(!word.empty()){
+		  	temp = std::stof(word, &sz);
+		  }
+		
+		  line_vector.push_back(temp);
+		  counter++;
+		//twenty seconds if sample rate is 44.1kHz	
+		} while(ss && counter < 8820);
+		fft.push_back(line_vector);
+	   }
+	}
+	file.close();
+	
+	return fft;
+}
+
 
 std::vector<std::vector<float>> read_fft(std::string filename)
 {
