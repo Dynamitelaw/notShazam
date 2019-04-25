@@ -11,7 +11,7 @@ module peaks(
 		output logic[`TIME_COUNTER_WIDTH -1:0] 	counter_out
 	);
 
-	logic signed [`FINAL_AMPL_WIDTH -1:0] 		amplitudes[`PEAKS -1:0];
+	logic signed [`INPUT_AMPL_WIDTH -1:0] 		amplitudes[`PEAKS -1:0];
 	logic [`FREQ_WIDTH -1:0] 		freqs[`PEAKS -1:0];
 
 	logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_prev[`FREQS -1:0];
@@ -54,6 +54,7 @@ module peaks(
 	endgenerate
 
 
+	integer j;
 	always_ff @(posedge valid_in or posedge reset) begin
 		if (reset) begin
 		fft_prev <= '{`FREQS{0}};
@@ -71,7 +72,10 @@ module peaks(
 		fft_curr <= fft_next;
 		fft_next <= fft_in;	
 
-		amplitudes_out <= amplitudes;
+		for (j = 0; j < `BINS; j = j + 1) 
+		begin: 
+			amplitudes_out[j] <= amplitudes[j][`INPUT_AMPL_WIDTH -1: `INPUT_AMPL_WIDTH - `FINAL_AMPL_WIDTH];
+		end
 		freqs_out <= freqs;
 		end
 
