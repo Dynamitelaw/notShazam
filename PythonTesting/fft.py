@@ -15,11 +15,10 @@ def generateFFT(audioDirPath, songName, fftResolution):
 
     # Read the wav file (mono)
     samplingFrequency, signalData = wavfile.read(audioDirPath+songName)
-    signalData = signalData[0:len(signalData):4]
     # Generate spectogram
     frequencies, times, spectrogramData = signal.spectrogram(signalData,
-            fs=samplingFrequency, nperseg=fftResolution, noverlap=fftResolution/2, 
-            nfft=fftResolution, mode='complex', scaling='spectrum')
+        fs=samplingFrequency, nperseg=fftResolution, noverlap=fftResolution/2, 
+        nfft=fftResolution, window='boxcar', mode='complex', scaling='spectrum')
 
     print(songName)
     print("Spectrogram size:" + str(spectrogramData.shape[0]) + " " + 
@@ -45,10 +44,10 @@ def main():
     songFileList = os.listdir("SongFiles")
     for songFile in songFileList:
         f.write(songFile[0:-4] + "\n");
-        #generateFFT("SongFiles/", songFile, 256)
+        generateFFT("SongFiles/", songFile, 256)
     songFileList = os.listdir("InputFiles")
-    #for songFile in songFileList:
-        #generateFFT("InputFiles/", songFile, 256)
+    for songFile in songFileList:
+        generateFFT("InputFiles/", songFile, 256)
     f.close()
 
 main()
