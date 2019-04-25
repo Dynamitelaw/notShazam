@@ -159,4 +159,5 @@ module peak_finder (
 		output logic				is_peak
 	);
 	assign is_peak = (peak >= north) && (peak >= south) && (peak >= east) && (peak >= west) ;
+	//assign is_peak = 1;
 endmodule

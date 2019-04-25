@@ -26,11 +26,10 @@ module FFT_Accelerator(
 		  output logic AUD_DACDAT,
 		  
 		  //Driver IO ports
-		  //TODO add read port for software driver
 		  input logic [7:0] writedata,
 		  input logic write,
 		  input chipselect,
-		  input logic [2:0] address,
+		  input logic [7:0] address,
 		  output logic [7:0] readdata
 		  );
 
@@ -38,8 +37,6 @@ module FFT_Accelerator(
 	//Debounce button inputs 
 	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
 	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
-
-	//assign clk = CLOCK_50;
 
 	//Instantiate audio controller
 	reg [23:0] dac_left_in;
@@ -71,7 +68,8 @@ module FFT_Accelerator(
 	 	.AUD_ADCDAT(AUD_ADCDAT), 
 	 	.AUD_DACDAT(AUD_DACDAT)
 	 	);
-	 	
+	 
+		
 	//Instantiate SFFT pipeline
 	reg [23:0] audioInMono;  //Convert stereo input to mono
 	always @ (*) begin
@@ -91,7 +89,8 @@ module FFT_Accelerator(
 	 	.SFFT_Out(SFFT_Out),
 	 	.OutputValid(SfftOutputValid)
 	 	);
-	 	
+	 		 
+		
 	//Instantiate Peak finder
 	wire [`FINAL_AMPL_WIDTH -1:0] peakAmplitudesOut [`PEAKS -1:0];
 	wire [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
@@ -109,17 +108,98 @@ module FFT_Accelerator(
 		.freqs_out(peakFreqsOut),
 		.counter_out(peaksCounterOut)
 		);
-	
 	 			
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
 		h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
-		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
-		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
+		h1( .a(address[7:4]),.y(HEX1) ),
+		h0( .a(address[3:0]),.y(HEX0) );
+		//h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
+		//h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 
+	
+	//Determine when the driver is in the middle of pulling a sample
+	reg sampleBeingTaken;
+	parameter maxAddressPulled = 33;
+	always @(posedge clk) begin
+		if (address < maxAddressPulled) begin
+			sampleBeingTaken <= 1;
+		end
+		else begin
+			sampleBeingTaken <= 0;
+		end
+	end
+	
+	//Map peaks output onto readOutBus
+	reg [7:0] readOutBus_buffer [255:0];
+	always @(posedge clk) begin
+		if (sampleBeingTaken == 0) begin
+			//Counter -> address 0-3. Assuming 32 bit counter
+			readOutBus_buffer[0] <= peaksCounterOut[`TIME_COUNTER_WIDTH -1:`TIME_COUNTER_WIDTH -8];
+			readOutBus_buffer[1] <= peaksCounterOut[`TIME_COUNTER_WIDTH -9:`TIME_COUNTER_WIDTH -16];
+			readOutBus_buffer[2] <= peaksCounterOut[`TIME_COUNTER_WIDTH -17:`TIME_COUNTER_WIDTH -24];
+			readOutBus_buffer[3] <= peaksCounterOut[`TIME_COUNTER_WIDTH -25:`TIME_COUNTER_WIDTH -32];
+			
+			//Freqenies 0-6 -> address 4-9. Assuming 8 bit frequency
+			readOutBus_buffer[4] <= peakFreqsOut[0];
+			readOutBus_buffer[5] <= peakFreqsOut[1];
+			readOutBus_buffer[6] <= peakFreqsOut[2];
+			readOutBus_buffer[7] <= peakFreqsOut[3];
+			readOutBus_buffer[8] <= peakFreqsOut[4];
+			readOutBus_buffer[9] <= peakFreqsOut[5];
+			
+			//Amplitudes 0-6 -> address {10-13, 14-17, 18-21, 22-25, 26-29, 30-33}. Assuming 32 bit frequency amplitude
+			readOutBus_buffer[10] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
+			readOutBus_buffer[11] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
+			readOutBus_buffer[12] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			readOutBus_buffer[13] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			
+			readOutBus_buffer[14] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
+			readOutBus_buffer[15] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
+			readOutBus_buffer[16] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			readOutBus_buffer[17] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			
+			readOutBus_buffer[18] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
+			readOutBus_buffer[19] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
+			readOutBus_buffer[20] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			readOutBus_buffer[21] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			
+			readOutBus_buffer[22] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
+			readOutBus_buffer[23] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
+			readOutBus_buffer[24] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			readOutBus_buffer[25] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			
+			readOutBus_buffer[26] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
+			readOutBus_buffer[27] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
+			readOutBus_buffer[28] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			readOutBus_buffer[29] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			
+			readOutBus_buffer[30] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
+			readOutBus_buffer[31] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
+			readOutBus_buffer[32] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			readOutBus_buffer[33] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			
+			
+			//Populate last 8 bytes with fixed test values
+			readOutBus_buffer[248] <= 8'd42;
+			readOutBus_buffer[249] <= 8'd53;
+			readOutBus_buffer[250] <= 8'd84;
+			readOutBus_buffer[251] <= 8'd71;
+			readOutBus_buffer[252] <= 8'd7;
+			readOutBus_buffer[253] <= 8'd25;
+			readOutBus_buffer[254] <= 8'd48;
+			readOutBus_buffer[255] <= 8'd96;
+		end
+	end
+	
+	//Read handling
+	always @(posedge clk) begin
+		readdata <= readOutBus_buffer[address];
+	end
 		
+	//Sample inputs
 	always @(posedge advance) begin
 		counter <= counter + 1;
 		dac_left_in <= adc_left_out;
