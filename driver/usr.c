@@ -28,14 +28,14 @@ void print_peaks() {
   fft_accelerator_arg_t vla;
   fft_accelerator_peaks_t peaks;
 
-  vla.peaks = &peaks;
+  vla.peak_struct = &peaks;
   
   if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
       perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
       return;
   }
   for (int p = 0; p < BINS; p++){
-    printf("(time: %u, frequency: %u, amplitude: %d) \n", peaks.time, peaks.freq[p], peaks.ampl[p]);
+    printf("(time: %u, frequency: %u, amplitude: %d) \n", peaks.time, peaks.points[p].freq, peaks.points[p].ampl);
   }
 }
 
@@ -56,6 +56,6 @@ int main()
   printf("peaks: ");
   print_peaks();
 
-  printf("VGA BALL Userspace program terminating\n");
+  printf("FFT Accelerator Userspace program terminating\n");
   return 0;
 }

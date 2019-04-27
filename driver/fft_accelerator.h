@@ -13,14 +13,18 @@
 
 
 typedef struct {
-	int32_t ampl[BINS];
- 	uint8_t freq[BINS];
-	uint32_t time;
+	int32_t ampl;
+	uint8_t freq;
+} point;
+
+typedef struct {
+	point points[BINS];
+	uint32_t time; // consider moving this inside point
 } fft_accelerator_peaks_t;
   
 
 typedef struct {
-  fft_accelerator_peaks_t *peaks;
+  fft_accelerator_peaks_t *peak_struct;
 } fft_accelerator_arg_t;
 
 #define FFT_ACCELERATOR_MAGIC 'p'
