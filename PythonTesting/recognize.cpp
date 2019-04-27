@@ -26,28 +26,28 @@
 
 struct peak_raw {
 	float ampl;
-	int freq;
-	int time;
+	uint16_t freq;
+	uint16_t time;
 };
 
 struct peak {
-	int freq;
-	int time;
+	uint16_t freq;
+	uint16_t time;
 };
 
 struct fingerprint {
-	int anchor;
-	int point;
-	int delta;
+	uint16_t anchor;
+	uint16_t point;
+	uint16_t delta;
 };
 
 struct song_data {
 	std::string song_name;
-	int time_pt;
+	uint16_t time_pt;
 };
 
 struct hash_pair {
-	std::string fingerprint;
+	uint64_t fingerprint;
 	struct song_data value;
 };
 
@@ -81,7 +81,7 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 
 std::unordered_map<std::string, count_ID> identify_sample(
 	std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<std::string, song_data> database,
+	std::unordered_multimap<uint64_t, song_data> database,
 	std::list<database_info> song_list);
 
 int main()
@@ -91,13 +91,15 @@ int main()
 	 * are availible at ./song_name. 
 	 */
 	
-	std::unordered_multimap<std::string, song_data> db;
+	std::unordered_multimap<uint64_t, song_data> db;
 	std::list<database_info> song_names;
-	std::set<std::string> sample_set;
 	std::unordered_map<std::string, count_ID> results;
 	struct hash_pair pair;
+	std::pair<uint64_t, song_data> temp_db;
+	struct database_info temp_db_info;
 	std::string temp_match;
 	std::string temp_s;
+	
 	std::string output;
 	float max_count;
 	int hash_count;
@@ -106,13 +108,12 @@ int main()
 	std::string line;
 	std::vector<std::string> song_file_list;
 	
-	file.open("song_list.txt");
 	int num_db = 0;	
+	
+	file.open("song_list.txt");
 	while(getline(file, line)){
 	   if(!line.empty()){
 
-		//if(!(num_db % 3))
-		//{
 		num_db++;
 		   
 		temp_s = line;
@@ -124,7 +125,6 @@ int main()
 		for(std::list<hash_pair>::iterator it = temp.begin(); 
 			  it != temp.end(); ++it){	
 
-			std::pair<std::string, song_data> temp_db;
 			temp_db.first = it->fingerprint;
 		       	temp_db.second = it->value;
 			db.insert(temp_db);
@@ -132,36 +132,30 @@ int main()
 			hash_count++;	
 		}	
 		
-		struct database_info temp_db_info;
 		temp_db_info.song_name = temp_s;
 		temp_db_info.hash_count = hash_count;
 		song_names.push_back(temp_db_info);
-	     	std::cout << std::endl;
 	   	
-		std::cout <<  num_db << " ";
-		std::cout << "songs worth of hashes, databased. Size: ";
+		std::cout <<  "(" << num_db << ") ";
+		std::cout << temp_s;
+		std::cout << " databased.\n Number of hash table entries: ";
 		std::cout << temp.size() << std::endl;
-		std::cout << temp_s << std::endl;
-		
-		//}
+	     	std::cout << std::endl;
+	     	std::cout << std::endl;
 	   }
 	}
 	file.close();
-	
+
 	/*DEBUG*/
 	std::cout << "Full database completed \n\n" << std::endl;
-	
+
 	std::cout << "Next is identifying: \n\n" << std::endl;
 	
 	file.open("song_list.txt");
 	int correct = 0;
-	//int total = 0;
 	num_db = 0;	 
 	while(getline(file, line))
 	{
-		//if(!(num_db % 3))
-		//{
-		
 		num_db++;
 		std::cout << "{" <<  num_db << "} ";
 		temp_s = line; 
@@ -195,20 +189,15 @@ int main()
 		{
 			correct++;
 		}
-		//total++;
 
 		output = "Song Name: " + temp_match;
-		std::cout << "*****************************************" 
-			<< std::endl;
+		std::cout << "*************************************"
+			<< "*************************" << std::endl;
 		std::cout << output << std::endl;
 		std::cout << "Correctly matched: " << correct << "/" << num_db
-			//total
 			<< std::endl;
-		std::cout << "*****************************************" 
-			<< std::endl;
-
-		//}
-
+		std::cout << "*************************************"
+			<< "*************************" << std::endl;
 
 	}
 	file.close();
@@ -219,9 +208,10 @@ int main()
 
 std::unordered_map<std::string, count_ID> identify_sample(
 	std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<std::string, song_data> database,
+	std::unordered_multimap<uint64_t, song_data> database,
 	std::list<database_info> song_list)
 {
+	std::cout << "call to identify" << std::endl;
 	std::unordered_map<std::string, count_ID> results;
 	for(std::list<database_info>::iterator iter = song_list.begin(); 
 		iter != song_list.end(); ++iter){	
@@ -235,12 +225,12 @@ std::unordered_map<std::string, count_ID> identify_sample(
 	for(std::list<hash_pair>::iterator iter = sample_prints.begin(); 
 		iter != sample_prints.end(); ++iter){	
 		
-	    std::pair<std::unordered_multimap<std::string,song_data>::iterator,
-	    	std::unordered_multimap<std::string,song_data>::iterator> ret;
+	    std::pair<std::unordered_multimap<uint64_t,song_data>::iterator,
+	    	std::unordered_multimap<uint64_t,song_data>::iterator> ret;
 	    
 	    ret = database.equal_range(iter->fingerprint);
 
-	    for(std::unordered_multimap<std::string,song_data>::iterator
+	    for(std::unordered_multimap<uint64_t,song_data>::iterator
 			    it = ret.first; it != ret.second; ++it){
 		
 		results[it->second.song_name].count++;
@@ -251,10 +241,9 @@ std::unordered_map<std::string, count_ID> identify_sample(
 
 }
 
-
-
 std::list<hash_pair> hash_create(std::string song_name)
 {	
+	std::cout << "call to hash_create" << std::endl;
 	std::vector<std::vector<float>> fft;
 	fft = read_fft(song_name);	
 
@@ -269,6 +258,7 @@ std::list<hash_pair> hash_create(std::string song_name)
 
 std::list<hash_pair> hash_create_noise(std::string song_name)
 {	
+	std::cout << "call to hash_create_noise" << std::endl;
 	std::vector<std::vector<float>> fft;
 	fft = read_fft_noise(song_name);	
 
@@ -287,15 +277,16 @@ std::list<peak_raw> get_peak_max_bin(
 	std::vector<std::vector<float>> fft, 
 	int fft_res, int start, int end)
 {
+	std::cout << "call to get_peak_max_bin" << std::endl;
 	std::list<peak_raw> peaks;
-	int columns;
-	int sample;
+	uint16_t columns;
+	uint16_t sample;
 
 	columns = fft[0].size();
 	sample = 1;
 	// first bin
 	if(!start && end){
-	   for(int j = 1; j < columns-2; j++){
+	   for(uint16_t j = 1; j < columns-2; j++){
 		if(fft[0][j] > fft[0][j-1] && //west
 			fft[0][j] > fft[0][j+1] && //east
 			fft[0][j] > fft[1][j]){ //south
@@ -311,8 +302,8 @@ std::list<peak_raw> get_peak_max_bin(
 	}
 	// remaining bins
 	else{
-	 for(int i = start; i < end - 2; i++){
-	   for(int j = 1; j < columns-2; j++){
+	 for(uint16_t i = start; i < end - 2; i++){
+	   for(uint16_t j = 1; j < columns-2; j++){
 		if(fft[i][j] > fft[i][j-1] && //west
 			fft[i][j] > fft[i][j+1] && //east
 			fft[i][j] > fft[i-1][j] && //north
@@ -334,35 +325,35 @@ std::list<peak_raw> get_peak_max_bin(
 /* prune a bin of peaks, returns processed std::list */
 std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 {
+	std::cout << "call to prune" << std::endl;
 	int time_bin_size;
 	int time;
+	std::set<uint16_t> sample_set;
+	std::pair<std::set<uint16_t>::iterator,bool> ret;
 	float num;
 	int den;
 	float avg;
 	std::list<peak> pruned;
 
 	num = 0;
-      	den = 0;
+	den = 0;
 	for(std::list<peak_raw>::iterator it = peaks.begin(); 
 		    it != peaks.end(); ++it){
 		num += it->ampl;
 		den++;
 	}
-	
+				
 	if(den){
-		
 		avg = num/den;
 		std::list<peak_raw>::iterator it = peaks.begin(); 
 		
-		while(it !=peaks.end())
-		{
+		while(it !=peaks.end()){
 			if(it->ampl <= .25*avg)
 				{peaks.erase(it++);}
-			else
+			else											
 				{++it;}
 		}	
-	  }  
-	
+	}  
 
 	time = 0;
 	time_bin_size = 60;
@@ -373,22 +364,45 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 	  std::list<peak_raw> current;
 	  
 	  for(std::list<peak_raw>::iterator it = peaks.begin(); 
-			  it != peaks.end(); ++it){
-		  if((*it).time > time && (*it).time < time + time_bin_size)
-		  {
-			current.push_back((*it));
-			num += it->ampl;
-			den++;
+			  it != peaks.end(); ++it){	  
+		  
+		  if(it->time > time && it->time < time + time_bin_size){
+		
+			ret = sample_set.insert(it->time);
+			if(ret.second){
+			  current.push_back(*it);
+			  num += it->ampl;
+			  den++;
+			}
+			else{
+	  		  for(std::list<peak_raw>::iterator 
+				iter = current.begin(); 
+		    		iter != current.end(); ++iter){
+					
+				if(iter->time == it->time){
+					//greater, update list
+					if(it->ampl > iter->ampl){
+						num -= iter->ampl;
+						current.erase(iter);
+			  			current.push_back(*it);
+			  			num += it->ampl;
+					}
+					// there should only be one
+					// so leave this inner loop
+			   		break;		   	
+				}
+			  }
+			}
 		  }
 	  }	
-	 
+
 	  if(den){
 
 	  	avg = num/den;
 	  	for(std::list<peak_raw>::iterator it = current.begin(); 
 		    it != current.end(); ++it){
 		
-			if(it->ampl >= 2*avg)
+			if(it->ampl >= 1.5*avg)
 			{
 				struct peak new_peak; 
 				new_peak.freq =	it->freq;
@@ -407,27 +421,37 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
 	std::string song_name)
 {
-	int target_zone_t = 5;
+	uint16_t target_zone_t = 5;
 	std::list<hash_pair> fingerprints;
+	struct fingerprint f;
+	struct song_data sdata;
+	struct hash_pair entry;
+	uint64_t template_print;
+	struct peak other_point;
+	struct peak anchor_point;
 
 	for(std::list<peak>::iterator it = pruned.begin(); 
 		std::next(it, target_zone_t) != pruned.end(); it++){
 
-		struct peak anchor_point = *it;
-		for(int i = 1; i <= target_zone_t; i++){
+		anchor_point= *it;
+		for(uint16_t i = 1; i <= target_zone_t; i++){
 			
-			struct peak other_point = *(std::next(it,i));
-			struct fingerprint f;
+			other_point = *(std::next(it,i));
+			
 			f.anchor = anchor_point.freq;
 			f.point = other_point.freq;
 			f.delta	= other_point.time - anchor_point.time;
-			struct song_data sdata;
+			
 			sdata.song_name = song_name;
 			sdata.time_pt = anchor_point.time;
-			struct hash_pair entry;
-			entry.fingerprint = std::to_string(f.anchor) +
-				std::to_string(f.point) +
-				std::to_string(f.delta);
+			
+			template_print = f.anchor;
+			template_print = template_print << 16;
+			template_print |= f.point;
+			template_print = template_print << 16;
+			template_print |= f.delta;
+
+			entry.fingerprint = template_print;
 			entry.value = sdata;
 			fingerprints.push_back(entry);
 		}
@@ -489,8 +513,10 @@ std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft)
 	
 	return peaks;
 }
+
 std::vector<std::vector<float>> read_fft_noise(std::string filename)
 {
+	std::cout << "call to read_fft_noise" << std::endl;
 	std::fstream file;
 	std::string line;
 	std::vector<std::vector<float>> fft;
@@ -526,6 +552,7 @@ std::vector<std::vector<float>> read_fft_noise(std::string filename)
 
 std::vector<std::vector<float>> read_fft(std::string filename)
 {
+	std::cout << "call to read_fft" << std::endl;
 	std::fstream file;
 	std::string line;
 	std::vector<std::vector<float>> fft;
@@ -555,4 +582,3 @@ std::vector<std::vector<float>> read_fft(std::string filename)
 	
 	return fft;
 }
-
