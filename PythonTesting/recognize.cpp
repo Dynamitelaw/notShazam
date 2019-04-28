@@ -281,6 +281,7 @@ std::list<peak_raw> get_peak_max_bin(
 	std::list<peak_raw> peaks;
 	uint16_t columns;
 	uint16_t sample;
+	struct peak_raw current;
 
 	columns = fft[0].size();
 	sample = 1;
@@ -291,7 +292,6 @@ std::list<peak_raw> get_peak_max_bin(
 			fft[0][j] > fft[0][j+1] && //east
 			fft[0][j] > fft[1][j]){ //south
 		
-		  struct peak_raw current;
 		  current.freq = 0;
 		  current.ampl = fft[0][j];
 		  current.time = sample;
@@ -309,7 +309,6 @@ std::list<peak_raw> get_peak_max_bin(
 			fft[i][j] > fft[i-1][j] && //north
 			fft[i][j] > fft[i+1][j]){ //south
 		
-		  struct peak_raw current;
 		  current.freq = i;
 		  current.ampl = fft[i][j];
 		  current.time = sample;
@@ -328,12 +327,14 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 	std::cout << "call to prune" << std::endl;
 	int time_bin_size;
 	int time;
-	std::set<uint16_t> sample_set;
-	std::pair<std::set<uint16_t>::iterator,bool> ret;
 	float num;
 	int den;
 	float avg;
+	std::list<peak_raw> current;
 	std::list<peak> pruned;
+	struct peak new_peak; 
+	std::set<uint16_t> sample_set;
+	std::pair<std::set<uint16_t>::iterator,bool> ret;
 
 	num = 0;
 	den = 0;
@@ -356,12 +357,12 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 	}  
 
 	time = 0;
-	time_bin_size = 60;
+	time_bin_size = 40;
+	
 	while(time < max_time){
 
 	  num = 0;
 	  den = 0;
-	  std::list<peak_raw> current;
 	  
 	  for(std::list<peak_raw>::iterator it = peaks.begin(); 
 			  it != peaks.end(); ++it){	  
@@ -402,9 +403,8 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 	  	for(std::list<peak_raw>::iterator it = current.begin(); 
 		    it != current.end(); ++it){
 		
-			if(it->ampl >= 1.5*avg)
+			if(it->ampl >= 1.75*avg)
 			{
-				struct peak new_peak; 
 				new_peak.freq =	it->freq;
 				new_peak.time = it->time;
 				pruned.push_back(new_peak);
@@ -413,6 +413,7 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 	  }  
 	  
 	  time += time_bin_size;
+	  current = std::list<peak_raw>();
 	}
 
 	return pruned;
@@ -421,19 +422,22 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
 	std::string song_name)
 {
-	uint16_t target_zone_t = 5;
 	std::list<hash_pair> fingerprints;
 	struct fingerprint f;
 	struct song_data sdata;
 	struct hash_pair entry;
+	uint16_t target_zone_t;
 	uint64_t template_print;
 	struct peak other_point;
 	struct peak anchor_point;
+
+	target_zone_t = 5;
 
 	for(std::list<peak>::iterator it = pruned.begin(); 
 		std::next(it, target_zone_t) != pruned.end(); it++){
 
 		anchor_point= *it;
+	
 		for(uint16_t i = 1; i <= target_zone_t; i++){
 			
 			other_point = *(std::next(it,i));
@@ -453,9 +457,9 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 
 			entry.fingerprint = template_print;
 			entry.value = sdata;
+	
 			fingerprints.push_back(entry);
 		}
-
 	}	
 
 	return fingerprints;
