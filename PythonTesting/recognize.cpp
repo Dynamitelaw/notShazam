@@ -44,6 +44,7 @@ struct fingerprint {
 struct song_data {
 	std::string song_name;
 	uint16_t time_pt;
+	uint16_t song_ID;
 };
 
 struct hash_pair {
@@ -52,22 +53,24 @@ struct hash_pair {
 };
 
 struct count_ID {
+	std::string song;
 	int count;
 	int num_hashes;
 };
 
 struct database_info{
 	std::string song_name;
+	uint16_t song_ID;
 	int hash_count;
 };
 
 std::vector<std::vector<float>> read_fft(std::string filename);
 
-std::list<hash_pair> hash_create(std::string song_name);
+std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID);
 
 std::vector<std::vector<float>> read_fft_noise(std::string filename);
 
-std::list<hash_pair> hash_create_noise(std::string song_name);
+std::list<hash_pair> hash_create_noise(std::string song_name, uint16_t song_ID);
 
 std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft);
 
@@ -77,9 +80,9 @@ std::list<peak_raw> get_peak_max_bin(std::vector<std::vector<float>> fft,
 std::list<peak> prune(std::list<peak_raw> peaks, int max_time);
 
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
-	std::string song_name);
+	std::string song_name, uint16_t song_ID);
 
-std::unordered_map<std::string, count_ID> identify_sample(
+std::unordered_map<uint16_t, count_ID> identify_sample(
 	std::list<hash_pair> sample_prints, 
 	std::unordered_multimap<uint64_t, song_data> database,
 	std::list<database_info> song_list);
@@ -93,7 +96,7 @@ int main()
 	
 	std::unordered_multimap<uint64_t, song_data> db;
 	std::list<database_info> song_names;
-	std::unordered_map<std::string, count_ID> results;
+	std::unordered_map<uint16_t, count_ID> results;
 	struct hash_pair pair;
 	std::pair<uint64_t, song_data> temp_db;
 	struct database_info temp_db_info;
@@ -108,7 +111,7 @@ int main()
 	std::string line;
 	std::vector<std::string> song_file_list;
 	
-	int num_db = 0;	
+	uint16_t num_db = 0;	
 	
 	file.open("song_list.txt");
 	while(getline(file, line)){
@@ -120,7 +123,7 @@ int main()
 		hash_count = 0;
 			
 		std::list<hash_pair> temp;
-		temp = hash_create(temp_s);
+		temp = hash_create(temp_s, num_db);
 		
 		for(std::list<hash_pair>::iterator it = temp.begin(); 
 			  it != temp.end(); ++it){	
@@ -134,6 +137,7 @@ int main()
 		
 		temp_db_info.song_name = temp_s;
 		temp_db_info.hash_count = hash_count;
+		temp_db_info.song_ID = num_db;
 		song_names.push_back(temp_db_info);
 	   	
 		std::cout <<  "(" << num_db << ") ";
@@ -160,7 +164,7 @@ int main()
 		std::cout << "{" <<  num_db << "} ";
 		temp_s = line; 
 		std::list<hash_pair> identify;
-		identify = hash_create_noise(temp_s + "_NOISY");
+		identify = hash_create_noise(temp_s + "_NOISY", num_db);
 		
 		std::cout << temp_s << + "_NOISY" << std::endl;
 
@@ -172,14 +176,14 @@ int main()
 			iter != song_names.end(); ++iter){	
 	
 		float count_percent;
-		count_percent = (float) results[iter->song_name].count;
-		count_percent = count_percent/results[iter->song_name].num_hashes;	
+		count_percent = (float) results[iter->song_ID].count;
+		count_percent = count_percent/results[iter->song_ID].num_hashes;	
 				
-		std::cout << "-" << iter->song_name << 
+		std::cout << "-" << results[iter->song_ID].song << 
 			" /" << count_percent << "/" << std::endl;
 		
 		if(count_percent > max_count){
-			temp_match = iter->song_name;
+			temp_match = results[iter->song_ID].song;
 			max_count = count_percent;
 			}
 		
@@ -206,18 +210,27 @@ int main()
 }
 
 
-std::unordered_map<std::string, count_ID> identify_sample(
+std::unordered_map<uint16_t, count_ID> identify_sample(
 	std::list<hash_pair> sample_prints, 
 	std::unordered_multimap<uint64_t, song_data> database,
 	std::list<database_info> song_list)
 {
 	std::cout << "call to identify" << std::endl;
-	std::unordered_map<std::string, count_ID> results;
+	
+	std::unordered_map<uint16_t, count_ID> results;
+	//new database, keys are songIDs concatenated with time anchor
+	//values are number of appearances, if 5 we've matched
+	std::unordered_map<uint32_t, int> db2;
+	uint32_t new_key;
+	uint16_t identity;
+
 	for(std::list<database_info>::iterator iter = song_list.begin(); 
 		iter != song_list.end(); ++iter){	
-		
-		results[iter->song_name].num_hashes = iter->hash_count;
-		results[iter->song_name].count = 0;
+		//scaling may no longer be necessary, but currently used
+		results[iter->song_ID].num_hashes = iter->hash_count;
+		results[iter->song_ID].song = iter->song_name;
+		//set count to zero, will now be number of target zones matched
+		results[iter->song_ID].count = 0;
 
 	}	
 
@@ -228,22 +241,45 @@ std::unordered_map<std::string, count_ID> identify_sample(
 	    std::pair<std::unordered_multimap<uint64_t,song_data>::iterator,
 	    	std::unordered_multimap<uint64_t,song_data>::iterator> ret;
 	    
+	    // get all the entries at this hash location
 	    ret = database.equal_range(iter->fingerprint);
 
+	    //lets insert the song_ID, time anchor pairs in our new database
 	    for(std::unordered_multimap<uint64_t,song_data>::iterator
 			    it = ret.first; it != ret.second; ++it){
-		
-		results[it->second.song_name].count++;
-	    }    
+		  
+		    new_key = it->second.song_ID;
+		    new_key = new_key << 16;
+		    new_key |= it->second.time_pt;
+
+		    db2[new_key]++;
+	    }
 		
 	}
+	// second database is fully populated
+
+
+	//adds to their count in the results structure, which is returned
+	for(std::unordered_map<uint32_t,int>::iterator
+			    it = db2.begin(); it != db2.end(); ++it){
+		
+		//full target zone matched
+		if(it->second >= 4)
+		{
+			//std::cout << it->second << " ";
+			identity = it->first >> 16;
+			results[identity].count += (int) (it->second / 4);
+		}
+	}    
+
 	return results;
 
 }
 
-std::list<hash_pair> hash_create(std::string song_name)
+std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID)
 {	
 	std::cout << "call to hash_create" << std::endl;
+	std::cout << "Song ID = " << song_ID << std::endl; 
 	std::vector<std::vector<float>> fft;
 	fft = read_fft(song_name);	
 
@@ -251,12 +287,12 @@ std::list<hash_pair> hash_create(std::string song_name)
 	pruned_peaks = max_bins(fft, NFFT);
 
 	std::list<hash_pair> hash_entries;
-	hash_entries = generate_fingerprints(pruned_peaks, song_name);
+	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
 
 	return hash_entries;
 }
 
-std::list<hash_pair> hash_create_noise(std::string song_name)
+std::list<hash_pair> hash_create_noise(std::string song_name, uint16_t song_ID)
 {	
 	std::cout << "call to hash_create_noise" << std::endl;
 	std::vector<std::vector<float>> fft;
@@ -267,7 +303,7 @@ std::list<hash_pair> hash_create_noise(std::string song_name)
 	pruned_peaks = max_bins(fft, NFFT);
 
 	std::list<hash_pair> hash_entries;
-	hash_entries = generate_fingerprints(pruned_peaks, song_name);
+	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
 
 	return hash_entries;
 }
@@ -349,7 +385,7 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 		std::list<peak_raw>::iterator it = peaks.begin(); 
 		
 		while(it !=peaks.end()){
-			if(it->ampl <= .25*avg)
+			if(it->ampl <= .125*avg)
 				{peaks.erase(it++);}
 			else											
 				{++it;}
@@ -357,7 +393,7 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 	}  
 
 	time = 0;
-	time_bin_size = 40;
+	time_bin_size = 50;
 	
 	while(time < max_time){
 
@@ -403,7 +439,7 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 	  	for(std::list<peak_raw>::iterator it = current.begin(); 
 		    it != current.end(); ++it){
 		
-			if(it->ampl >= 1.75*avg)
+			if(it->ampl >= 1.85*avg)
 			{
 				new_peak.freq =	it->freq;
 				new_peak.time = it->time;
@@ -420,7 +456,7 @@ std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
 }
 
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
-	std::string song_name)
+	std::string song_name, uint16_t song_ID)
 {
 	std::list<hash_pair> fingerprints;
 	struct fingerprint f;
@@ -431,7 +467,7 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 	struct peak other_point;
 	struct peak anchor_point;
 
-	target_zone_t = 5;
+	target_zone_t = 4;
 
 	for(std::list<peak>::iterator it = pruned.begin(); 
 		std::next(it, target_zone_t) != pruned.end(); it++){
@@ -448,7 +484,8 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 			
 			sdata.song_name = song_name;
 			sdata.time_pt = anchor_point.time;
-			
+			sdata.song_ID = song_ID;
+
 			template_print = f.anchor;
 			template_print = template_print << 16;
 			template_print |= f.point;
@@ -543,8 +580,8 @@ std::vector<std::vector<float>> read_fft_noise(std::string filename)
 		
 		  line_vector.push_back(temp);
 		  counter++;
-		//twenty seconds if sample rate is 44.1kHz	
-		} while(ss && counter < 8820);
+		
+		} while(ss && counter < 22050);
 		fft.push_back(line_vector);
 	   }
 	}
