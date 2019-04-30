@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <cfloat>
+#include <cmath>
 
 #define NFFT 256
 #define NBINS 6
@@ -26,7 +27,7 @@
 #define BIN5 37
 #define BIN6 116
 
-#define PRUNING_COEF 2.0f
+#define PRUNING_COEF 2.3f
 #define PRUNING_TIME_WINDOW 2000
 
 struct peak_raw {
@@ -185,7 +186,7 @@ int main()
 	
 		float count_percent;
 		count_percent = (float) results[iter->song_ID].count;
-		count_percent = count_percent/results[iter->song_ID].num_hashes;	
+		count_percent = count_percent/std::pow(results[iter->song_ID].num_hashes, 1.5f);	
 				
 		std::cout << "-" << results[iter->song_ID].song << 
 			" /" << count_percent << "/" << results[iter->song_ID].count << std::endl;
