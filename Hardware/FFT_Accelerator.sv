@@ -4,7 +4,9 @@
 
 `include "./AudioCodecDrivers/audio_driver.sv"
 `include "SfftPipeline.sv"
-`include "peaks.sv"
+//`include "peaks.sv"
+`include "peaksSequential.sv"
+
 
 module FFT_Accelerator( 
 		  input logic clk,
@@ -89,6 +91,17 @@ module FFT_Accelerator(
 	 	.SFFT_Out(SFFT_Out),
 	 	.OutputValid(SfftOutputValid)
 	 	);
+	
+	/*
+	reg [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0];
+	reg [`nFFT -1:0] dummyCounterA;
+	reg [`nFFT -1:0] dummyCounterB;
+	always @ (posedge clk) begin
+		dummyCounterA <= dummyCounterA + 1;
+		dummyCounterB <= dummyCounterB + 3;
+		SFFT_Out[dummyCounterA] <= dummyCounterB;
+	end
+	*/
 	 		 
 		
 	//Instantiate Peak finder
@@ -98,7 +111,7 @@ module FFT_Accelerator(
 	
 		
 	peaks peakFinder( 
-		.CLOCK_50(clk),
+		.clk(clk),
 		.reset(reset),
 		
 		.valid_in(SfftOutputValid),
@@ -153,33 +166,33 @@ module FFT_Accelerator(
 			//Amplitudes 0-6 -> address {10-13, 14-17, 18-21, 22-25, 26-29, 30-33}. Assuming 32 bit frequency amplitude
 			readOutBus_buffer[10] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
 			readOutBus_buffer[11] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[12] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			readOutBus_buffer[13] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			//readOutBus_buffer[12] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			//readOutBus_buffer[13] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
 			
 			readOutBus_buffer[14] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
 			readOutBus_buffer[15] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[16] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			readOutBus_buffer[17] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			//readOutBus_buffer[16] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			//readOutBus_buffer[17] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
 			
 			readOutBus_buffer[18] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
 			readOutBus_buffer[19] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[20] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			readOutBus_buffer[21] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			//readOutBus_buffer[20] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			//readOutBus_buffer[21] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
 			
 			readOutBus_buffer[22] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
 			readOutBus_buffer[23] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[24] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			readOutBus_buffer[25] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			//readOutBus_buffer[24] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			//readOutBus_buffer[25] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
 			
 			readOutBus_buffer[26] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
 			readOutBus_buffer[27] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[28] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			readOutBus_buffer[29] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			//readOutBus_buffer[28] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			//readOutBus_buffer[29] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
 			
 			readOutBus_buffer[30] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
 			readOutBus_buffer[31] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[32] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			readOutBus_buffer[33] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
+			//readOutBus_buffer[32] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
+			//readOutBus_buffer[33] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
 			
 			
 			//Populate last 8 bytes with fixed test values

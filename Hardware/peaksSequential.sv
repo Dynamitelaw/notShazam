@@ -76,11 +76,11 @@ module peaks(
 	
 	//MUX for peakFinder inputs
 	always @ (*) begin
-		peakIn <= fft_curr[peakCounter];
-		northIn <= fft_curr[peakCounter-1];
-		southIn <= fft_curr[peakCounter+1];
-		eastIn <= fft_prev[peakCounter-1];
-		westIn <= fft_next[peakCounter-1];
+		peakIn = fft_curr[peakCounter];
+		northIn = fft_curr[peakCounter-1];
+		southIn = fft_curr[peakCounter+1];
+		eastIn = fft_prev[peakCounter-1];
+		westIn = fft_next[peakCounter-1];
 	end
 	
 	//_______________________________
@@ -154,6 +154,123 @@ module peaks(
 	
 	parameter amplitudeZeros = `INPUT_AMPL_WIDTH-1;
 	
+	//Instantiate comparator modules
+	
+	//Bin 1
+	logic isLocalPeak_Bin1;
+	logic signed [`INPUT_AMPL_WIDTH -1:0] newAmplitude_Bin1;
+	
+	//MUX for Bin 1 inputs
+	always @ (*) begin
+		isLocalPeak_Bin1 = is_peak[bin1_counter];
+		newAmplitude_Bin1 = fft_curr[bin1_counter+1];
+	end
+	
+	wire isNewMax_Bin1;
+	
+	amplitudeComparator comparator_Bin1(
+		.isLocalPeak(isLocalPeak_Bin1),
+		.currentMax(amplitudes[0]),
+		.newAmplitude(newAmplitude_Bin1),
+		.isNewMax(isNewMax_Bin1)
+		);
+	
+	//Bin 2
+	logic isLocalPeak_Bin2;
+	logic signed [`INPUT_AMPL_WIDTH -1:0] newAmplitude_Bin2;
+	
+	//MUX for Bin 2 inputs
+	always @ (*) begin
+		isLocalPeak_Bin2 = is_peak[bin2_counter];
+		newAmplitude_Bin2 = fft_curr[bin2_counter+1];
+	end
+	
+	wire isNewMax_Bin2;
+	
+	amplitudeComparator comparator_Bin2(
+		.isLocalPeak(isLocalPeak_Bin2),
+		.currentMax(amplitudes[1]),
+		.newAmplitude(newAmplitude_Bin2),
+		.isNewMax(isNewMax_Bin2)
+		);
+		
+	//Bin 3
+	logic isLocalPeak_Bin3;
+	logic signed [`INPUT_AMPL_WIDTH -1:0] newAmplitude_Bin3;
+	
+	//MUX for Bin 1 inputs
+	always @ (*) begin
+		isLocalPeak_Bin3 = is_peak[bin3_counter];
+		newAmplitude_Bin3 = fft_curr[bin3_counter+1];
+	end
+	
+	wire isNewMax_Bin3;
+	
+	amplitudeComparator comparator_Bin3(
+		.isLocalPeak(isLocalPeak_Bin3),
+		.currentMax(amplitudes[2]),
+		.newAmplitude(newAmplitude_Bin3),
+		.isNewMax(isNewMax_Bin3)
+		);
+	
+	//Bin 4
+	logic isLocalPeak_Bin4;
+	logic signed [`INPUT_AMPL_WIDTH -1:0] newAmplitude_Bin4;
+	
+	//MUX for Bin 4 inputs
+	always @ (*) begin
+		isLocalPeak_Bin4 = is_peak[bin4_counter];
+		newAmplitude_Bin4 = fft_curr[bin4_counter+1];
+	end
+	
+	wire isNewMax_Bin4;
+	
+	amplitudeComparator comparator_Bin4(
+		.isLocalPeak(isLocalPeak_Bin4),
+		.currentMax(amplitudes[3]),
+		.newAmplitude(newAmplitude_Bin4),
+		.isNewMax(isNewMax_Bin4)
+		);
+	
+	//Bin 5
+	logic isLocalPeak_Bin5;
+	logic signed [`INPUT_AMPL_WIDTH -1:0] newAmplitude_Bin5;
+	
+	//MUX for Bin 5 inputs
+	always @ (*) begin
+		isLocalPeak_Bin5 = is_peak[bin5_counter];
+		newAmplitude_Bin5 = fft_curr[bin5_counter+1];
+	end
+	
+	wire isNewMax_Bin5;
+	
+	amplitudeComparator comparator_Bin5(
+		.isLocalPeak(isLocalPeak_Bin5),
+		.currentMax(amplitudes[4]),
+		.newAmplitude(newAmplitude_Bin5),
+		.isNewMax(isNewMax_Bin5)
+		);
+	
+	//Bin 6
+	logic isLocalPeak_Bin6;
+	logic signed [`INPUT_AMPL_WIDTH -1:0] newAmplitude_Bin6;
+	
+	//MUX for Bin 6 inputs
+	always @ (*) begin
+		isLocalPeak_Bin6 = is_peak[bin6_counter];
+		newAmplitude_Bin6 = fft_curr[bin6_counter+1];
+	end
+	
+	wire isNewMax_Bin6;
+	
+	amplitudeComparator comparator_Bin6(
+		.isLocalPeak(isLocalPeak_Bin6),
+		.currentMax(amplitudes[5]),
+		.newAmplitude(newAmplitude_Bin6),
+		.isNewMax(isNewMax_Bin6)
+		);
+		
+		
 	always @ (posedge clk) begin
 		//Reset
 		if (reset || ~localPeaksValid) begin
@@ -161,11 +278,11 @@ module peaks(
 			freqs <= '{`PEAKS{0}};
 			
 			bin1_done <= 0;
-			bin2_done <= 0;
-			bin3_done <= 0;
-			bin4_done <= 0;
-			bin5_done <= 0;
-			bin6_done <= 0;
+			bin2_done <= 1;
+			bin3_done <= 1;
+			bin4_done <= 1;
+			bin5_done <= 1;
+			bin6_done <= 1;
 			
 			bin1_counter <= 0;
 			bin2_counter <= `BIN_1 + 1;
@@ -178,13 +295,14 @@ module peaks(
 		end
 		
 		else if (localPeaksValid) begin  //Presumes localPeaksValid is high until a new sample is recieved
+			
 			//Bin1
 			if (~bin1_done) begin
 				//Increment counter
 				bin1_counter <= bin1_counter + 1;
 				//Check for new max
-				if (is_peak[bin1_counter] && (fft_curr[bin1_counter+1] > amplitudes[0]) ) begin
-					amplitudes[0] <= fft_curr[bin1_counter+1];
+				if (isNewMax_Bin1) begin
+					amplitudes[0] <= newAmplitude_Bin1;
 					freqs[0]      <= bin1_counter;
 				end
 				//Check for done condition
@@ -198,8 +316,8 @@ module peaks(
 				//Increment counter
 				bin2_counter <= bin2_counter + 1;
 				//Check for new max
-				if (is_peak[bin2_counter] && (fft_curr[bin2_counter+1] > amplitudes[1]) ) begin
-					amplitudes[1] <= fft_curr[bin2_counter+1];
+				if (isNewMax_Bin2) begin
+					amplitudes[1] <= newAmplitude_Bin2;
 					freqs[1]      <= bin2_counter;
 				end
 				//Check for done condition
@@ -213,8 +331,8 @@ module peaks(
 				//Increment counter
 				bin3_counter <= bin3_counter + 1;
 				//Check for new max
-				if (is_peak[bin3_counter] && (fft_curr[bin3_counter+1] > amplitudes[2]) ) begin
-					amplitudes[2] <= fft_curr[bin3_counter+1];
+				if (isNewMax_Bin3) begin
+					amplitudes[2] <= newAmplitude_Bin3;
 					freqs[2]      <= bin3_counter;
 				end
 				//Check for done condition
@@ -228,8 +346,8 @@ module peaks(
 				//Increment counter
 				bin4_counter <= bin4_counter + 1;
 				//Check for new max
-				if (is_peak[bin4_counter] && (fft_curr[bin4_counter+1] > amplitudes[3]) ) begin
-					amplitudes[3] <= fft_curr[bin4_counter+1];
+				if (isNewMax_Bin4) begin
+					amplitudes[3] <= newAmplitude_Bin4;
 					freqs[3]      <= bin4_counter;
 				end
 				//Check for done condition
@@ -243,8 +361,8 @@ module peaks(
 				//Increment counter
 				bin5_counter <= bin5_counter + 1;
 				//Check for new max
-				if (is_peak[bin5_counter] && (fft_curr[bin5_counter+1] > amplitudes[4]) ) begin
-					amplitudes[4] <= fft_curr[bin5_counter+1];
+				if (isNewMax_Bin5) begin
+					amplitudes[4] <= newAmplitude_Bin5;
 					freqs[4]      <= bin5_counter;
 				end
 				//Check for done condition
@@ -258,8 +376,8 @@ module peaks(
 				//Increment counter
 				bin6_counter <= bin6_counter + 1;
 				//Check for new max
-				if (is_peak[bin6_counter] && (fft_curr[bin6_counter+1] > amplitudes[5]) ) begin
-					amplitudes[5] <= fft_curr[bin6_counter+1];
+				if (isNewMax_Bin6) begin
+					amplitudes[5] <= newAmplitude_Bin6;
 					freqs[5]      <= bin6_counter;
 				end
 				//Check for done condition
@@ -304,7 +422,7 @@ module peaks(
 	//
 	// Simulation probes
 	//_______________________________
-	
+	/*
 	wire signed [`INPUT_AMPL_WIDTH -1:0] fft_in_PROBE [`FREQS -1:0];
 	wire signed [`INPUT_AMPL_WIDTH -1:0] fft_prev_PROBE [`FREQS -1:0];
 	wire signed [`INPUT_AMPL_WIDTH -1:0] fft_curr_PROBE [`FREQS +1:0];  //Pad this array with two extra values (0) at the beginning and end
@@ -320,7 +438,7 @@ module peaks(
 	assign is_peak_PROBE = is_peak;
 	assign amplitudes_PROBE = amplitudes;
 	assign freqs_PROBE = freqs;
-	
+	*/
 endmodule  //peaks
 
 
@@ -339,3 +457,17 @@ module peak_finder (
 	assign is_peak = (peak >= north) && (peak >= south) && (peak >= east) && (peak >= west) ;
 	//assign is_peak = (peak > north) && (peak > south) && (peak > east) && (peak > west) ;
 endmodule  //peak_finder
+
+
+/*
+ * 
+ */
+module amplitudeComparator(
+	input isLocalPeak,
+	input logic signed [`INPUT_AMPL_WIDTH -1:0] currentMax,
+	input logic signed [`INPUT_AMPL_WIDTH -1:0] newAmplitude,
+	
+	output logic isNewMax
+	);
+	assign isNewMax = isLocalPeak && (newAmplitude > currentMax);
+endmodule

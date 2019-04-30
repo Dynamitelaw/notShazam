@@ -26,8 +26,6 @@
  	output logic OutputValid
  	);
  	
- 	//parameter pipelineDepth = `nFFT;
- 	
  	parameter pipelineDepth = 1;
  	
 	//___________________________
@@ -162,7 +160,6 @@
 		end
 		
 		//Connect intra-pipeline buses
-		/*
 		for (s=1; s<pipelineDepth; s=s+1)
 		begin : InternalBusConnections
 			for (k=0; k<`NFFT; k=k+1) 
@@ -174,7 +171,6 @@
 			assign Pipeline[s].inputReady = Pipeline[s-1].outputReady;
 			assign Pipeline[s-1].nextStageIdle = Pipeline[s].idle;
 		end
-		*/
 		
 		//Conect pipeline input stage
 		for (k=0; k<`NFFT; k=k+1) 
