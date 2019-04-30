@@ -1,8 +1,43 @@
-`include "peaks.sv"
+/*
+Tested with the following global variables:
+
+// FFT Macros
+`define NFFT 32 // if change this, change FREQ_WIDTH. Must be power of 2
+`define nFFT 5  //log2(NFFT)
+
+`define FREQS (`NFFT / 2)
+`define FREQ_WIDTH 4 // if change NFFT, change this
+
+`define FINAL_AMPL_WIDTH 32 // Must be less than or equal to INPUT_AMPL_WIDTH
+`define INPUT_AMPL_WIDTH 32 
+`define TIME_COUNTER_WIDTH 32
+
+`define PEAKS 6 // Changing this requires many changes in code
+
+`define SFFT_INPUT_WIDTH 24
+`define SFFT_OUTPUT_WIDTH `INPUT_AMPL_WIDTH
+`define SFFT_FIXED_POINT_ACCURACY 7
+
+// Audio Codec Macros
+`define AUDIO_IN_GAIN 9'h014
+`define AUDIO_OUT_GAIN 9'h061
+
+// BINS NFFT=16
+`define BIN_1 1
+`define BIN_2 3
+`define BIN_3 5
+`define BIN_4 8
+`define BIN_5 12
+`define BIN_6 15
+*/
+
+
+//`include "peaks.sv"
+`include "peaksSequential.sv"
 
 module peaks_tb();
 
-	logic				CLOCK_50 = 0;
+	logic				clk = 0;
 	logic 				valid_in;
 	logic 				reset;
 	logic signed [`INPUT_AMPL_WIDTH -1:0] 	fft_in[`FREQS -1:0];
@@ -32,9 +67,9 @@ module peaks_tb();
 		valid_in = 0;
 		#2
 		reset = 1;
-		#2
+		#4
 		reset = 0;
-		#10
+		#9
 
 		fft_in = '{	0, 0, 0, 0,
 				0, 0, 0, 0,
@@ -43,7 +78,7 @@ module peaks_tb();
 		valid_in = 1;
 		#2
 		valid_in = 0;
-		# 6
+		# 60
 
 
 		#10
@@ -56,7 +91,7 @@ module peaks_tb();
 		valid_in = 1;
 		#2
 		valid_in = 0;
-		# 6
+		# 60
 		
 
 		#10
@@ -67,7 +102,7 @@ module peaks_tb();
 		valid_in = 1;
 		#2
 		valid_in = 0;
-		# 6
+		# 60
 
 
 		fft_in = '{	0, 0, 0, 0,
@@ -77,7 +112,7 @@ module peaks_tb();
 		valid_in = 1;
 		#2
 		valid_in = 0;
-		# 6
+		# 60
 
 
 		#10
@@ -90,7 +125,7 @@ module peaks_tb();
 		valid_in = 1;
 		#2
 		valid_in = 0;
-		# 6
+		# 60
 		
 
 		#10
@@ -98,29 +133,12 @@ module peaks_tb();
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0};
-		valid_in = 1;
-		#2
-		valid_in = 0;
-		#2
-
-		valid_in = 1;
-		#2
-		valid_in = 0;
 
 		#2
 		valid_in = 1;
 		#2
 		valid_in = 0;
-
-		#2
-		valid_in = 1;
-		#2
-		valid_in = 0;
-
-		#2
-		valid_in = 1;
-		#2
-		valid_in = 0;
+		# 60
 
 		$stop;
 
@@ -129,6 +147,6 @@ module peaks_tb();
 
 	always begin
 		#1
-		CLOCK_50 = ~CLOCK_50;
+		clk = ~clk;
 	end
 endmodule
