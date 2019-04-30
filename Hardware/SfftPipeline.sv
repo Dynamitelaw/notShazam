@@ -11,7 +11,7 @@
   * Samples the input signal <SampleAmplitudeIn> at the rising edge of <advanceSignal>. Begins processing the FFT immediately.
   * Only outputs the real components of the FFT result. Will raise <OutputValid> high for 1 cycle when the output is finished.
   *
-  * Max sampling frequency = CLK_FREQ / (NFFT/2+1). Output indeterminate if exceeded.
+  * Max sampling frequency ~= CLK_FREQ / (NFFT/2+1). Output indeterminate if exceeded.
   */
  module SFFT_Pipeline(
  	input clk,
@@ -193,7 +193,7 @@
 		
 	endgenerate
 	 	
- endmodule
+ endmodule  //SFFT_Pipeline
  
  
  /*
@@ -340,7 +340,7 @@
  		end
  	end
  	
- endmodule
+ endmodule  //pipelineStage
  
  
  /*
@@ -397,4 +397,4 @@ module butterfly(
 		AReal = aReal - (wReal_Extended*bReal_Adjusted) + (wImag_Extended*bImag_Adjusted);
 		AImag = aImag - (wReal_Extended*bImag_Adjusted) - (wImag_Extended*bReal_Adjusted);
 	end
-endmodule
+endmodule  //butterfly
