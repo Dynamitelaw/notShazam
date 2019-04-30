@@ -14,8 +14,10 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <cfloat>
 
 #define NFFT 256
+#define NBINS 6
 #define BIN0 0
 #define BIN1 1
 #define BIN2 4
@@ -23,6 +25,9 @@
 #define BIN4 24
 #define BIN5 37
 #define BIN6 116
+
+#define PRUNING_COEF 2.0f
+#define PRUNING_TIME_WINDOW 2000
 
 struct peak_raw {
 	float ampl;
@@ -33,6 +38,7 @@ struct peak_raw {
 struct peak {
 	uint16_t freq;
 	uint16_t time;
+	// peak(uint16_t freq, uint16_t time) : freq(freq), time(time) {}
 };
 
 struct fingerprint {
@@ -87,11 +93,13 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 	std::unordered_multimap<uint64_t, song_data> database,
 	std::list<database_info> song_list);
 
+std::list<peak> generate_constellation_map(std::vector<std::vector<float>> fft, int nfft);
+
 int main()
 {
 	/*
-	 * Assumes fft spectrogram files 
-	 * are availible at ./song_name. 
+	 * Assumes fft spectrogram files are availible at ./song_name, and that
+	 * song_list.txt exists and contains a list of the song names.
 	 */
 	
 	std::unordered_multimap<uint64_t, song_data> db;
@@ -180,7 +188,7 @@ int main()
 		count_percent = count_percent/results[iter->song_ID].num_hashes;	
 				
 		std::cout << "-" << results[iter->song_ID].song << 
-			" /" << count_percent << "/" << std::endl;
+			" /" << count_percent << "/" << results[iter->song_ID].count << std::endl;
 		
 		if(count_percent > max_count){
 			temp_match = results[iter->song_ID].song;
@@ -220,8 +228,8 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 	std::unordered_map<uint16_t, count_ID> results;
 	//new database, keys are songIDs concatenated with time anchor
 	//values are number of appearances, if 5 we've matched
-	std::unordered_map<uint32_t, int> db2;
-	uint32_t new_key;
+	std::unordered_map<uint64_t, uint8_t> db2;
+	uint64_t new_key;
 	uint16_t identity;
 
 	for(std::list<database_info>::iterator iter = song_list.begin(); 
@@ -235,7 +243,7 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 	}	
 
 	//for fingerpint in sampleFingerprints
-	for(std::list<hash_pair>::iterator iter = sample_prints.begin(); 
+	for(auto iter = sample_prints.begin(); 
 		iter != sample_prints.end(); ++iter){	
 		
 	    std::pair<std::unordered_multimap<uint64_t,song_data>::iterator,
@@ -251,6 +259,8 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 		    new_key = it->second.song_ID;
 		    new_key = new_key << 16;
 		    new_key |= it->second.time_pt;
+		    new_key = new_key << 16;
+		    new_key |= iter->value.time_pt;
 
 		    db2[new_key]++;
 	    }
@@ -260,15 +270,15 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 
 
 	//adds to their count in the results structure, which is returned
-	for(std::unordered_map<uint32_t,int>::iterator
+	for(std::unordered_map<uint64_t,uint8_t>::iterator
 			    it = db2.begin(); it != db2.end(); ++it){
 		
 		//full target zone matched
 		if(it->second >= 4)
 		{
-			//std::cout << it->second << " ";
-			identity = it->first >> 16;
-			results[identity].count += (int) (it->second / 4);
+			//std::cout << it->second << std::endl;
+			identity = it->first >> 32;
+			results[identity].count += (int) it->second;
 		}
 	}    
 
@@ -284,7 +294,7 @@ std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID)
 	fft = read_fft(song_name);	
 
 	std::list<peak> pruned_peaks;
-	pruned_peaks = max_bins(fft, NFFT);
+	pruned_peaks = generate_constellation_map(fft, NFFT);
 
 	std::list<hash_pair> hash_entries;
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
@@ -298,9 +308,8 @@ std::list<hash_pair> hash_create_noise(std::string song_name, uint16_t song_ID)
 	std::vector<std::vector<float>> fft;
 	fft = read_fft_noise(song_name);	
 
-	std::cout << fft[0].size() << " " << fft.size() << std::endl;	
 	std::list<peak> pruned_peaks;
-	pruned_peaks = max_bins(fft, NFFT);
+	pruned_peaks = generate_constellation_map(fft, NFFT);
 
 	std::list<hash_pair> hash_entries;
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
@@ -322,6 +331,7 @@ std::list<peak_raw> get_peak_max_bin(
 	columns = fft[0].size();
 	sample = 1;
 	// first bin
+	// Assumes first bin has only the zero freq.
 	if(!start && end){
 	   for(uint16_t j = 1; j < columns-2; j++){
 		if(fft[0][j] > fft[0][j-1] && //west
@@ -470,13 +480,13 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 	target_zone_t = 4;
 
 	for(std::list<peak>::iterator it = pruned.begin(); 
-		std::next(it, target_zone_t) != pruned.end(); it++){
+			std::next(it, target_zone_t +3) != pruned.end(); it++){
 
 		anchor_point= *it;
 	
 		for(uint16_t i = 1; i <= target_zone_t; i++){
 			
-			other_point = *(std::next(it,i));
+			other_point = *(std::next(it, i + 3));
 			
 			f.anchor = anchor_point.freq;
 			f.point = other_point.freq;
@@ -512,45 +522,27 @@ std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft)
 
 	temp_raw = get_peak_max_bin(fft, nfft/2, BIN0, BIN1);
 	temp = prune(temp_raw, fft[0].size());
-	while(!temp.empty()){
-		peaks.push_back(temp.back());
-		temp.pop_back();
-	}
+	peaks.splice(peaks.end(), temp);
 	
 	temp_raw = get_peak_max_bin(fft, nfft/2, BIN1, BIN2);
 	temp = prune(temp_raw, fft[0].size());
-	while(!temp.empty()){
-		peaks.push_back(temp.back());
-		temp.pop_back();
-	}
+	peaks.splice(peaks.end(), temp);
 	
 	temp_raw = get_peak_max_bin(fft, nfft/2, BIN2, BIN3);
 	temp = prune(temp_raw, fft[0].size());
-	while(!temp.empty()){
-		peaks.push_back(temp.back());
-		temp.pop_back();
-	}
+	peaks.splice(peaks.end(), temp);
 	
 	temp_raw = get_peak_max_bin(fft, nfft/2, BIN3, BIN4);
 	temp = prune(temp_raw, fft[0].size());
-	while(!temp.empty()){
-		peaks.push_back(temp.back());
-		temp.pop_back();
-	}
+	peaks.splice(peaks.end(), temp);
 	
 	temp_raw = get_peak_max_bin(fft, nfft/2, BIN4, BIN5);
 	temp = prune(temp_raw, fft[0].size());
-	while(!temp.empty()){
-		peaks.push_back(temp.back());
-		temp.pop_back();
-	}
+	peaks.splice(peaks.end(), temp);
 	
 	temp_raw = get_peak_max_bin(fft, nfft/2, BIN5, BIN6);
 	temp = prune(temp_raw, fft[0].size());
-	while(!temp.empty()){
-		peaks.push_back(temp.back());
-		temp.pop_back();
-	}
+	peaks.splice(peaks.end(), temp);
 	
 	return peaks;
 }
@@ -623,3 +615,92 @@ std::vector<std::vector<float>> read_fft(std::string filename)
 	
 	return fft;
 }
+
+
+// Eitan's re-write:
+
+inline int freq_to_bin(uint16_t freq) {
+	if (freq <  BIN1) 
+		return 1;
+	if (freq <  BIN2) 
+		return 2;
+	if (freq <  BIN3) 
+		return 3;
+	if (freq <  BIN4) 
+		return 4;
+	if (freq <  BIN5) 
+		return 5;
+	if (freq <  BIN6) 
+		return 6;
+	return 0;
+}
+
+std::list<peak_raw> get_raw_peaks(std::vector<std::vector<float>> fft, int nfft)
+{
+    std::list<peak_raw> peaks;
+    uint16_t size_in_time;
+    
+    size_in_time = fft[0].size();
+    for(uint16_t j = 1; j < size_in_time-2; j++){
+	// WARNING not parametrized by NBINS
+	float max_ampl_by_bin[NBINS + 1] = {FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN};  
+    	struct peak_raw max_peak_by_bin[NBINS + 1] = {};
+        for(uint16_t i = 0; i < fft.size() - 1; i++){
+            if(     fft[i][j] > fft[i][j-1]                      && //west
+    	            fft[i][j] > fft[i][j+1]                      && //east
+    	            (i < 1           || fft[i][j] > fft[i-1][j]) && //north
+    	            (i >= fft.size() || fft[i][j] > fft[i+1][j])) { //south
+		if (fft[i][j] > max_ampl_by_bin[freq_to_bin(i)]) {
+		    max_ampl_by_bin[freq_to_bin(i)] = fft[i][j];
+		    max_peak_by_bin[freq_to_bin(i)].freq = i;
+		    max_peak_by_bin[freq_to_bin(i)].ampl = fft[i][j];
+		    max_peak_by_bin[freq_to_bin(i)].time = j;
+		}
+            }
+        }
+	for (int k = 1; k <= NBINS; k++) {
+	    if (max_peak_by_bin[k].time != 0) {
+                peaks.push_back(max_peak_by_bin[k]);
+	    }
+	}
+    }
+    return peaks;
+}
+
+std::list<peak> prune_in_time(std::list<peak_raw> unpruned_peaks) {
+	int time = 0;
+	int avg, den;
+	float num = 0;
+	den = 0;
+	std::list<peak> pruned_peaks;
+	auto add_iter = unpruned_peaks.cbegin();
+	for(auto avg_iter = unpruned_peaks.cbegin(); add_iter != unpruned_peaks.cend(); ){
+		if (avg_iter->time <= time + PRUNING_TIME_WINDOW && avg_iter != unpruned_peaks.cend()) {
+			den++;
+			num += avg_iter->ampl;
+			avg_iter++;
+		} else {
+			avg = num/den;
+			while (add_iter != avg_iter) {
+				if (add_iter->ampl > PRUNING_COEF*avg) {
+					pruned_peaks.push_back({add_iter->freq, add_iter->time});
+				}
+				add_iter++;
+			}
+			num = 0;
+			den = 0;
+			time += PRUNING_TIME_WINDOW;
+		}
+	}
+	return pruned_peaks;
+}
+				
+
+
+std::list<peak> generate_constellation_map(std::vector<std::vector<float>> fft, int nfft)
+{
+	std::list<peak_raw> unpruned_map;
+	unpruned_map = get_raw_peaks(fft, nfft);
+	return prune_in_time(unpruned_map);
+}
+
