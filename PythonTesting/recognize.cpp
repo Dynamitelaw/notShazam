@@ -29,6 +29,7 @@
 
 #define PRUNING_COEF 2.3f
 #define PRUNING_TIME_WINDOW 2000
+#define NORM_POW 1.5f
 
 struct peak_raw {
 	float ampl;
@@ -186,7 +187,7 @@ int main()
 	
 		float count_percent;
 		count_percent = (float) results[iter->song_ID].count;
-		count_percent = count_percent/std::pow(results[iter->song_ID].num_hashes, 1.5f);	
+		count_percent = count_percent/std::pow(results[iter->song_ID].num_hashes, NORM_POW);	
 				
 		std::cout << "-" << results[iter->song_ID].song << 
 			" /" << count_percent << "/" << results[iter->song_ID].count << std::endl;
