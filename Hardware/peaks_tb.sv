@@ -133,29 +133,12 @@ module peaks_tb();
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0};
-		valid_in = 1;
-		#2
-		valid_in = 0;
-		#2
-
-		valid_in = 1;
-		#2
-		valid_in = 0;
 
 		#2
 		valid_in = 1;
 		#2
 		valid_in = 0;
-
-		#2
-		valid_in = 1;
-		#2
-		valid_in = 0;
-
-		#2
-		valid_in = 1;
-		#2
-		valid_in = 0;
+		# 60
 
 		$stop;
 

@@ -152,10 +152,12 @@ module peaks(
 	
 	reg outputReady;
 	
+	parameter amplitudeZeros = `INPUT_AMPL_WIDTH-1;
+	
 	always @ (posedge clk) begin
 		//Reset
 		if (reset || ~localPeaksValid) begin
-			amplitudes <= '{`PEAKS{0}};
+			amplitudes <= '{`PEAKS{1 << amplitudeZeros}};
 			freqs <= '{`PEAKS{0}};
 			
 			bin1_done <= 0;
@@ -181,8 +183,8 @@ module peaks(
 				//Increment counter
 				bin1_counter <= bin1_counter + 1;
 				//Check for new max
-				if ((is_peak[bin1_counter] && (fft_curr[bin1_counter] > amplitudes[0]) ) || (bin1_counter == 0)) begin
-					amplitudes[0] <= fft_curr[bin1_counter];
+				if (is_peak[bin1_counter] && (fft_curr[bin1_counter+1] > amplitudes[0]) ) begin
+					amplitudes[0] <= fft_curr[bin1_counter+1];
 					freqs[0]      <= bin1_counter;
 				end
 				//Check for done condition
@@ -196,8 +198,8 @@ module peaks(
 				//Increment counter
 				bin2_counter <= bin2_counter + 1;
 				//Check for new max
-				if ((is_peak[bin2_counter] && (fft_curr[bin2_counter] > amplitudes[1]) ) || (bin2_counter == `BIN_1 + 1)) begin
-					amplitudes[1] <= fft_curr[bin2_counter];
+				if (is_peak[bin2_counter] && (fft_curr[bin2_counter+1] > amplitudes[1]) ) begin
+					amplitudes[1] <= fft_curr[bin2_counter+1];
 					freqs[1]      <= bin2_counter;
 				end
 				//Check for done condition
@@ -211,8 +213,8 @@ module peaks(
 				//Increment counter
 				bin3_counter <= bin3_counter + 1;
 				//Check for new max
-				if ((is_peak[bin3_counter] && (fft_curr[bin3_counter] > amplitudes[2]) ) || (bin3_counter == `BIN_2 + 1)) begin
-					amplitudes[2] <= fft_curr[bin3_counter];
+				if (is_peak[bin3_counter] && (fft_curr[bin3_counter+1] > amplitudes[2]) ) begin
+					amplitudes[2] <= fft_curr[bin3_counter+1];
 					freqs[2]      <= bin3_counter;
 				end
 				//Check for done condition
@@ -226,8 +228,8 @@ module peaks(
 				//Increment counter
 				bin4_counter <= bin4_counter + 1;
 				//Check for new max
-				if ((is_peak[bin4_counter] && (fft_curr[bin4_counter] > amplitudes[3]) ) || (bin4_counter == `BIN_3 + 1)) begin
-					amplitudes[3] <= fft_curr[bin4_counter];
+				if (is_peak[bin4_counter] && (fft_curr[bin4_counter+1] > amplitudes[3]) ) begin
+					amplitudes[3] <= fft_curr[bin4_counter+1];
 					freqs[3]      <= bin4_counter;
 				end
 				//Check for done condition
@@ -241,8 +243,8 @@ module peaks(
 				//Increment counter
 				bin5_counter <= bin5_counter + 1;
 				//Check for new max
-				if ((is_peak[bin5_counter] && (fft_curr[bin5_counter] > amplitudes[4]) ) || (bin5_counter == `BIN_4 + 1)) begin
-					amplitudes[4] <= fft_curr[bin5_counter];
+				if (is_peak[bin5_counter] && (fft_curr[bin5_counter+1] > amplitudes[4]) ) begin
+					amplitudes[4] <= fft_curr[bin5_counter+1];
 					freqs[4]      <= bin5_counter;
 				end
 				//Check for done condition
@@ -256,8 +258,8 @@ module peaks(
 				//Increment counter
 				bin6_counter <= bin6_counter + 1;
 				//Check for new max
-				if ((is_peak[bin6_counter] && (fft_curr[bin6_counter] > amplitudes[5]) ) || (bin6_counter == `BIN_5 + 1)) begin
-					amplitudes[5] <= fft_curr[bin6_counter];
+				if (is_peak[bin6_counter] && (fft_curr[bin6_counter+1] > amplitudes[5]) ) begin
+					amplitudes[5] <= fft_curr[bin6_counter+1];
 					freqs[5]      <= bin6_counter;
 				end
 				//Check for done condition
@@ -335,4 +337,5 @@ module peak_finder (
 		output logic				is_peak
 	);
 	assign is_peak = (peak >= north) && (peak >= south) && (peak >= east) && (peak >= west) ;
+	//assign is_peak = (peak > north) && (peak > south) && (peak > east) && (peak > west) ;
 endmodule  //peak_finder
