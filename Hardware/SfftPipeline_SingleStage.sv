@@ -11,7 +11,7 @@
   * Samples the input signal <SampleAmplitudeIn> at the rising edge of <advanceSignal>. Begins processing the FFT immediately.
   * Only outputs the real components of the FFT result. Will raise <OutputValid> high for 1 cycle when the output is finished.
   *
-  * Max sampling frequency ~= CLK_FREQ / (NFFT/2+1). Output indeterminate if exceeded.
+  * Max sampling frequency ~= CLK_FREQ / (log2(NFFT)*NFFT/2+2). Output indeterminate if exceeded.
   */
  module SFFT_Pipeline(
  	input clk,
@@ -59,6 +59,19 @@
 		$readmemh("GeneratedParameters/imaginaryCoefficients.txt", imagCoefficents, 0);
 	end
 	
+	//Map 2D ROM arrays into 3D
+	wire [`nFFT -1:0] kValues_Mapped [`nFFT -1:0] [(`NFFT / 2) -1:0];
+	wire [`nFFT -1:0] aIndexes_Mapped [`nFFT -1:0] [(`NFFT / 2) -1:0];
+	wire [`nFFT -1:0] bIndexes_Mapped [`nFFT -1:0] [(`NFFT / 2) -1:0];
+	
+	genvar stage;
+	generate
+		for (stage=0; stage<`nFFT; stage=stage+1) begin : ROM_mapping
+			assign kValues_Mapped[stage] = kValues[(stage+1)*(`NFFT / 2)-1 : stage*(`NFFT / 2)];
+			assign aIndexes_Mapped[stage] = aIndexes[(stage+1)*(`NFFT / 2)-1 : stage*(`NFFT / 2)];
+			assign bIndexes_Mapped[stage] = bIndexes[(stage+1)*(`NFFT / 2)-1 : stage*(`NFFT / 2)];
+		end
+	endgenerate
 	
 	//_________________________
 	//
@@ -86,10 +99,11 @@
  	logic [`SFFT_OUTPUT_WIDTH -1:0] shuffledSamples [`NFFT -1:0];
  	
  	integer j;
- 	parameter extensionBits = `SFFT_OUTPUT_WIDTH - `SFFT_FIXED_POINT_ACCURACY - `SFFT_INPUT_WIDTH - 1;
+ 	//parameter extensionBits = `SFFT_OUTPUT_WIDTH - `SFFT_FIXED_POINT_ACCURACY - `SFFT_INPUT_WIDTH - 1;
  	always @ (*) begin
  		for (j=0; j<`NFFT; j=j+1) begin
- 			shuffledSamples[j] = {{extensionBits{SampleBuffers[shuffledInputIndexes[j]][`SFFT_INPUT_WIDTH -1]}}, SampleBuffers[shuffledInputIndexes[j]] << `SFFT_FIXED_POINT_ACCURACY};  //Left shift input by fixed-point accuracy, and sign extend to match output width
+ 			//shuffledSamples[j] = {{extensionBits{SampleBuffers[shuffledInputIndexes[j]][`SFFT_INPUT_WIDTH -1]}}, SampleBuffers[shuffledInputIndexes[j]] << `SFFT_FIXED_POINT_ACCURACY};  //Left shift input by fixed-point accuracy, and sign extend to match output width
+ 			shuffledSamples[j] = SampleBuffers[shuffledInputIndexes[j]];  
  		end
  	end	
  	 	
@@ -116,82 +130,54 @@
 	// Generate pipeline structure
 	//_______________________________
 	
-	genvar s;
-	genvar k;
-	generate
-		//Generate pipeline stages
-		for (s=0; s<pipelineDepth; s=s+1)
-		begin : Pipeline
-			//Input Bus
-		 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageInReal [`NFFT -1:0];
-		 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageInImag [`NFFT -1:0];
-		 	
-		 	//Output Bus
-		 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutReal [`NFFT -1:0];
-		 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0];
-		 	
-		 	//Timing control bus
-		 	wire inputReady;
-		 	wire idle;
-		 	wire nextStageIdle;
-		 	wire outputReady;
+	
+	//Input Bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageInImag [`NFFT -1:0];
+ 	assign StageInImag = '{default:0};
  	
- 			//Stage instance
-			pipelineStage Stage(
-			 	.clk(clk),
-			 	.reset(reset),
-			 	
-			 	.StageInReal(StageInReal),
-			 	.StageInImag(StageInImag),
-			 	.realCoefficents(realCoefficents),
-				.imagCoefficents(imagCoefficents),
-				.kValues(kValues[(s+1)*(`NFFT / 2)-1 : s*(`NFFT / 2)]),  //Map kValues ROM vector to correct pipeline stage
-				.aIndexes(aIndexes[(s+1)*(`NFFT / 2)-1 : s*(`NFFT / 2)]),  //Map aIndexes ROM vector to correct pipeline stage
-				.bIndexes(bIndexes[(s+1)*(`NFFT / 2)-1 : s*(`NFFT / 2)]),  //Map bIndexes ROM vector to correct pipeline stage
-			 	
-			 	.StageOutReal(StageOutReal),
-			 	.StageOutImag(StageOutImag),
-			 	
-			 	.inputReady(inputReady),
-			 	.idle(idle),
-			 	.nextStageIdle(nextStageIdle),
-			 	.outputReady(outputReady)
-			 	);
-		end
-		
-		//Connect intra-pipeline buses
-		for (s=1; s<pipelineDepth; s=s+1)
-		begin : InternalBusConnections
-			for (k=0; k<`NFFT; k=k+1) 
-			begin : InternalBusConnections_Sub
-				assign Pipeline[s].StageInReal[k] = Pipeline[s-1].StageOutReal[k];
-				assign Pipeline[s].StageInImag[k] = Pipeline[s-1].StageOutImag[k];
-			end
-			
-			assign Pipeline[s].inputReady = Pipeline[s-1].outputReady;
-			assign Pipeline[s-1].nextStageIdle = Pipeline[s].idle;
-		end
-		
-		//Conect pipeline input stage
-		for (k=0; k<`NFFT; k=k+1) 
-		begin : InputBusConnections
-			assign Pipeline[0].StageInReal[k] = shuffledSamples[k];
-		end
-		assign Pipeline[0].StageInImag = '{default:0};  //No imaginary input components
-		
-		assign Pipeline[0].inputReady = newSampleReady;
-		assign inputReceived = ~Pipeline[0].idle;
-		
-		//Connect pipeline outputs
-		for (k=0; k<`NFFT; k=k+1) 
-		begin : OutputBusConnections
-			assign SFFT_Out[k] = Pipeline[pipelineDepth-1].StageOutReal[k];  //Only output real components
-		end
-		assign OutputValid = Pipeline[pipelineDepth-1].outputReady;
-		
-		assign Pipeline[pipelineDepth-1].nextStageIdle = 0;
-		
-	endgenerate
+ 	//Output Bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0];
+ 	
+ 	//State control bus
+ 	wire idle;
+ 	assign inputReceived = ~idle;
+ 	wire [`SFFT_STAGECOUNTER_WIDTH -1:0] virtualStageCounter;
+ 	reg inputReady;
+ 	wire outputReady;
+ 	
+ 	//ROM inputs
+	reg [`nFFT -1:0] kValues_In [(`NFFT / 2) -1:0];
+	reg [`nFFT -1:0] aIndexes_In [(`NFFT / 2) -1:0];
+	reg [`nFFT -1:0] bIndexes_In [(`NFFT / 2) -1:0];
+ 	
+ 	//MUX for ROM inputs
+	always @(*) begin
+		kValues_In = kValues_Mapped[virtualStageCounter];
+		aIndexes_In = aIndexes_Mapped[virtualStageCounter];
+		bIndexes_In = bIndexes_Mapped[virtualStageCounter];
+	end 
+
+	//Stage instance
+	pipelineStage Stage(
+	 	.clk(clk),
+	 	.reset(reset),
+	 	
+	 	.StageInReal(shuffledSamples),
+	 	.StageInImag(StageInImag),
+	 	.realCoefficents(realCoefficents),
+		.imagCoefficents(imagCoefficents),
+		.kValues(kValues_In),
+		.aIndexes(aIndexes_In),
+		.bIndexes(bIndexes_In),
+	 	
+	 	.StageOutReal(SFFT_Out),
+	 	.StageOutImag(StageOutImag),
+	 	
+	 	.idle(idle),
+	 	.virtualStageCounter(virtualStageCounter),
+	 	.inputReady(newSampleReady),
+	 	.outputReady(OutputValid)
+	 	);		
 	 	
  endmodule  //SFFT_Pipeline
  
@@ -219,14 +205,13 @@
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] StageOutReal [`NFFT -1:0],
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0],
  	
- 	//Handshake timing control
- 	input inputReady,
+ 	//State control
  	output reg idle,
- 	
- 	input nextStageIdle,
+ 	output reg [`SFFT_STAGECOUNTER_WIDTH -1:0] virtualStageCounter,
+ 	input inputReady,
  	output reg outputReady
  	);
- 	 	
+ 	 	 	
  	
  	//Stage input buffers
  	logic [`SFFT_OUTPUT_WIDTH -1:0] StageInReal_Buffer [`NFFT -1:0];
@@ -294,11 +279,12 @@
 
  	parameter pipelineWidth = `NFFT /2;
  	integer i;
+ 	integer j;
  	always @ (posedge clk) begin
  		if (reset) begin
  			outputReady <= 0;
- 			idle <= 1;
  			btflyCounter <= 0;
+ 			virtualStageCounter <= 0;
  			
  			StageInReal_Buffer <= '{default:0};
  			StageInImag_Buffer <= '{default:0};
@@ -306,7 +292,7 @@
  		
  		else begin
  			if ((idle==1) && (inputReady==1) && (outputReady==0)) begin
- 				//Next stage has recieved our old outputs, we're idle, and previous stage has new inputs. Buffer input and start processing
+ 				//Buffer input and start processing
  				idle <= 0;
  				for (i=0; i<`NFFT; i=i+1) begin
  					StageInReal_Buffer[i] <= StageInReal[i];
@@ -327,13 +313,29 @@
  				btflyCounter <= btflyCounter + 1;
  				
  				if (btflyCounter == (pipelineWidth-1)) begin
- 					//We've reached the last butterfly calculation
- 					outputReady <= 1;
- 					idle <= 1;
+ 					//We've reached the last butterfly calculation in this virtual stage
+ 					
+ 					if (virtualStageCounter == `nFFT-1) begin
+ 						//We've reached the last stage
+ 						outputReady <= 1;
+ 						idle <= 1;
+ 						
+ 						virtualStageCounter <= 0;
+ 					end
+ 					else begin 						
+ 						//Shift outputs to next inputs
+ 						for (j=0; j<`NFFT; j=j+1) begin
+		 					StageInReal_Buffer[j] <= StageOutReal[j];
+		 					StageInImag_Buffer[j] <= StageOutImag[j];
+		 				end
+		 				
+		 				//Move onto next virtual stage
+ 						virtualStageCounter <= virtualStageCounter + 1;
+ 					end
  				end
  			end
  			
- 			else if ((outputReady==1) && (nextStageIdle==0)) begin
+ 			else if (outputReady) begin
  				//Next stage has recieved out outputs. Set flag to 0
  				outputReady <= 0;
  			end
