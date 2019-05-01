@@ -3,6 +3,9 @@ set -x
 
 date
 
+#CAT globalVariables used in compilation
+cat globalVariables.sv
+
 #Regenerate ROM files
 matlab -nodisplay -nosplash -nodesktop -r "run('../MatlabTesting/GenerateRomFiles.m');exit;"
 
