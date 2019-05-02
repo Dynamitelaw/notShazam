@@ -26,7 +26,6 @@
  	output logic OutputValid
  	);
  	
- 	parameter pipelineDepth = 1;
  	
 	//___________________________
 	//

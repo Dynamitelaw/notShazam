@@ -1,6 +1,6 @@
 // FFT Macros
-`define NFFT 8 // if change this, change FREQ_WIDTH. Must be power of 2
-`define nFFT 3  //log2(NFFT)
+`define NFFT 128 // if change this, change FREQ_WIDTH. Must be power of 2
+`define nFFT 7  //log2(NFFT)
 
 `define FREQS (`NFFT / 2)
 `define FREQ_WIDTH 8 // if change NFFT, change this
@@ -38,7 +38,7 @@
 `define BIN_5 12
 `define BIN_6 15
 */
-/*
+
 // BINS NFFT=128
 `define BIN_1 1
 `define BIN_2 2
@@ -46,8 +46,8 @@
 `define BIN_4 12
 `define BIN_5 18
 `define BIN_6 58
-*/
 
+/*
 // BINS NFFT=256
 `define BIN_1 1
 `define BIN_2 4
@@ -55,4 +55,4 @@
 `define BIN_4 24
 `define BIN_5 37
 `define BIN_6 116
-
+*/

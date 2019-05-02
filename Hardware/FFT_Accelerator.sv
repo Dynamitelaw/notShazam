@@ -6,7 +6,7 @@
 //`include "SfftPipeline.sv"
 `include "SfftPipeline_SingleStage.sv"
 //`include "peaks.sv"
-`include "peaksSequential.sv"
+//`include "peaksSequential.sv"
 
 
 module FFT_Accelerator( 
@@ -29,11 +29,11 @@ module FFT_Accelerator(
 		  output logic AUD_DACDAT,
 		  
 		  //Driver IO ports
-		  input logic [7:0] writedata,
+		  input logic [31:0] writedata,
 		  input logic write,
 		  input chipselect,
 		  input logic [7:0] address,
-		  output logic [7:0] readdata
+		  output logic [31:0] readdata
 		  );
 
 	
@@ -94,121 +94,48 @@ module FFT_Accelerator(
 	 	);
 	
 	
-	reg [`SFFT_OUTPUT_WIDTH -1:0] dummySample;
-	reg [`nFFT -1:0] dummyCounterA;
-	reg [`nFFT -1:0] dummyCounterB;
-	always @ (posedge clk) begin
-		dummyCounterA <= dummyCounterA + 1;
-		dummyCounterB <= dummyCounterB + dummyCounterA;
-		dummySample <= SFFT_Out[dummyCounterB];
+	reg [`TIME_COUNTER_WIDTH -1:0] timeCounter = 0;
+	always @(posedge SfftOutputValid) begin
+		timeCounter <= timeCounter + 1;
 	end
 	
-	 		 
-	/*	
-	//Instantiate Peak finder
-	wire [`FINAL_AMPL_WIDTH -1:0] peakAmplitudesOut [`PEAKS -1:0];
-	wire [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
-	wire [`TIME_COUNTER_WIDTH -1:0] peaksCounterOut;
-		
-	peaks peakFinder( 
-		.clk(clk),
-		.reset(reset),
-		
-		.valid_in(SfftOutputValid),
-		.fft_in(SFFT_Out[`FREQS -1:0]),
-		
-		.amplitudes_out(peakAmplitudesOut),
-		.freqs_out(peakFreqsOut),
-		.counter_out(peaksCounterOut)
-		);
-	*/
-	//Instantiate Peak finder
-	reg [`FINAL_AMPL_WIDTH -1:0] peakAmplitudesOut [`PEAKS -1:0];
-	reg [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
-	reg [`TIME_COUNTER_WIDTH -1:0] peaksCounterOut;
 			
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
 		h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
-		h1( .a(dummySample[7:4]),.y(HEX1) ),
-		h0( .a(dummySample[3:0]),.y(HEX0) );
-		//h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
+		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
+		h0( .a({1'b0, 1'b0, 1'b0, chipselect}),.y(HEX0) );
 		//h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 
 	
 	//Determine when the driver is in the middle of pulling a sample
-	reg sampleBeingTaken;
-	parameter maxAddressPulled = 33;
-	always @(posedge clk) begin
-		if (address < maxAddressPulled) begin
-			sampleBeingTaken <= 1;
-		end
-		else begin
-			sampleBeingTaken <= 0;
-		end
-	end
+	wire sampleBeingTaken;
+	assign sampleBeingTaken = chipselect;
 	
 	//Map peaks output onto readOutBus
-	reg [7:0] readOutBus_buffer [255:0];
+	reg [31:0] readOutBus_buffer [255:0];
+	integer i;
 	always @(posedge clk) begin
 		if (sampleBeingTaken == 0) begin
-			//Counter -> address 0-3. Assuming 32 bit counter
-			readOutBus_buffer[0] <= peaksCounterOut[`TIME_COUNTER_WIDTH -1:`TIME_COUNTER_WIDTH -8];
-			readOutBus_buffer[1] <= peaksCounterOut[`TIME_COUNTER_WIDTH -9:`TIME_COUNTER_WIDTH -16];
-			readOutBus_buffer[2] <= peaksCounterOut[`TIME_COUNTER_WIDTH -17:`TIME_COUNTER_WIDTH -24];
-			readOutBus_buffer[3] <= peaksCounterOut[`TIME_COUNTER_WIDTH -25:`TIME_COUNTER_WIDTH -32];
+			//Counter -> address 0. Assuming 32 bit counter
+			readOutBus_buffer[0] <= timeCounter;
 			
-			//Freqenies 0-6 -> address 4-9. Assuming 8 bit frequency
-			readOutBus_buffer[4] <= peakFreqsOut[0];
-			readOutBus_buffer[5] <= peakFreqsOut[1];
-			readOutBus_buffer[6] <= peakFreqsOut[2];
-			readOutBus_buffer[7] <= peakFreqsOut[3];
-			readOutBus_buffer[8] <= peakFreqsOut[4];
-			readOutBus_buffer[9] <= peakFreqsOut[5];
+			//Amplitudes out -> address {1, 2, 3, ...}. Assuming 32 bit frequency amplitude
+			for (i=0; i< `NFFT; i=i+1) begin
+				readOutBus_buffer[i+1] <= SFFT_Out[i];
+			end			
 			
-			//Amplitudes 0-6 -> address {10-13, 14-17, 18-21, 22-25, 26-29, 30-33}. Assuming 32 bit frequency amplitude
-			readOutBus_buffer[10] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
-			readOutBus_buffer[11] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[12] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			//readOutBus_buffer[13] <= peakAmplitudesOut[0][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
-			
-			readOutBus_buffer[14] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
-			readOutBus_buffer[15] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[16] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			//readOutBus_buffer[17] <= peakAmplitudesOut[1][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
-			
-			readOutBus_buffer[18] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
-			readOutBus_buffer[19] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[20] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			//readOutBus_buffer[21] <= peakAmplitudesOut[2][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
-			
-			readOutBus_buffer[22] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
-			readOutBus_buffer[23] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[24] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			//readOutBus_buffer[25] <= peakAmplitudesOut[3][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
-			
-			readOutBus_buffer[26] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
-			readOutBus_buffer[27] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[28] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			//readOutBus_buffer[29] <= peakAmplitudesOut[4][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
-			
-			readOutBus_buffer[30] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -1:`FINAL_AMPL_WIDTH -8];
-			readOutBus_buffer[31] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -9:`FINAL_AMPL_WIDTH -16];
-			readOutBus_buffer[32] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -17:`FINAL_AMPL_WIDTH -24];
-			//readOutBus_buffer[33] <= peakAmplitudesOut[5][`FINAL_AMPL_WIDTH -25:`FINAL_AMPL_WIDTH -32];
-			
-			
-			//Populate last 8 bytes with fixed test values
-			readOutBus_buffer[248] <= 8'd42;
-			readOutBus_buffer[249] <= 8'd53;
-			readOutBus_buffer[250] <= 8'd84;
-			readOutBus_buffer[251] <= 8'd71;
-			readOutBus_buffer[252] <= 8'd7;
-			readOutBus_buffer[253] <= 8'd25;
-			readOutBus_buffer[254] <= 8'd48;
-			readOutBus_buffer[255] <= 8'd96;
+			//Populate last 8 addresses with fixed test values. Must be disabled is NFFT = 256
+			readOutBus_buffer[248] <= 32'd420000;
+			readOutBus_buffer[249] <= 32'd530000;
+			readOutBus_buffer[250] <= 32'd840000;
+			readOutBus_buffer[251] <= 32'd710000;
+			readOutBus_buffer[252] <= 32'd70000;
+			readOutBus_buffer[253] <= 32'd250000;
+			readOutBus_buffer[254] <= 32'd480000;
+			readOutBus_buffer[255] <= 32'd960000;
 		end
 	end
 	
