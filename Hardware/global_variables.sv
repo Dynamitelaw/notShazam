@@ -16,7 +16,7 @@
 `define SFFT_FIXED_POINT_ACCURACY 7
 `define SFFT_STAGECOUNTER_WIDTH 3  //>= log2(nFFT)
 
-//`define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calcultion
+`define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calcultion
 `define SFFT_DOWNSAMPLE_PRE_FACTOR 8  //must be power of 2
 `define nDOWNSAMPLE_PRE 3  //log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
 
