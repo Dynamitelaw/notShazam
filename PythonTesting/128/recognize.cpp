@@ -103,8 +103,8 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 	std::string song_name, uint16_t song_ID);
 
 std::unordered_map<uint16_t, count_ID> identify_sample(
-	std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<uint64_t, song_data> database,
+	const std::list<hash_pair> & sample_prints, 
+	const std::unordered_multimap<uint64_t, song_data> & database,
 	std::list<database_info> song_list);
 
 std::list<peak> generate_constellation_map(std::vector<std::vector<float>> fft, int nfft);
@@ -248,8 +248,8 @@ int main()
 
 
 std::unordered_map<uint16_t, count_ID> identify_sample(
-	std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<uint64_t, song_data> database,
+	const std::list<hash_pair> & sample_prints, 
+	const std::unordered_multimap<uint64_t, song_data> & database,
 	std::list<database_info> song_list)
 {
 	std::cout << "call to identify" << std::endl;
@@ -275,15 +275,11 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 	for(auto iter = sample_prints.begin(); 
 		iter != sample_prints.end(); ++iter){	
 		
-	    std::pair<std::unordered_multimap<uint64_t,song_data>::iterator,
-	    	std::unordered_multimap<uint64_t,song_data>::iterator> ret;
-	    
 	    // get all the entries at this hash location
-	    ret = database.equal_range(iter->fingerprint);
+	    const auto & ret = database.equal_range(iter->fingerprint);
 
 	    //lets insert the song_ID, time anchor pairs in our new database
-	    for(std::unordered_multimap<uint64_t,song_data>::iterator
-			    it = ret.first; it != ret.second; ++it){
+	    for(auto  it = ret.first; it != ret.second; ++it){
 		  
 		    new_key = it->second.song_ID;
 		    new_key = new_key << 16;
