@@ -26,9 +26,7 @@
  	output logic OutputValid
  	);
  	
- 	//parameter pipelineDepth = `nFFT;
- 	
- 	parameter pipelineDepth = 1;
+ 	parameter pipelineDepth = `nFFT;
  	
 	//___________________________
 	//
@@ -66,16 +64,76 @@
 	//
 	// Input Sampling
 	//_________________________
-	
- 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
- 		
- 	//Shift buffer to hold N most recent samples
- 	integer i;
+	 	
+ 	wire [`SFFT_INPUT_WIDTH -1:0] SampleAmplitudeIn_Processed;
+ 	wire advanceSignal_Intermediate;
+ 	wire advanceSignal_Processed;
+ 	
+ 	/*
+ 	 * Implement downsampling if specified
+ 	 */
+ 	 
+ 	//Pre downsampling
+`ifdef SFFT_DOWNSAMPLE_PRE
+	//Shift buffer to hold SFFT_DOWNSAMPLE_PRE_FACTOR most recent raw samples
+	reg [`SFFT_INPUT_WIDTH -1:0] WindowBuffers [`SFFT_DOWNSAMPLE_PRE_FACTOR -1:0];
+ 	integer k;
  	always @ (posedge advanceSignal) begin
+ 		for (k=0; i<`SFFT_DOWNSAMPLE_PRE_FACTOR; k=k+1) begin
+ 			if (i==0) begin
+ 				//load most recent raw sample into buffer 0
+ 				WindowBuffers[k] <= SampleAmplitudeIn;
+ 			end
+ 			else begin
+ 				//Shift buffer contents down by 1 
+ 				WindowBuffers[k] <= WindowBuffers[k-1];
+ 			end
+ 		end	
+ 	end
+ 	
+ 	//Take moving average of window. Acts as lowpass filter
+ 	logic [`SFFT_INPUT_WIDTH + `nDOWNSAMPLE_PRE -1:0] movingSum;
+ 	integer m;
+ 	always @(posedge advanceSignal) begin
+ 		movingSum = movingSum + SampleAmplitudeIn - WindowBuffers[`SFFT_DOWNSAMPLE_PRE_FACTOR -1];
+ 	end
+ 	
+ 	assign SampleAmplitudeIn_Processed = movingSum[`SFFT_INPUT_WIDTH + `nDOWNSAMPLE_PRE -1:`nDOWNSAMPLE_PRE];  //right shift by nDOWNSAMPLE_PRE to divide sum into average
+ 	
+ 	//Counter for input downsampling
+ 	reg [`nDOWNSAMPLE_PRE -1:0] downsamplePRECounter = 0;
+ 	always @ (posedge advanceSignal) begin
+		downsamplePRECounter <= downsamplePRECounter + 1;
+	end
+	
+	assign advanceSignal_Intermediate = (downsamplePRECounter == 0);
+`else
+	assign SampleAmplitudeIn_Processed = SampleAmplitudeIn;
+	assign advanceSignal_Intermediate = advanceSignal; 
+`endif
+
+	//Post downsampling
+idef SFFT_DOWNSAMPLE_POST
+	reg [`nDOWNSAMPLE_POST -1:0] downsamplePOSTCounter = 0;
+	always @ (posedge advanceSignal_Intermediate) begin
+		downsamplePOSTCounter <= downsamplePOSTCounter + 1;
+	end
+	
+	assign advanceSignal_Processed = (downsamplePOSTCounter == 0);
+`else
+ 	assign advanceSignal_Processed = advanceSignal_Intermediate;
+`endif
+ 	
+ 	
+ 	//Shift buffer to hold N most recent samples
+ 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
+ 	
+ 	integer i;
+ 	always @ (posedge advanceSignal_Processed) begin
  		for (i=0; i<`NFFT; i=i+1) begin
  			if (i==0) begin
  				//load most recent sample into buffer 0
- 				SampleBuffers[i] <= SampleAmplitudeIn;
+ 				SampleBuffers[i] <= SampleAmplitudeIn_Processed;
  			end
  			else begin
  				//Shift buffer contents down by 1 
@@ -107,7 +165,7 @@
 			newSampleReady <= 0;
 		end
 		
-		else if ((advanceSignal==1) && (newSampleReady==0)) begin
+		else if ((advanceSignal_Processed==1) && (newSampleReady==0)) begin
 			newSampleReady <= 1;
 		end
 	end	
@@ -162,7 +220,6 @@
 		end
 		
 		//Connect intra-pipeline buses
-		/*
 		for (s=1; s<pipelineDepth; s=s+1)
 		begin : InternalBusConnections
 			for (k=0; k<`NFFT; k=k+1) 
@@ -174,7 +231,7 @@
 			assign Pipeline[s].inputReady = Pipeline[s-1].outputReady;
 			assign Pipeline[s-1].nextStageIdle = Pipeline[s].idle;
 		end
-		*/
+		
 		
 		//Conect pipeline input stage
 		for (k=0; k<`NFFT; k=k+1) 

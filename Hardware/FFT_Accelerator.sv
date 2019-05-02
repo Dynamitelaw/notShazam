@@ -3,8 +3,8 @@
 
 
 `include "./AudioCodecDrivers/audio_driver.sv"
-//`include "SfftPipeline.sv"
-`include "SfftPipeline_SingleStage.sv"
+`include "SfftPipeline.sv"
+//`include "SfftPipeline_SingleStage.sv"
 //`include "peaks.sv"
 `include "peaksSequential.sv"
 
@@ -93,18 +93,18 @@ module FFT_Accelerator(
 	 	.OutputValid(SfftOutputValid)
 	 	);
 	
-	/*
-	reg [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0];
+	
+	reg [`SFFT_OUTPUT_WIDTH -1:0] dummySample;
 	reg [`nFFT -1:0] dummyCounterA;
 	reg [`nFFT -1:0] dummyCounterB;
 	always @ (posedge clk) begin
 		dummyCounterA <= dummyCounterA + 1;
-		dummyCounterB <= dummyCounterB + 3;
-		SFFT_Out[dummyCounterA] <= dummyCounterB;
+		dummyCounterB <= dummyCounterB + dummyCounterA;
+		dummySample <= SFFT_Out[dummyCounterB];
 	end
-	*/
+	
 	 		 
-		
+	/*	
 	//Instantiate Peak finder
 	wire [`FINAL_AMPL_WIDTH -1:0] peakAmplitudesOut [`PEAKS -1:0];
 	wire [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
@@ -122,14 +122,15 @@ module FFT_Accelerator(
 		.freqs_out(peakFreqsOut),
 		.counter_out(peaksCounterOut)
 		);
-	 			
+	*/	
+			
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
 		h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
-		h1( .a(address[7:4]),.y(HEX1) ),
-		h0( .a(address[3:0]),.y(HEX0) );
+		h1( .a(dummySample[7:4]),.y(HEX1) ),
+		h0( .a(dummySample[3:0]),.y(HEX0) );
 		//h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		//h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 
