@@ -58,7 +58,7 @@ static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peak_struct) {
 	// ioread*() calls may need to change if bit widths change.
 	peak_struct->time = ioread32(TIME_COUNT(dev.virtbase) + 7); 
 	for (i = 0; i < BINS; i++) {
-		peak_struct->points[i].freq = ioread8(FREQUENCIES(dev.virtbase) + i*FREQ_WIDTH_BYTES);
+		//peak_struct->points[i].freq = ioread8(FREQUENCIES(dev.virtbase) + i*FREQ_WIDTH_BYTES);
 		peak_struct->points[i].ampl = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
 	}
 }
