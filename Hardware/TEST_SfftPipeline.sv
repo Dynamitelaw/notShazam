@@ -19,8 +19,9 @@
 	`define SFFT_FIXED_POINT_ACCURACY 7
  */
  
- `include "global_variables.sv"
- `include "SfftPipeline.sv"
+`include "global_variables.sv"
+//`include "SfftPipeline.sv"
+`include "SfftPipeline_SingleStage.sv"
  
  module Sfft_Testbench();
  	reg reset = 0;
@@ -61,63 +62,63 @@
 		//Load in samples 11, 85, 23, 33, 6, 90, 77, 61
 		SampleAmplitudeIn <= 61;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		SampleAmplitudeIn <= 77;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		SampleAmplitudeIn <= 90;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		SampleAmplitudeIn <= 6;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		SampleAmplitudeIn <= 33;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		SampleAmplitudeIn <= 23;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		SampleAmplitudeIn <= 85;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		SampleAmplitudeIn <= 11;
 		advanceSignal <= 0;
-		#20  //Wait for calculation to complete
+		#60  //Wait for calculation to complete
 		#1 //posedge
 		advanceSignal <= 1;
 		#1 //negedge
 		
 		advanceSignal <= 0;
 		
-		#100
+		#300
 		$stop;
 	end
 	
