@@ -3,8 +3,8 @@
 
 
 `include "./AudioCodecDrivers/audio_driver.sv"
-`include "SfftPipeline.sv"
-//`include "SfftPipeline_SingleStage.sv"
+//`include "SfftPipeline.sv"
+`include "SfftPipeline_SingleStage.sv"
 //`include "peaks.sv"
 `include "peaksSequential.sv"
 
