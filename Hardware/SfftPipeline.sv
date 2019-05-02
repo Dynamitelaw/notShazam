@@ -77,23 +77,22 @@
 `ifdef SFFT_DOWNSAMPLE_PRE
 	//Shift buffer to hold SFFT_DOWNSAMPLE_PRE_FACTOR most recent raw samples
 	reg [`SFFT_INPUT_WIDTH -1:0] WindowBuffers [`SFFT_DOWNSAMPLE_PRE_FACTOR -1:0];
- 	integer k;
+ 	integer m;
  	always @ (posedge advanceSignal) begin
- 		for (k=0; i<`SFFT_DOWNSAMPLE_PRE_FACTOR; k=k+1) begin
- 			if (i==0) begin
+ 		for (m=0; m<`SFFT_DOWNSAMPLE_PRE_FACTOR; m=m+1) begin
+ 			if (m==0) begin
  				//load most recent raw sample into buffer 0
- 				WindowBuffers[k] <= SampleAmplitudeIn;
+ 				WindowBuffers[m] <= SampleAmplitudeIn;
  			end
  			else begin
  				//Shift buffer contents down by 1 
- 				WindowBuffers[k] <= WindowBuffers[k-1];
+ 				WindowBuffers[m] <= WindowBuffers[m-1];
  			end
  		end	
  	end
  	
  	//Take moving average of window. Acts as lowpass filter
  	logic [`SFFT_INPUT_WIDTH + `nDOWNSAMPLE_PRE -1:0] movingSum;
- 	integer m;
  	always @(posedge advanceSignal) begin
  		movingSum = movingSum + SampleAmplitudeIn - WindowBuffers[`SFFT_DOWNSAMPLE_PRE_FACTOR -1];
  	end
@@ -113,7 +112,7 @@
 `endif
 
 	//Post downsampling
-idef SFFT_DOWNSAMPLE_POST
+`ifdef SFFT_DOWNSAMPLE_POST
 	reg [`nDOWNSAMPLE_POST -1:0] downsamplePOSTCounter = 0;
 	always @ (posedge advanceSignal_Intermediate) begin
 		downsamplePOSTCounter <= downsamplePOSTCounter + 1;

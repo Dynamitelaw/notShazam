@@ -109,7 +109,6 @@ module FFT_Accelerator(
 	wire [`FINAL_AMPL_WIDTH -1:0] peakAmplitudesOut [`PEAKS -1:0];
 	wire [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
 	wire [`TIME_COUNTER_WIDTH -1:0] peaksCounterOut;
-	
 		
 	peaks peakFinder( 
 		.clk(clk),
@@ -122,7 +121,11 @@ module FFT_Accelerator(
 		.freqs_out(peakFreqsOut),
 		.counter_out(peaksCounterOut)
 		);
-	*/	
+	*/
+	//Instantiate Peak finder
+	reg [`FINAL_AMPL_WIDTH -1:0] peakAmplitudesOut [`PEAKS -1:0];
+	reg [`FREQ_WIDTH -1:0] peakFreqsOut[`PEAKS -1:0];
+	reg [`TIME_COUNTER_WIDTH -1:0] peaksCounterOut;
 			
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
