@@ -99,14 +99,22 @@ module FFT_Accelerator(
 		timeCounter <= timeCounter + 1;
 	end
 	
-			
+	reg [7:0] address_buffer;
+	always @(posedge clk) begin
+		if (chipselect) begin
+			address_buffer <= address;
+		end
+	end
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
-		h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
-		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
-		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
+		h3( .a(address_buffer[7:4]),.y(HEX3) ),
+		h2( .a(address_buffer[3:0]),.y(HEX2) ),
+		h1( .a({4{1'b0}}),.y(HEX1) ),
 		h0( .a({1'b0, 1'b0, 1'b0, chipselect}),.y(HEX0) );
+		//h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
+		//h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
+		//h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		//h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 
 	
@@ -128,14 +136,14 @@ module FFT_Accelerator(
 			end			
 			
 			//Populate last 8 addresses with fixed test values. Must be disabled is NFFT = 256
-			readOutBus_buffer[248] <= 32'd420000;
-			readOutBus_buffer[249] <= 32'd530000;
-			readOutBus_buffer[250] <= 32'd840000;
-			readOutBus_buffer[251] <= 32'd710000;
-			readOutBus_buffer[252] <= 32'd70000;
-			readOutBus_buffer[253] <= 32'd250000;
-			readOutBus_buffer[254] <= 32'd480000;
-			readOutBus_buffer[255] <= 32'd960000;
+			readOutBus_buffer[248] <= 32'b00000000_00000000_00000000_00000000;
+			readOutBus_buffer[249] <= 32'b00000000_00000000_00000000_11111111;
+			readOutBus_buffer[250] <= 32'b11111111_00000000_00000000_11110000;
+			readOutBus_buffer[251] <= 32'b00000000_00000000_00000000_10110010;
+			readOutBus_buffer[252] <= 32'h11170;
+			readOutBus_buffer[253] <= 32'h3D090;
+			readOutBus_buffer[254] <= 32'h75300;
+			readOutBus_buffer[255] <= 32'hEA600;
 		end
 	end
 	
