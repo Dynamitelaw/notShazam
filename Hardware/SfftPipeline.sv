@@ -45,9 +45,20 @@
 	
 	//Load values into ROM from generated text files
 	initial begin
-		//NOTE: These filepaths must be changed to their absolute paths if simulating with Vsim. Otherwise they should be relative to Hardware directory
+`ifdef RUNNING_SIMULATION
+		//NOTE: These filepaths must be changed to their absolute local paths if simulating with Vsim. Otherwise they should be relative to Hardware directory
 		//NOTE: If simulating with Vsim, make sure to run the Matlab script GenerateRomFiles.m if you change any global variables
 		
+		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/InputShuffledIndexes.txt", shuffledInputIndexes, 0);
+		
+		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/Ks.txt", kValues, 0);
+		
+		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/aIndexes.txt", aIndexes, 0);
+		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/bIndexes.txt", bIndexes, 0);
+		
+		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/realCoefficients.txt", realCoefficents, 0);
+		$readmemh("/user3/fall16/jer2201/notShazam/Hardware/GeneratedParameters/imaginaryCoefficients.txt", imagCoefficents, 0);
+`else
 		$readmemh("GeneratedParameters/InputShuffledIndexes.txt", shuffledInputIndexes, 0);
 		
 		$readmemh("GeneratedParameters/Ks.txt", kValues, 0);
@@ -57,6 +68,7 @@
 		
 		$readmemh("GeneratedParameters/realCoefficients.txt", realCoefficents, 0);
 		$readmemh("GeneratedParameters/imaginaryCoefficients.txt", imagCoefficents, 0);
+`endif
 	end
 	
 	
@@ -76,7 +88,7 @@
  	//Pre downsampling
 `ifdef SFFT_DOWNSAMPLE_PRE
 	//Shift buffer to hold SFFT_DOWNSAMPLE_PRE_FACTOR most recent raw samples
-	reg [`SFFT_INPUT_WIDTH -1:0] WindowBuffers [`SFFT_DOWNSAMPLE_PRE_FACTOR -1:0];
+	reg [`SFFT_INPUT_WIDTH -1:0] WindowBuffers [`SFFT_DOWNSAMPLE_PRE_FACTOR -1:0] = '{default:0};
  	integer m;
  	always @ (posedge advanceSignal) begin
  		for (m=0; m<`SFFT_DOWNSAMPLE_PRE_FACTOR; m=m+1) begin
@@ -252,7 +264,19 @@
 		assign Pipeline[pipelineDepth-1].nextStageIdle = 0;
 		
 	endgenerate
-	 	
+	
+	
+	//_______________________________
+	//
+	// Simulation Probes
+	//_______________________________
+	
+	wire [`SFFT_INPUT_WIDTH -1:0] PROBE_SampleBuffers [`NFFT -1:0];
+	assign PROBE_SampleBuffers = SampleBuffers;
+	
+	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_shuffledSamples [`NFFT -1:0];
+	assign PROBE_shuffledSamples = shuffledSamples;
+	
  endmodule  //SFFT_Pipeline
  
  
