@@ -34,8 +34,8 @@ void print_peaks() {
       perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
       return;
   }
-  for (int p = 0; p < BINS; p++){
-    printf("(time: %u, frequency: %u, amplitude: %d) \n", peaks.time, peaks.points[p].freq, peaks.points[p].ampl);
+  for (int p = 248; p < 256; p++){
+    printf("(time: %u, amplitude: %d) \n", peaks.time, peaks.points[p].ampl);
   }
 }
 

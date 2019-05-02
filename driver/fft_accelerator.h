@@ -11,14 +11,16 @@
 #define AMPL_WIDTH_BITS 24
 #define AMPL_FRACTIONAL_BITS 7
 
+#define NFFT 128
+
 
 typedef struct {
 	int32_t ampl;
-	uint8_t freq;
+	//uint8_t freq;
 } point;
 
 typedef struct {
-	point points[BINS];
+	point points[NFFT];
 	uint32_t time; // consider moving this inside point
 } fft_accelerator_peaks_t;
   
