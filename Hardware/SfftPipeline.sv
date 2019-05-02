@@ -78,8 +78,8 @@
 	//_________________________
 	 	
  	wire [`SFFT_INPUT_WIDTH -1:0] SampleAmplitudeIn_Processed;
- 	wire advanceSignal_Intermediate;
- 	wire advanceSignal_Processed;
+ 	reg advanceSignal_Intermediate;
+ 	reg advanceSignal_Processed;
  	
  	/*
  	 * Implement downsampling if specified
@@ -104,7 +104,7 @@
  	end
  	
  	//Take moving average of window. Acts as lowpass filter
- 	logic [`SFFT_INPUT_WIDTH + `nDOWNSAMPLE_PRE -1:0] movingSum;
+ 	logic [`SFFT_INPUT_WIDTH + `nDOWNSAMPLE_PRE -1:0] movingSum = 0;
  	always @(posedge advanceSignal) begin
  		movingSum = movingSum + SampleAmplitudeIn - WindowBuffers[`SFFT_DOWNSAMPLE_PRE_FACTOR -1];
  	end
@@ -117,10 +117,15 @@
 		downsamplePRECounter <= downsamplePRECounter + 1;
 	end
 	
-	assign advanceSignal_Intermediate = (downsamplePRECounter == 0);
+	always @ (posedge clk) begin
+		advanceSignal_Intermediate <= (downsamplePRECounter == 0) && advanceSignal;
+	end
 `else
 	assign SampleAmplitudeIn_Processed = SampleAmplitudeIn;
-	assign advanceSignal_Intermediate = advanceSignal; 
+	
+	always @(*) begin
+		advanceSignal_Intermediate = advanceSignal;
+	end 
 `endif
 
 	//Post downsampling
@@ -130,9 +135,13 @@
 		downsamplePOSTCounter <= downsamplePOSTCounter + 1;
 	end
 	
-	assign advanceSignal_Processed = (downsamplePOSTCounter == 0);
+	always @ (posedge clk) begin
+		advanceSignal_Processed <= (downsamplePOSTCounter == 0) && advanceSignal_Intermediate;
+	end
 `else
- 	assign advanceSignal_Processed = advanceSignal_Intermediate;
+	always @(*) begin
+ 		advanceSignal_Processed = advanceSignal_Intermediate;
+ 	end
 `endif
  	
  	
@@ -167,7 +176,7 @@
  	//Notify pipeline of new input
  	reg newSampleReady;
 	wire inputReceived;
-	always @ (posedge clk) begin
+	always @ (negedge clk) begin  //negedge to avoid race condition with advanceSignal_Processed
 		if (reset) begin
 			newSampleReady <= 0;
 		end
