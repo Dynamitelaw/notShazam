@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #define R 2
 #define RADIUS (R << 2)
@@ -34,8 +35,8 @@ void print_peaks() {
       perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
       return;
   }
-  for (int p = 248; p < 256; p++){
-    printf("(time: %u, amplitude: %d) \n", peaks.time, peaks.points[p].ampl);
+  for (int p = 247; p < 255; p++){
+    printf("(time: %u, address: %d, amplitude_raw: %d  0x%x, amplitude_ntohl: %d  0x%x) \n", peaks.time, p, peaks.points[p].ampl, peaks.points[p].ampl, ntohl(peaks.points[p].ampl), ntohl(peaks.points[p].ampl));
   }
 }
 
@@ -53,7 +54,7 @@ int main()
     return -1;
   }
 
-  printf("peaks: ");
+  //printf("peaks: ");
   print_peaks();
 
   printf("FFT Accelerator Userspace program terminating\n");

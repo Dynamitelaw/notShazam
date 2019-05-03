@@ -11,7 +11,7 @@
 #define AMPL_WIDTH_BITS 24
 #define AMPL_FRACTIONAL_BITS 7
 
-#define NFFT 128
+#define NFFT 256 
 
 
 typedef struct {
