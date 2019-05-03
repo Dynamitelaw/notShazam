@@ -37,10 +37,12 @@ module FFT_Accelerator(
 		  );
 
 	
+	/*
 	//Debounce button inputs 
 	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
 	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
-
+	*/
+	
 	//Instantiate audio controller
 	reg [23:0] dac_left_in;
 	reg [23:0] dac_right_in;
@@ -72,13 +74,13 @@ module FFT_Accelerator(
 	 	.AUD_DACDAT(AUD_DACDAT)
 	 	);
 	 
-		
-	//Instantiate SFFT pipeline
-	reg [23:0] audioInMono;  //Convert stereo input to mono
+	//Convert stereo input to mono	
+	reg [23:0] audioInMono;  
 	always @ (*) begin
 		audioInMono = adc_right_out + adc_left_out;
 	end
 	
+	//Instantiate SFFT pipeline
  	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0];
  	wire SfftOutputValid;
  
@@ -93,29 +95,20 @@ module FFT_Accelerator(
 	 	.OutputValid(SfftOutputValid)
 	 	);
 	
-	
+	//Sample counter
 	reg [`TIME_COUNTER_WIDTH -1:0] timeCounter = 0;
 	always @(posedge SfftOutputValid) begin
 		timeCounter <= timeCounter + 1;
 	end
 	
-	reg [7:0] address_buffer;
-	always @(posedge clk) begin
-		if (chipselect) begin
-			address_buffer <= address;
-		end
-	end
+	
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
-		h3( .a(address_buffer[7:4]),.y(HEX3) ),
-		h2( .a(address_buffer[3:0]),.y(HEX2) ),
-		h1( .a({4{1'b0}}),.y(HEX1) ),
-		h0( .a({1'b0, 1'b0, 1'b0, chipselect}),.y(HEX0) );
-		//h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
-		//h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
-		//h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
-		//h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
+		h3( .a(adc_out_buffer[15:12]),.y(HEX3) ),
+		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
+		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
+		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 
 	
 	//Determine when the driver is in the middle of pulling a sample
@@ -135,7 +128,7 @@ module FFT_Accelerator(
 			readOutBus_buffer[1] <= timeCounter[15:8];
 			readOutBus_buffer[0] <= timeCounter[7:0];
 			
-			//Amplitudes out -> address {}. Assuming 32 bit frequency amplitude
+			//Amplitudes out. Assuming 32 bit frequency amplitude
 			for (i=0; i< `NFFT; i=i+1) begin
 				readOutBus_buffer[i*4+7] <= SFFT_Out[i][31:24];
 				readOutBus_buffer[i*4+6] <= SFFT_Out[i][23:16];
@@ -143,7 +136,7 @@ module FFT_Accelerator(
 				readOutBus_buffer[i*4+4] <= SFFT_Out[i][7:0];
 			end			
 			
-			//Populate last 8 values with fixed test values. Must be disabled is NFFT = 256
+			//Populate last 8 values with fixed test values. Must be disabled if NFFT > 128
 			readOutBus_buffer[247*4+7] <= 8'h11;
 			readOutBus_buffer[247*4+6] <= 8'h22;
 			readOutBus_buffer[247*4+5] <= 8'h33;
