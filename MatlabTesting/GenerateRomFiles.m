@@ -44,16 +44,21 @@ realFileID = fopen('../Hardware/GeneratedParameters/realCoefficients.txt','w');
 imaginaryFileID = fopen('../Hardware/GeneratedParameters/imaginaryCoefficients.txt','w');
 
 for k = 0:N/2-1
-   if k == 0
-       k = 0.00000001;
-   end
+   %if k == 0
+   %    k = 0.000001;
+   %end
    w =  exp(-2i*pi*k/N);
    realCoef = uint32(num2fixpt(real(w), ufix(floatingPointAccuracy+1), 2^(-floatingPointAccuracy)) * 2^(floatingPointAccuracy));
+   if k == 0
+   	realCoef = uint32((1 - 2^(-floatingPointAccuracy))*2^(floatingPointAccuracy));
+   end
    imagCoef = uint32(num2fixpt(imag(w), ufix(floatingPointAccuracy+1), 2^(-floatingPointAccuracy)) * 2^(floatingPointAccuracy));
-     
+   
    fprintf(realFileID,'%s\n',dec2hex(realCoef, (floatingPointAccuracy+1)/4));
    fprintf(imaginaryFileID,'%s\n',dec2hex(imagCoef, (floatingPointAccuracy+1)/4));
    
+   %disp('========================')
+   %disp(k);
    %disp(w);
    %disp(q2dec([dec2hex(realCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
    %disp(q2dec([dec2hex(imagCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
