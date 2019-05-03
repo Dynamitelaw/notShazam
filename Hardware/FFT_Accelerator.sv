@@ -29,11 +29,11 @@ module FFT_Accelerator(
 		  output logic AUD_DACDAT,
 		  
 		  //Driver IO ports
-		  input logic [31:0] writedata,
+		  input logic [7:0] writedata,
 		  input logic write,
 		  input chipselect,
-		  input logic [7:0] address,
-		  output logic [31:0] readdata
+		  input logic [15:0] address,
+		  output logic [7:0] readdata
 		  );
 
 	
@@ -123,33 +123,77 @@ module FFT_Accelerator(
 	assign sampleBeingTaken = chipselect;
 	
 	//Map peaks output onto readOutBus
-	reg [31:0] readOutBus_buffer [255:0];
+	reg [7:0] readOutBus_buffer [1023:0];
 	integer i;
 	always @(posedge clk) begin
 		if (sampleBeingTaken == 0) begin
-			//Counter -> address 0. Assuming 32 bit counter
-			readOutBus_buffer[0] <= timeCounter;
+			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
 			
-			//Amplitudes out -> address {1, 2, 3, ...}. Assuming 32 bit frequency amplitude
+			//Counter -> address 0-3. Assuming 32 bit counter
+			readOutBus_buffer[3] <= timeCounter[31:24];
+			readOutBus_buffer[2] <= timeCounter[23:16];
+			readOutBus_buffer[1] <= timeCounter[15:8];
+			readOutBus_buffer[0] <= timeCounter[7:0];
+			
+			//Amplitudes out -> address {}. Assuming 32 bit frequency amplitude
 			for (i=0; i< `NFFT; i=i+1) begin
-				readOutBus_buffer[i+1] <= SFFT_Out[i];
+				readOutBus_buffer[i*4+7] <= SFFT_Out[i][31:24];
+				readOutBus_buffer[i*4+6] <= SFFT_Out[i][23:16];
+				readOutBus_buffer[i*4+5] <= SFFT_Out[i][15:8];
+				readOutBus_buffer[i*4+4] <= SFFT_Out[i][7:0];
 			end			
 			
-			//Populate last 8 addresses with fixed test values. Must be disabled is NFFT = 256
-			readOutBus_buffer[248] <= 32'b00000000_00000000_00000000_00000000;
-			readOutBus_buffer[249] <= 32'b00000000_00000000_00000000_11111111;
-			readOutBus_buffer[250] <= 32'b11111111_00000000_00000000_11110000;
-			readOutBus_buffer[251] <= 32'b00000000_00000000_00000000_10110010;
-			readOutBus_buffer[252] <= 32'h11170;
-			readOutBus_buffer[253] <= 32'h3D090;
-			readOutBus_buffer[254] <= 32'h75300;
-			readOutBus_buffer[255] <= 32'hEA600;
+			//Populate last 8 values with fixed test values. Must be disabled is NFFT = 256
+			readOutBus_buffer[247*4+7] <= 8'h11;
+			readOutBus_buffer[247*4+6] <= 8'h22;
+			readOutBus_buffer[247*4+5] <= 8'h33;
+			readOutBus_buffer[247*4+4] <= 8'h44;
+			
+			readOutBus_buffer[248*4+7] <= 8'b00000000;
+			readOutBus_buffer[248*4+6] <= 8'b00000000;
+			readOutBus_buffer[248*4+5] <= 8'b00000000;
+			readOutBus_buffer[248*4+4] <= 8'b00000000;
+			
+			readOutBus_buffer[249*4+7] <= 8'b11111111;
+			readOutBus_buffer[249*4+6] <= 8'b11111111;
+			readOutBus_buffer[249*4+5] <= 8'b11111111;
+			readOutBus_buffer[249*4+4] <= 8'b11111111;
+			
+			readOutBus_buffer[250*4+7] <= 8'b11111111;
+			readOutBus_buffer[250*4+6] <= 8'b00000000;
+			readOutBus_buffer[250*4+5] <= 8'b00000000;
+			readOutBus_buffer[250*4+4] <= 8'b00000000;
+			
+			readOutBus_buffer[251*4+7] <= 8'b11111111;
+			readOutBus_buffer[251*4+6] <= 8'b00000000;
+			readOutBus_buffer[251*4+5] <= 8'b11111111;
+			readOutBus_buffer[251*4+4] <= 8'b00000000;
+			
+			readOutBus_buffer[252*4+7] <= 8'b11110000;
+			readOutBus_buffer[252*4+6] <= 8'b00000000;
+			readOutBus_buffer[252*4+5] <= 8'b00000000;
+			readOutBus_buffer[252*4+4] <= 8'b00000000;
+			
+			readOutBus_buffer[253*4+7] <= 8'b11010010;
+			readOutBus_buffer[253*4+6] <= 8'b00000000;
+			readOutBus_buffer[253*4+5] <= 8'b00000000;
+			readOutBus_buffer[253*4+4] <= 8'b00000000;
+			
+			readOutBus_buffer[254*4+7] <= 8'h01;
+			readOutBus_buffer[254*4+6] <= 8'h23;
+			readOutBus_buffer[254*4+5] <= 8'h45;
+			readOutBus_buffer[254*4+4] <= 8'h67;
 		end
 	end
 	
 	//Read handling
 	always @(posedge clk) begin
-		readdata <= readOutBus_buffer[address];
+		if (address < 1024) begin
+			readdata <= readOutBus_buffer[address];
+		end
+		else begin
+			readdata <= 0;
+		end
 	end
 		
 	//Sample inputs
