@@ -41,37 +41,44 @@ void print_peaks() {
     printf("(time: %u, address: %d, amplitude_raw: %d  0x%x, amplitude_ntohl: %d  0x%x) \n", peaks.time, p, peaks.points[p].ampl, peaks.points[p].ampl, ntohl(peaks.points[p].ampl), ntohl(peaks.points[p].ampl));
   }
   */
+   
+   int displayRows = 15;
+   int newlines = 10;
+   char displayArray [displayRows*128+newlines+55555];
 
-  while (1) {
+   while (1) {
+    //Zero out display array
+    memset(displayArray, 0, 128*displayRows+newlines+1);
+
     if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
       perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
       return;
     }
-
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     
-    int startingFreq = 40;
-    int displayRows = 15;
-    int displayArray [displayRows][21];
+    for (int i=0; i<newlines; i++){
+      strcat(displayArray, "\n");
+    }
+    
     double scaleFactor = 1000000000000000000;
     int scaledAmplitude;
+
     for (int r=0; r<displayRows; r++){
       scaleFactor = scaleFactor/15;
-      for (int c=startingFreq; c<startingFreq+44; c+=2){
+      for (int c=0; c<NFFT; c+=1){
         scaledAmplitude = abs(peaks.points[c].ampl)/scaleFactor;
         if (scaledAmplitude > 0)
-          printf("|\t");
+          strcat(displayArray, "|");
         else
-          printf(" \t");
+          strcat(displayArray, " ");
       }
-      printf("\n");
+      strcat(displayArray, "\n");
     }
-    for (int p=startingFreq; p<startingFreq+44; p+=2){
-      printf("%d\t", abs(peaks.points[p].ampl)/100000);  
-    }
-    printf("\n");
+
+    strcat(displayArray, "\n");
+    printf("%s", displayArray);
     usleep(350000);
   }
+
 }
 
 
