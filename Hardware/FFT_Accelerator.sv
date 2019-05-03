@@ -1,4 +1,4 @@
-// CSEE 4840 Lab 1
+// CSEE 4840 Design Project
 // By: Jose Rubianes & Tomin Perea-Chamblee & Eitan Kaplan
 
 
@@ -136,12 +136,15 @@ module FFT_Accelerator(
 				readOutBus_buffer[i*4+4] <= SFFT_Out[i][7:0];
 			end			
 			
-			//Populate last 8 values with fixed test values. Must be disabled if NFFT > 128
-			readOutBus_buffer[247*4+7] <= 8'h11;
-			readOutBus_buffer[247*4+6] <= 8'h22;
-			readOutBus_buffer[247*4+5] <= 8'h33;
-			readOutBus_buffer[247*4+4] <= 8'h44;
+			//Populate value 247 with input sample amplitude. Must be disabled if NFFT > 128
+			if (advance) begin
+				readOutBus_buffer[247*4+7] <= {8{audioInMono[23]}};
+				readOutBus_buffer[247*4+6] <= audioInMono[23:16];
+				readOutBus_buffer[247*4+5] <= audioInMono[15:8];
+				readOutBus_buffer[247*4+4] <= audioInMono[7:0];
+			end
 			
+			//Populate last 7 values with fixed test values. Must be disabled if NFFT > 128
 			readOutBus_buffer[248*4+7] <= 8'b00000000;
 			readOutBus_buffer[248*4+6] <= 8'b00000000;
 			readOutBus_buffer[248*4+5] <= 8'b00000000;
