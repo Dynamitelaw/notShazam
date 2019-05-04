@@ -178,12 +178,23 @@
  	logic [`SFFT_OUTPUT_WIDTH -1:0] shuffledSamples [`NFFT -1:0];
  	
  	integer j;
+ 	
+`ifdef SFFT_FIXEDPOINT_INPUTSCALING
  	parameter extensionBits = `SFFT_OUTPUT_WIDTH - `SFFT_FIXED_POINT_ACCURACY - `SFFT_INPUT_WIDTH - 1;
  	always @ (*) begin
  		for (j=0; j<`NFFT; j=j+1) begin
  			shuffledSamples[j] = {{extensionBits{SampleBuffers[shuffledInputIndexes[j]][`SFFT_INPUT_WIDTH -1]}}, SampleBuffers[shuffledInputIndexes[j]] << `SFFT_FIXED_POINT_ACCURACY};  //Left shift input by fixed-point accuracy, and sign extend to match output width
  		end
- 	end	
+ 	end
+ 	
+`else
+	parameter extensionBits = `SFFT_OUTPUT_WIDTH - `SFFT_INPUT_WIDTH - 1;
+ 	always @ (*) begin
+ 		for (j=0; j<`NFFT; j=j+1) begin
+ 			shuffledSamples[j] = {{extensionBits{SampleBuffers[shuffledInputIndexes[j]][`SFFT_INPUT_WIDTH -1]}}, SampleBuffers[shuffledInputIndexes[j]]};  //Sign extend to match output width
+ 		end
+ 	end
+`endif
  	 	
  	//Notify pipeline of new input
  	reg newSampleReady;
