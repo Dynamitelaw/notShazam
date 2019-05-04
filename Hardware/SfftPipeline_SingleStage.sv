@@ -311,8 +311,8 @@
 	input logic [`nFFT -1:0] bIndexes [(`NFFT / 2) -1:0],
  	
  	//Stage Results
- 	output logic [`SFFT_OUTPUT_WIDTH -1:0] StageOutReal [`NFFT -1:0],
- 	output logic [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0],
+ 	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutReal [`NFFT -1:0],
+ 	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0],
  	
  	//State control
  	output reg idle,
@@ -322,9 +322,12 @@
  	);
  	 	 	
  	
- 	//Stage input buffers
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] StageInReal_Buffer [`NFFT -1:0];
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] StageInImag_Buffer [`NFFT -1:0];
+ 	//Stage memory buffers
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] StageReal_Buffer [`NFFT -1:0];
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] StageImag_Buffer [`NFFT -1:0];
+ 	
+ 	assign StageOutReal = StageReal_Buffer;
+ 	assign StageOutImag = StageImag_Buffer;
  	 	
  	//Counter for iterating through butterflies
  	parameter bCounterWidth = `nFFT - 1;
@@ -370,11 +373,11 @@
 		
  	//MUX for selecting butterfly inputs
  	always @ (*) begin
- 		aInReal = StageInReal_Buffer[aIndexes[btflyCounter]];
- 		aInImag = StageInImag_Buffer[aIndexes[btflyCounter]];
+ 		aInReal = StageReal_Buffer[aIndexes[btflyCounter]];
+ 		aInImag = StageImag_Buffer[aIndexes[btflyCounter]];
  		
- 		bInReal = StageInReal_Buffer[bIndexes[btflyCounter]];
- 		bInImag = StageInImag_Buffer[bIndexes[btflyCounter]];
+ 		bInReal = StageReal_Buffer[bIndexes[btflyCounter]];
+ 		bInImag = StageImag_Buffer[bIndexes[btflyCounter]];
  		
  		wInReal = realCoefficents[kValues[btflyCounter]];
  		wInImag = imagCoefficents[kValues[btflyCounter]];
@@ -397,11 +400,8 @@
  			btflyCounter <= 0;
  			virtualStageCounter <= 0;
  			
- 			StageInReal_Buffer <= '{default:0};
- 			StageInImag_Buffer <= '{default:0};
- 			
- 			StageOutReal <= '{default:0};
- 			StageOutImag <= '{default:0};
+ 			StageReal_Buffer <= '{default:0};
+ 			StageImag_Buffer <= '{default:0};
  		end
  		
  		else begin
@@ -409,25 +409,19 @@
  				//Buffer input and start processing
  				idle <= 0;
  				for (i=0; i<`NFFT; i=i+1) begin
- 					StageInReal_Buffer[i] <= StageInReal[i];
- 					StageInImag_Buffer[i] <= StageInImag[i];
+ 					StageReal_Buffer[i] <= StageInReal[i];
+ 					StageImag_Buffer[i] <= StageInImag[i];
  				end
  			end
  			
  			else if (idle==0) begin
- 				//Write A output
- 				StageInReal_Buffer[aIndexes[btflyCounter]] <= AOutReal;
- 				StageInImag_Buffer[aIndexes[btflyCounter]] <= AOutImag;
- 				
- 				StageOutReal[aIndexes[btflyCounter]] <= AOutReal;
- 				StageOutImag[aIndexes[btflyCounter]] <= AOutImag;
+ 				//Write A out1put
+ 				StageReal_Buffer[aIndexes[btflyCounter]] <= AOutReal;
+ 				StageImag_Buffer[aIndexes[btflyCounter]] <= AOutImag;
  				
  				//Write B output
- 				StageInReal_Buffer[bIndexes[btflyCounter]] <= BOutReal;
- 				StageInImag_Buffer[bIndexes[btflyCounter]] <= BOutImag;
- 				
- 				StageOutReal[bIndexes[btflyCounter]] <= BOutReal;
- 				StageOutImag[bIndexes[btflyCounter]] <= BOutImag;
+ 				StageReal_Buffer[bIndexes[btflyCounter]] <= BOutReal;
+ 				StageImag_Buffer[bIndexes[btflyCounter]] <= BOutImag;
  				
  				//Increment counter
  				btflyCounter <= btflyCounter + 1;
@@ -462,17 +456,17 @@
 	//_______________________________
 	
 	/*
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageInReal [`NFFT -1:0];
-	assign PROBE_StageInReal = StageInReal;
+	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageReal [`NFFT -1:0];
+	assign PROBE_StageReal = StageReal;
 	
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageInImag [`NFFT -1:0];
-	assign PROBE_StageInImag = StageInImag;
+	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageImag [`NFFT -1:0];
+	assign PROBE_StageImag = StageImag;
 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageInReal_Buffer [`NFFT -1:0];
-	assign PROBE_StageInReal_Buffer = StageInReal_Buffer;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageReal_Buffer [`NFFT -1:0];
+	assign PROBE_StageReal_Buffer = StageReal_Buffer;
 	
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageInImag_Buffer [`NFFT -1:0];
-	assign PROBE_StageInImag_Buffer = StageInImag_Buffer;
+	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageImag_Buffer [`NFFT -1:0];
+	assign PROBE_StageImag_Buffer = StageImag_Buffer;
 	
 	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageOutReal [`NFFT -1:0];
 	assign PROBE_StageOutReal = StageOutReal;

@@ -1,6 +1,6 @@
 // FFT Macros
-`define NFFT 128 // if change this, change FREQ_WIDTH. Must be power of 2
-`define nFFT 7  //log2(NFFT)
+`define NFFT 8 // if change this, change FREQ_WIDTH. Must be power of 2
+`define nFFT 3  //log2(NFFT)
 
 `define FREQS (`NFFT / 2)
 `define FREQ_WIDTH 8 // if change NFFT, change this
@@ -11,10 +11,10 @@
 
 `define PEAKS 6 // Changing this requires many changes in code
 
-//`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
+`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
 `define SFFT_INPUT_WIDTH 24
 `define SFFT_OUTPUT_WIDTH `INPUT_AMPL_WIDTH
-//`define SFFT_FIXEDPOINT_INPUTSCALING  //define this macro if you want to scale adc inputs to match FixedPoint magnitudes. Might lead to overflow
+`define SFFT_FIXEDPOINT_INPUTSCALING  //define this macro if you want to scale adc inputs to match FixedPoint magnitudes. Might lead to overflow
 `define SFFT_FIXED_POINT_ACCURACY 7
 `define SFFT_STAGECOUNTER_WIDTH 3  //>= log2(nFFT)
 
