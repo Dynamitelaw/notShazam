@@ -3,6 +3,7 @@
  */
  
  `include "global_variables.sv"
+ `include "bram.sv"
  
  
  /*
@@ -11,7 +12,7 @@
   * Samples the input signal <SampleAmplitudeIn> at the rising edge of <advanceSignal>. Begins processing the FFT immediately.
   * Only outputs the real components of the FFT result. Will raise <OutputValid> high for 1 cycle when the output is finished.
   *
-  * Max sampling frequency ~= CLK_FREQ / (log2(NFFT)*NFFT/2+2). Output indeterminate if exceeded.
+  * Max sampling frequency ~= (CLK_FREQ*DOWNSAMPLE_PRE_FACTOR) / (log2(NFFT)*NFFT/2+2). Output indeterminate if exceeded.
   */
  module SFFT_Pipeline(
  	input clk,
@@ -266,13 +267,74 @@
 	 	.outputReady(OutputValid)
 	 	);	
 	 	
+	//BRAM instance
+		//Inputs
+	wire [`nFFT -1:0] address_A;
+ 	wire writeEnable_A;
+ 	wire [`nFFT -1:0] address_B;
+ 	wire writeEnable_B;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_B;
+ 	
+ 		//Outputs
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutImag_B;
+ 	
+	pipelineBuffer_RAM BRAM(
+	 	.clk(clk),
 	 	
+	 	.address_A(address_A),
+	 	.writeEnable_A(writeEnable_A),
+	 	.address_B(address_B),
+	 	.writeEnable_B(writeEnable_B),
+	 	.dataInReal_A(dataInReal_A),
+	 	.dataInImag_A(dataInImag_A),
+	 	.dataInReal_B(dataInReal_B),
+	 	.dataInImag_B(dataInImag_B),
+	 	
+	 	.dataOutReal_A(dataOutReal_A),
+	 	.dataOutImag_A(dataOutImag_A),
+	 	.dataOutReal_B(dataOutReal_B),
+	 	.dataOutImag_B(dataOutImag_B)
+	 	);
+	
+	//Copier instance
+	wire copying;
+	wire BRAM_outputReady;
+	 	
+	copyToRamStage copier(
+		.clk(clk),
+		.reset(reset),
+		
+		.StageInReal(shuffledSamples),
+	 	.StageInImag(StageInImag),
+	 	.copySignal(newSampleReady),
+	 	.copying(copying),
+	 	.outputReady(BRAM_outputReady),
+	 	
+	 	.address_A(address_A),
+	 	.writeEnable_A(writeEnable_A),
+	 	.address_B(address_B),
+	 	.writeEnable_B(writeEnable_B),
+	 	.dataInReal_A(dataInReal_A),
+	 	.dataInImag_A(dataInImag_A),
+	 	.dataInReal_B(dataInReal_B),
+	 	.dataInImag_B(dataInImag_B)
+		);
+	
 	//_______________________________
 	//
 	// Simulation Probes
 	//_______________________________
 	
-	/*
+	
 	wire [`SFFT_INPUT_WIDTH -1:0] PROBE_SampleBuffers [`NFFT -1:0];
 	assign PROBE_SampleBuffers = SampleBuffers;
 	
@@ -286,7 +348,7 @@
 	wire [`SFFT_INPUT_WIDTH -1:0] PROBE_WindowBuffers [`SFFT_DOWNSAMPLE_PRE_FACTOR -1:0];
 	assign PROBE_WindowBuffers = WindowBuffers;
 `endif
-	*/
+	
 	
  endmodule  //SFFT_Pipeline
  
@@ -433,7 +495,7 @@
  						//We've reached the last stage
  						outputReady <= 1;
  						idle <= 1;
- 						
+
  						virtualStageCounter <= 0;
  					end
  					else begin 						
@@ -485,7 +547,8 @@
 	//Butterfly Indexes
 	wire [`nFFT -1:0] PROBE_aIndexes [(`NFFT / 2) -1:0];
 	assign PROBE_aIndexes = aIndexes;
-	wire [`nFFT -1:0] PROBE_bIndexes [(`NFFT / 2) -1:0];
+	wire [`nFFT -1:0] PROBE_bIndexes [(`NFFT / 2) -1:0];sim/:Sfft_Testbench:sfft:copier:address_A
+
 	assign PROBE_bIndexes = bIndexes;
 	*/
 	
@@ -547,3 +610,93 @@ module butterfly(
 		AImag = aImag - (wReal_Extended*bImag_Adjusted) - (wImag_Extended*bReal_Adjusted);
 	end
 endmodule  //butterfly
+
+
+/*
+ * Copies values from buffer array into a given BRAM module
+ */
+module copyToRamStage(
+	input clk,
+	input reset,
+	
+	//Buffer array in
+	input logic [`SFFT_OUTPUT_WIDTH -1:0] StageInReal [`NFFT -1:0],
+ 	input logic [`SFFT_OUTPUT_WIDTH -1:0] StageInImag [`NFFT -1:0],
+ 	input copySignal,
+ 	
+ 	output reg copying,
+ 	output reg outputReady,
+ 	
+ 	//BRAM IO
+ 	output wire [`nFFT -1:0] address_A,
+ 	output logic writeEnable_A,
+ 	output wire [`nFFT -1:0] address_B,
+ 	output logic writeEnable_B,
+ 	
+ 	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_A,
+ 	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_A,
+ 	
+ 	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_B,
+ 	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_B
+	);
+
+
+	reg [`nFFT -1:0] addressCounter = 0;
+	
+	assign address_A = addressCounter;
+	assign address_B = addressCounter + 1;
+	
+	//Mux for dataIn values
+	always @(*) begin
+		dataInReal_A = StageInReal[address_A];
+		dataInImag_A = StageInImag[address_A];
+		
+		dataInReal_B = StageInReal[address_B];
+		dataInImag_B = StageInImag[address_B];
+	end
+	
+	always @ (posedge clk) begin
+		if (reset) begin
+			addressCounter <= 0;
+			copying <= 0;
+			outputReady <= 0;
+			
+			writeEnable_A <= 0;
+			writeEnable_B <= 0;
+		end
+		
+		else begin
+			if ((copying == 0) && (copySignal == 1)) begin
+				//start copying operation
+				copying <= 1;
+				
+				addressCounter <= 0;
+				writeEnable_A <= 1;
+				writeEnable_B <= 1;
+			end
+			else if (copying) begin
+				addressCounter <= addressCounter + 1;
+				if (addressCounter == `NFFT-2) begin
+					//We're done copying
+					writeEnable_A <= 0;
+					writeEnable_B <= 0;
+					
+					copying <= 0;
+					outputReady <= 1;
+				end
+			end
+			
+			else if (outputReady) begin
+				outputReady <= 0;
+			end
+		end
+	
+	end
+	
+	//_______________________________
+	//
+	// Simulation Probes
+	//_______________________________
+	
+	
+endmodule

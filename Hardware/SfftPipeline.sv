@@ -301,8 +301,8 @@
  
  
 /*
-  * Performs a single stage of the FFT butterfly calculation. Buffers inputs and outputs.
-  */
+ * Performs a single stage of the FFT butterfly calculation. Buffers inputs and outputs.
+ */
  module pipelineStage(
  	input clk,
  	input reset,
@@ -323,21 +323,22 @@
  	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutReal [`NFFT -1:0],
  	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0],
  	
- 	//State control
- 	output reg idle,
- 	output reg [`SFFT_STAGECOUNTER_WIDTH -1:0] virtualStageCounter,
+ 	//Handshake timing control
  	input inputReady,
+ 	output reg idle,
+ 	
+ 	input nextStageIdle,
  	output reg outputReady
  	);
- 	 	 	
+ 	 	
  	
- 	//Stage memory buffers
+ 	//Stage input buffers
  	logic [`SFFT_OUTPUT_WIDTH -1:0] StageReal_Buffer [`NFFT -1:0];
  	logic [`SFFT_OUTPUT_WIDTH -1:0] StageImag_Buffer [`NFFT -1:0];
  	
  	assign StageOutReal = StageReal_Buffer;
  	assign StageOutImag = StageImag_Buffer;
- 	 	
+ 	
  	//Counter for iterating through butterflies
  	parameter bCounterWidth = `nFFT - 1;
  	reg [bCounterWidth -1:0] btflyCounter;
@@ -400,14 +401,11 @@
 
  	parameter pipelineWidth = `NFFT /2;
  	integer i;
- 	integer j;
  	always @ (posedge clk) begin
  		if (reset) begin
- 			idle <= 1;
- 		
  			outputReady <= 0;
+ 			idle <= 1;
  			btflyCounter <= 0;
- 			virtualStageCounter <= 0;
  			
  			StageReal_Buffer <= '{default:0};
  			StageImag_Buffer <= '{default:0};
@@ -415,7 +413,7 @@
  		
  		else begin
  			if ((idle==1) && (inputReady==1) && (outputReady==0)) begin
- 				//Buffer input and start processing
+ 				//Next stage has recieved our old outputs, we're idle, and previous stage has new inputs. Buffer input and start processing
  				idle <= 0;
  				for (i=0; i<`NFFT; i=i+1) begin
  					StageReal_Buffer[i] <= StageInReal[i];
@@ -424,7 +422,7 @@
  			end
  			
  			else if (idle==0) begin
- 				//Write A out1put
+ 				//Write A output
  				StageReal_Buffer[aIndexes[btflyCounter]] <= AOutReal;
  				StageImag_Buffer[aIndexes[btflyCounter]] <= AOutImag;
  				
@@ -436,68 +434,19 @@
  				btflyCounter <= btflyCounter + 1;
  				
  				if (btflyCounter == (pipelineWidth-1)) begin
- 					//We've reached the last butterfly calculation in this virtual stage
- 					
- 					if (virtualStageCounter == `nFFT-1) begin
- 						//We've reached the last stage
- 						outputReady <= 1;
- 						idle <= 1;
- 						
- 						virtualStageCounter <= 0;
- 					end
- 					else begin 						
-		 				//Move onto next virtual stage
- 						virtualStageCounter <= virtualStageCounter + 1;
- 					end
+ 					//We've reached the last butterfly calculation
+ 					outputReady <= 1;
+ 					idle <= 1;
  				end
  			end
  			
- 			else if (outputReady) begin
+ 			else if ((outputReady==1) && (nextStageIdle==0)) begin
  				//Next stage has recieved out outputs. Set flag to 0
  				outputReady <= 0;
  			end
  		end
  	end
  	
- 	//_______________________________
-	//
-	// Simulation Probes
-	//_______________________________
-	
-	/*
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageReal [`NFFT -1:0];
-	assign PROBE_StageReal = StageReal;
-	
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageImag [`NFFT -1:0];
-	assign PROBE_StageImag = StageImag;
-	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageReal_Buffer [`NFFT -1:0];
-	assign PROBE_StageReal_Buffer = StageReal_Buffer;
-	
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageImag_Buffer [`NFFT -1:0];
-	assign PROBE_StageImag_Buffer = StageImag_Buffer;
-	
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageOutReal [`NFFT -1:0];
-	assign PROBE_StageOutReal = StageOutReal;
-	
-	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageOutImag [`NFFT -1:0];
-	assign PROBE_StageOutImag = StageOutImag;
-	
-	//Coefficient ROM
- 	wire [`SFFT_FIXED_POINT_ACCURACY:0] PROBE_realCoefficents [(`NFFT / 2) -1:0];
- 	assign PROBE_realCoefficents = realCoefficents;
-	wire [`SFFT_FIXED_POINT_ACCURACY:0] PROBE_imagCoefficents [(`NFFT / 2) -1:0];
-	assign PROBE_imagCoefficents = imagCoefficents;
-	//K values for stage ROM
-	wire [`nFFT -1:0] PROBE_kValues [(`NFFT / 2) -1:0];
-	assign PROBE_kValues = kValues;
-	//Butterfly Indexes
-	wire [`nFFT -1:0] PROBE_aIndexes [(`NFFT / 2) -1:0];
-	assign PROBE_aIndexes = aIndexes;
-	wire [`nFFT -1:0] PROBE_bIndexes [(`NFFT / 2) -1:0];
-	assign PROBE_bIndexes = bIndexes;
-	*/
-	
  endmodule  //pipelineStage
  
  

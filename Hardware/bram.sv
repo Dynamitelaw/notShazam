@@ -12,9 +12,10 @@
  	input clk,
  	
  	//Inputs
- 	input logic [] address_A,
- 	input logic [] address_B,
- 	input logic writeEnable,
+ 	input logic [`nFFT -1:0] address_A,
+ 	input logic writeEnable_A,
+ 	input logic [`nFFT -1:0] address_B,
+ 	input logic writeEnable_B,
  	
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_A,
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_A,
@@ -30,14 +31,16 @@
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataOutImag_B
  	);
  		
-	logic [`SFFT_OUTPUT_WIDTH -1:0] Real_Mem [`NFFT -1:0];
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] Imag_Mem [`NFFT -1:0];
+	logic [`SFFT_OUTPUT_WIDTH -1:0] Real_Mem [`NFFT -1:0] = '{default:0};
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] Imag_Mem [`NFFT -1:0] = '{default:0};
 	
 	always @(posedge clk) begin
-		if (writeEnable) begin
+		if (writeEnable_A) begin
 			Real_Mem[address_A] <= dataInReal_A;
 			Imag_Mem[address_A] <= dataInImag_A;
-			
+		end
+		
+		if (writeEnable_B) begin
 			Real_Mem[address_B] <= dataInReal_B;
 			Imag_Mem[address_B] <= dataInImag_B;
 		end
@@ -49,12 +52,20 @@
 		dataOutImag_B <= Imag_Mem[address_B];
 	end
 	
+	//_______________________________
+	//
+	// Simulation Probes
+	//_______________________________
+	
+	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_Real_Mem [`NFFT -1:0];
+	assign PROBE_Real_Mem = Real_Mem;
+	
 endmodule  //pipelineBuffer_RAM
 
 
  /*
   * NOTE: Not currently in use
-  */
+  
  module kValues_ROM(
  	input clk,
  	
@@ -96,3 +107,4 @@ endmodule  //pipelineBuffer_RAM
 	endgenerate
 	
 endmodule  //kValues_ROM
+*/
