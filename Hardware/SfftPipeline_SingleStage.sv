@@ -220,15 +220,77 @@
 	// Generate pipeline structure
 	//_______________________________
 	
+	/*
+	 * Copier instance
+	 */
 	
-	//Input Bus
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageInImag [`NFFT -1:0];
+	//Input bus
+	wire [`SFFT_OUTPUT_WIDTH -1:0] StageInImag [`NFFT -1:0];
  	assign StageInImag = '{default:0};
  	
- 	//Output Bus
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0];
+ 	//Output bus
+ 	wire [`nFFT -1:0] ramCopier_address_A;
+ 	wire ramCopier_writeEnable_A;
+ 	wire [`nFFT -1:0] ramCopier_address_B;
+ 	wire ramCopier_writeEnable_B;
  	
- 	//State control bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramCopier_dataInReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramCopier_dataInImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramCopier_dataInReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramCopier_dataInImag_B;
+ 	
+	//State control bus
+	wire copying;
+	wire copier_outputReady;
+	wire [1:0] copier_access_pointer;
+	 	
+	copyToRamStage copier(
+		.clk(clk),
+		.reset(reset),
+		
+		.StageInReal(shuffledSamples),
+	 	.StageInImag(StageInImag),
+	 	.copySignal(newSampleReady),
+	 	
+	 	.address_A(ramCopier_address_A),
+	 	.writeEnable_A(ramCopier_writeEnable_A),
+	 	.address_B(ramCopier_address_B),
+	 	.writeEnable_B(ramCopier_writeEnable_B),
+	 	.dataInReal_A(ramCopier_dataInReal_A),
+	 	.dataInImag_A(ramCopier_dataInImag_A),
+	 	.dataInReal_B(ramCopier_dataInReal_B),
+	 	.dataInImag_B(ramCopier_dataInImag_B),
+	 	
+	 	.copying(copying),
+	 	.outputReady(copier_outputReady),
+	 	.ram_access_pointer(copier_access_pointer)
+		);
+	
+	/*
+	 * Stage instance
+	 */
+	
+	//Input bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutImag_B;
+ 	
+ 	//Output bus
+	wire [`nFFT -1:0] ramStage_address_A;
+ 	wire ramStage_writeEnable_A;
+ 	wire [`nFFT -1:0] ramStage_address_B;
+ 	wire ramStage_writeEnable_B;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataInReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataInImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataInReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataInImag_B;
+
+	//State control bus
  	wire idle;
  	assign inputReceived = ~idle;
  	wire [`SFFT_STAGECOUNTER_WIDTH -1:0] virtualStageCounter;
@@ -245,45 +307,6 @@
 		bIndexes_In = bIndexes_Mapped[virtualStageCounter];
 	end 
 	
-	//BRAM 1 instance
-		//Inputs
-	wire [`nFFT -1:0] ram1_address_A;
- 	wire ram1_writeEnable_A;
- 	wire [`nFFT -1:0] ram1_address_B;
- 	wire ram1_writeEnable_B;
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInImag_A;
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInImag_B;
- 	
- 		//Outputs
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutImag_A;
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutImag_B;
- 	
-	pipelineBuffer_RAM BRAM_1(
-	 	.clk(clk),
-	 	
-	 	.address_A(ram1_address_A),
-	 	.writeEnable_A(ram1_writeEnable_A),
-	 	.address_B(ram1_address_B),
-	 	.writeEnable_B(ram1_writeEnable_B),
-	 	.dataInReal_A(ram1_dataInReal_A),
-	 	.dataInImag_A(ram1_dataInImag_A),
-	 	.dataInReal_B(ram1_dataInReal_B),
-	 	.dataInImag_B(ram1_dataInImag_B),
-	 	
-	 	.dataOutReal_A(ram1_dataOutReal_A),
-	 	.dataOutImag_A(ram1_dataOutImag_A),
-	 	.dataOutReal_B(ram1_dataOutReal_B),
-	 	.dataOutImag_B(ram1_dataOutImag_B)
-	 	);
-
-	//Stage instance
 	pipelineStage Stage(
 	 	.clk(clk),
 	 	.reset(reset),
@@ -296,21 +319,19 @@
 		.aIndexes(aIndexes_In),
 		.bIndexes(bIndexes_In),
 	 	
-	 	.StageOutReal(SFFT_Out),
-	 	.StageOutImag(StageOutImag),
-	 	
-	 	.ram_address_A(ram1_address_A),
-	 	.ram_writeEnable_A(ram1_writeEnable_A),
-	 	.ram_dataInReal_A(ram1_dataInReal_A),
-	 	.ram_dataInImag_A(ram1_dataInImag_A),
-	 	.ram_dataOutReal_A(ram1_dataOutReal_A),
-	 	.ram_dataOutImag_A(ram1_dataOutImag_A),
-	 	.ram_address_B(ram1_address_B),
-	 	.ram_writeEnable_B(ram1_writeEnable_B),
-	 	.ram_dataInReal_B(ram1_dataInReal_B),
-	 	.ram_dataInImag_B(ram1_dataInImag_B),
-	 	.ram_dataOutReal_B(ram1_dataOutReal_B),
-	 	.ram_dataOutImag_B(ram1_dataOutImag_B),
+	 	.ram_address_A(ramStage_address_A),
+	 	.ram_writeEnable_A(ramStage_writeEnable_A),
+	 	.ram_dataInReal_A(ramStage_dataInReal_A),
+	 	.ram_dataInImag_A(ramStage_dataInImag_A),
+	 	.ram_dataOutReal_A(ramStage_dataOutReal_A),
+	 	.ram_dataOutImag_A(ramStage_dataOutImag_A),
+	 	.ram_address_B(ramStage_address_B),
+	 	.ram_writeEnable_B(ramStage_writeEnable_B),
+	 	.ram_dataInReal_B(ramStage_dataInReal_B),
+	 	.ram_dataInImag_B(ramStage_dataInImag_B),
+	 	.ram_dataOutReal_B(ramStage_dataOutReal_B),
+	 	.ram_dataOutImag_B(ramStage_dataOutImag_B),
+	 	.ram_access_pointer(),
  	
 	 	.idle(idle),
 	 	.virtualStageCounter(virtualStageCounter),
@@ -318,68 +339,82 @@
 	 	.outputReady(OutputValid)
 	 	);	
 	 	
-	//BRAM 0 instance
-		//Inputs
-	wire [`nFFT -1:0] ram0_address_A;
- 	wire ram0_writeEnable_A;
- 	wire [`nFFT -1:0] ram0_address_B;
- 	wire ram0_writeEnable_B;
+	/*
+	 * BRAM buffer
+	 */
+	 
+	//Input bus
+	logic [`nFFT -1:0] ramBuffer_address_A;
+ 	logic ramBuffer_writeEnable_A;
+ 	logic [`nFFT -1:0] ramBuffer_address_B;
+ 	logic ramBuffer_writeEnable_B;
  	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInImag_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInReal_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInImag_A;
  	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInImag_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInReal_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInImag_B;
  	
- 		//Outputs
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutImag_A;
+ 	//Output bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutImag_A;
  	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutImag_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutImag_B;
+	
+	assign ramStage_dataOutReal_A = ramBuffer_dataOutReal_A;
+ 	assign ramStage_dataOutImag_A = ramBuffer_dataOutImag_A;
  	
-	pipelineBuffer_RAM BRAM_0(
+ 	assign ramStage_dataOutReal_B = ramBuffer_dataOutReal_B;
+ 	assign ramStage_dataOutImag_B = ramBuffer_dataOutImag_B;
+	
+	pipelineBuffer_RAM BRAM(
 	 	.clk(clk),
 	 	
-	 	.address_A(ram0_address_A),
-	 	.writeEnable_A(ram0_writeEnable_A),
-	 	.address_B(ram0_address_B),
-	 	.writeEnable_B(ram0_writeEnable_B),
-	 	.dataInReal_A(ram0_dataInReal_A),
-	 	.dataInImag_A(ram0_dataInImag_A),
-	 	.dataInReal_B(ram0_dataInReal_B),
-	 	.dataInImag_B(ram0_dataInImag_B),
+	 	.address_A(ramBuffer_address_A),
+	 	.writeEnable_A(ramBuffer_writeEnable_A),
+	 	.address_B(ramBuffer_address_B),
+	 	.writeEnable_B(ramBuffer_writeEnable_B),
+	 	.dataInReal_A(ramBuffer_dataInReal_A),
+	 	.dataInImag_A(ramBuffer_dataInImag_A),
+	 	.dataInReal_B(ramBuffer_dataInReal_B),
+	 	.dataInImag_B(ramBuffer_dataInImag_B),
 	 	
-	 	.dataOutReal_A(ram0_dataOutReal_A),
-	 	.dataOutImag_A(ram0_dataOutImag_A),
-	 	.dataOutReal_B(ram0_dataOutReal_B),
-	 	.dataOutImag_B(ram0_dataOutImag_B)
+	 	.dataOutReal_A(ramBuffer_dataOutReal_A),
+	 	.dataOutImag_A(ramBuffer_dataOutImag_A),
+	 	.dataOutReal_B(ramBuffer_dataOutReal_B),
+	 	.dataOutImag_B(ramBuffer_dataOutImag_B)
 	 	);
 	
-	//Copier instance
-	wire copying;
-	wire BRAM_outputReady;
-	 	
-	copyToRamStage copier(
-		.clk(clk),
-		.reset(reset),
+	//Buffer access control
+	always @(*) begin
+		if (ramStage_writeEnable_A) begin
+			//Give access to pipeline stage
+			ramBuffer_address_A = ramStage_address_A;
+		 	ramBuffer_writeEnable_A = ramStage_writeEnable_A;
+		 	ramBuffer_dataInReal_A = ramStage_dataInReal_A;
+		 	ramBuffer_dataInImag_A = ramStage_dataInImag_A;
+		 	
+		 	ramBuffer_address_B = ramStage_address_B;
+		 	ramBuffer_writeEnable_B = ramStage_writeEnable_B;
+		 	ramBuffer_dataInReal_B = ramStage_dataInReal_B;
+		 	ramBuffer_dataInImag_B = ramStage_dataInImag_B;
+		end
 		
-		.StageInReal(shuffledSamples),
-	 	.StageInImag(StageInImag),
-	 	.copySignal(newSampleReady),
-	 	.copying(copying),
-	 	.outputReady(BRAM_outputReady),
-	 	
-	 	.address_A(ram0_address_A),
-	 	.writeEnable_A(ram0_writeEnable_A),
-	 	.address_B(ram0_address_B),
-	 	.writeEnable_B(ram0_writeEnable_B),
-	 	.dataInReal_A(ram0_dataInReal_A),
-	 	.dataInImag_A(ram0_dataInImag_A),
-	 	.dataInReal_B(ram0_dataInReal_B),
-	 	.dataInImag_B(ram0_dataInImag_B)
-		);
-		
+		else if (ramCopier_writeEnable_A) begin
+			//Give access to copier stage
+			ramBuffer_address_A = ramCopier_address_A;
+		 	ramBuffer_writeEnable_A = ramCopier_writeEnable_A;
+		 	ramBuffer_dataInReal_A = ramCopier_dataInReal_A;
+		 	ramBuffer_dataInImag_A = ramCopier_dataInImag_A;
+		 	
+		 	ramBuffer_address_B = ramCopier_address_B;
+		 	ramBuffer_writeEnable_B = ramCopier_writeEnable_B;
+		 	ramBuffer_dataInReal_B = ramCopier_dataInReal_B;
+		 	ramBuffer_dataInImag_B = ramCopier_dataInImag_B;
+		end
+	end
+	
 	
 	//_______________________________
 	//
@@ -424,10 +459,6 @@
 	input logic [`nFFT -1:0] aIndexes [(`NFFT / 2) -1:0],
 	input logic [`nFFT -1:0] bIndexes [(`NFFT / 2) -1:0],
  	
- 	//Stage Results
- 	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutReal [`NFFT -1:0],
- 	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0],
- 	
  	//BRAM IO
  	output logic [`nFFT -1:0] ram_address_A,
  	output logic ram_writeEnable_A,
@@ -447,6 +478,8 @@
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] ram_dataOutReal_B,
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] ram_dataOutImag_B,
  	
+ 	output logic [1:0] ram_access_pointer,
+ 	
  	//State control
  	output reg idle,
  	output reg [`SFFT_STAGECOUNTER_WIDTH -1:0] virtualStageCounter,
@@ -454,14 +487,7 @@
  	output reg outputReady
  	);
  	 	 	
- 	
- 	//Stage memory buffers
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] StageReal_Buffer [`NFFT -1:0];
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] StageImag_Buffer [`NFFT -1:0];
- 	
- 	assign StageOutReal = StageReal_Buffer;
- 	assign StageOutImag = StageImag_Buffer;
- 	 	
+
  	//Counter for iterating through butterflies
  	parameter bCounterWidth = `nFFT - 1;
  	reg [bCounterWidth -1:0] btflyCounter;
@@ -472,63 +498,39 @@
 	// Instantiate butterfly module
 	//_______________________________
  	
- 	//Inputs
- 	reg [`SFFT_OUTPUT_WIDTH -1:0] aInReal;
- 	reg [`SFFT_OUTPUT_WIDTH -1:0] aInImag;
- 	
- 	reg [`SFFT_OUTPUT_WIDTH -1:0] bInReal;
- 	reg [`SFFT_OUTPUT_WIDTH -1:0] bInImag;
- 	
+ 	//Inputs 	
  	reg [`SFFT_FIXED_POINT_ACCURACY:0] wInReal;
  	reg [`SFFT_FIXED_POINT_ACCURACY:0] wInImag;
  	
  	//Ouputs
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] AOutReal;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] AOutImag;
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] BOutReal;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] BOutImag;
+	 	//*NOTE: Now connected directly to BRAM buffer outside this module
  	
  	//Instantiate B
  	butterfly B(
-		.aReal(aInReal),
-		.aImag(aInImag),
-		.bReal(bInReal),
-		.bImag(bInImag),
+		.aReal(ram_dataOutReal_A),
+		.aImag(ram_dataOutImag_A),
+		.bReal(ram_dataOutReal_B),
+		.bImag(ram_dataOutImag_B),
 		.wReal(wInReal),
 		.wImag(wInImag),
 	
-		.AReal(AOutReal),
-		.AImag(AOutImag),
-		.BReal(BOutReal),
-		.BImag(BOutImag)
+		.AReal(ram_dataInReal_A),
+		.AImag(ram_dataInImag_A),
+		.BReal(ram_dataOutReal_B),
+		.BImag(ram_dataOutImag_B)
 		);
 		
  	//MUX for selecting butterfly inputs
- 	always @ (*) begin
- 		aInReal = StageReal_Buffer[aIndexes[btflyCounter]];
- 		aInImag = StageImag_Buffer[aIndexes[btflyCounter]];
- 		
- 		bInReal = StageReal_Buffer[bIndexes[btflyCounter]];
- 		bInImag = StageImag_Buffer[bIndexes[btflyCounter]];
- 		
+ 	always @ (*) begin		
  		wInReal = realCoefficents[kValues[btflyCounter]];
  		wInImag = imagCoefficents[kValues[btflyCounter]];
  	end
  	
+ 	//Mux for BRAM buffer addresses
  	always @(*) begin
  		ram_address_A = aIndexes[btflyCounter];
- 	end
- 	
- 	assign ram_dataInReal_A = AOutReal;
- 	assign ram_dataInImag_A = AOutImag;
- 	
- 	always @(*) begin
  		ram_address_B = bIndexes[btflyCounter];
  	end
- 	
- 	assign ram_dataInReal_B = BOutReal;
- 	assign ram_dataInImag_B = BOutImag;
  	
  	//_______________________________
 	//
@@ -546,34 +548,22 @@
  			btflyCounter <= 0;
  			virtualStageCounter <= 0;
  			
- 			StageReal_Buffer <= '{default:0};
- 			StageImag_Buffer <= '{default:0};
- 			
  			ram_writeEnable_A <= 0;
  			ram_writeEnable_B <= 0;
+ 			
+ 			ram_access_pointer <= 0;
  		end
  		
  		else begin
  			if ((idle==1) && (inputReady==1) && (outputReady==0)) begin
- 				//Buffer input and start processing
- 				idle <= 0;
- 				for (i=0; i<`NFFT; i=i+1) begin
- 					StageReal_Buffer[i] <= StageInReal[i];
- 					StageImag_Buffer[i] <= StageInImag[i];
- 				end
- 				
+ 				//Start processing 				
  				ram_writeEnable_A <= 1;
  				ram_writeEnable_B <= 1;
  			end
  			
  			else if (idle==0) begin
- 				//Write A out1put
- 				StageReal_Buffer[aIndexes[btflyCounter]] <= AOutReal;
- 				StageImag_Buffer[aIndexes[btflyCounter]] <= AOutImag;
- 				
- 				//Write B output
- 				StageReal_Buffer[bIndexes[btflyCounter]] <= BOutReal;
- 				StageImag_Buffer[bIndexes[btflyCounter]] <= BOutImag;
+ 				//Write outputs
+ 					//NOTE: This operation is now taken care of by the BRAM buffer outside of this module
  				
  				//Increment counter
  				btflyCounter <= btflyCounter + 1;
@@ -590,6 +580,14 @@
  						
  						ram_writeEnable_A <= 0;
  						ram_writeEnable_B <= 0;
+ 						
+ 						//Increment BRAM access pointer
+ 						if (ram_access_pointer == 2) begin
+ 							ram_access_pointer <= 0;
+ 						end
+ 						else begin
+ 							ram_access_pointer <= ram_access_pointer + 1;
+ 						end
  					end
  					else begin 						
 		 				//Move onto next virtual stage
@@ -599,7 +597,7 @@
  			end
  			
  			else if (outputReady) begin
- 				//Next stage has recieved out outputs. Set flag to 0
+ 				//Next stage has recieved our outputs. Set flag to 0
  				outputReady <= 0;
  			end
  		end
@@ -717,9 +715,6 @@ module copyToRamStage(
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] StageInImag [`NFFT -1:0],
  	input copySignal,
  	
- 	output reg copying,
- 	output reg outputReady,
- 	
  	//BRAM IO
  	output wire [`nFFT -1:0] address_A,
  	output logic writeEnable_A,
@@ -730,7 +725,12 @@ module copyToRamStage(
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_A,
  	
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_B,
- 	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_B
+ 	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_B,
+ 	
+ 	//State control
+ 	output reg copying,
+ 	output reg outputReady,
+ 	output logic [1:0] ram_access_pointer
 	);
 
 
@@ -756,6 +756,8 @@ module copyToRamStage(
 			
 			writeEnable_A <= 0;
 			writeEnable_B <= 0;
+			
+			ram_access_pointer <= 0;
 		end
 		
 		else begin
@@ -776,6 +778,13 @@ module copyToRamStage(
 					
 					copying <= 0;
 					outputReady <= 1;
+					
+					if (ram_access_pointer == 2) begin
+						ram_access_pointer <= 0;
+					end
+					else begin
+						ram_access_pointer <= ram_access_pointer + 1;
+					end
 				end
 			end
 			
@@ -785,11 +794,5 @@ module copyToRamStage(
 		end
 	
 	end
-	
-	//_______________________________
-	//
-	// Simulation Probes
-	//_______________________________
-	
-	
+		
 endmodule
