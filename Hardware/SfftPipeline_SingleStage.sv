@@ -244,6 +244,44 @@
 		aIndexes_In = aIndexes_Mapped[virtualStageCounter];
 		bIndexes_In = bIndexes_Mapped[virtualStageCounter];
 	end 
+	
+	//BRAM 1 instance
+		//Inputs
+	wire [`nFFT -1:0] ram1_address_A;
+ 	wire ram1_writeEnable_A;
+ 	wire [`nFFT -1:0] ram1_address_B;
+ 	wire ram1_writeEnable_B;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataInImag_B;
+ 	
+ 		//Outputs
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram1_dataOutImag_B;
+ 	
+	pipelineBuffer_RAM BRAM_1(
+	 	.clk(clk),
+	 	
+	 	.address_A(ram1_address_A),
+	 	.writeEnable_A(ram1_writeEnable_A),
+	 	.address_B(ram1_address_B),
+	 	.writeEnable_B(ram1_writeEnable_B),
+	 	.dataInReal_A(ram1_dataInReal_A),
+	 	.dataInImag_A(ram1_dataInImag_A),
+	 	.dataInReal_B(ram1_dataInReal_B),
+	 	.dataInImag_B(ram1_dataInImag_B),
+	 	
+	 	.dataOutReal_A(ram1_dataOutReal_A),
+	 	.dataOutImag_A(ram1_dataOutImag_A),
+	 	.dataOutReal_B(ram1_dataOutReal_B),
+	 	.dataOutImag_B(ram1_dataOutImag_B)
+	 	);
 
 	//Stage instance
 	pipelineStage Stage(
@@ -261,48 +299,61 @@
 	 	.StageOutReal(SFFT_Out),
 	 	.StageOutImag(StageOutImag),
 	 	
+	 	.ram_address_A(ram1_address_A),
+	 	.ram_writeEnable_A(ram1_writeEnable_A),
+	 	.ram_dataInReal_A(ram1_dataInReal_A),
+	 	.ram_dataInImag_A(ram1_dataInImag_A),
+	 	.ram_dataOutReal_A(ram1_dataOutReal_A),
+	 	.ram_dataOutImag_A(ram1_dataOutImag_A),
+	 	.ram_address_B(ram1_address_B),
+	 	.ram_writeEnable_B(ram1_writeEnable_B),
+	 	.ram_dataInReal_B(ram1_dataInReal_B),
+	 	.ram_dataInImag_B(ram1_dataInImag_B),
+	 	.ram_dataOutReal_B(ram1_dataOutReal_B),
+	 	.ram_dataOutImag_B(ram1_dataOutImag_B),
+ 	
 	 	.idle(idle),
 	 	.virtualStageCounter(virtualStageCounter),
 	 	.inputReady(newSampleReady),
 	 	.outputReady(OutputValid)
 	 	);	
 	 	
-	//BRAM instance
+	//BRAM 0 instance
 		//Inputs
-	wire [`nFFT -1:0] address_A;
- 	wire writeEnable_A;
- 	wire [`nFFT -1:0] address_B;
- 	wire writeEnable_B;
+	wire [`nFFT -1:0] ram0_address_A;
+ 	wire ram0_writeEnable_A;
+ 	wire [`nFFT -1:0] ram0_address_B;
+ 	wire ram0_writeEnable_B;
  	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInImag_A;
  	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataInImag_B;
  	
  		//Outputs
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutImag_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutImag_A;
  	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] dataOutImag_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ram0_dataOutImag_B;
  	
-	pipelineBuffer_RAM BRAM(
+	pipelineBuffer_RAM BRAM_0(
 	 	.clk(clk),
 	 	
-	 	.address_A(address_A),
-	 	.writeEnable_A(writeEnable_A),
-	 	.address_B(address_B),
-	 	.writeEnable_B(writeEnable_B),
-	 	.dataInReal_A(dataInReal_A),
-	 	.dataInImag_A(dataInImag_A),
-	 	.dataInReal_B(dataInReal_B),
-	 	.dataInImag_B(dataInImag_B),
+	 	.address_A(ram0_address_A),
+	 	.writeEnable_A(ram0_writeEnable_A),
+	 	.address_B(ram0_address_B),
+	 	.writeEnable_B(ram0_writeEnable_B),
+	 	.dataInReal_A(ram0_dataInReal_A),
+	 	.dataInImag_A(ram0_dataInImag_A),
+	 	.dataInReal_B(ram0_dataInReal_B),
+	 	.dataInImag_B(ram0_dataInImag_B),
 	 	
-	 	.dataOutReal_A(dataOutReal_A),
-	 	.dataOutImag_A(dataOutImag_A),
-	 	.dataOutReal_B(dataOutReal_B),
-	 	.dataOutImag_B(dataOutImag_B)
+	 	.dataOutReal_A(ram0_dataOutReal_A),
+	 	.dataOutImag_A(ram0_dataOutImag_A),
+	 	.dataOutReal_B(ram0_dataOutReal_B),
+	 	.dataOutImag_B(ram0_dataOutImag_B)
 	 	);
 	
 	//Copier instance
@@ -319,15 +370,16 @@
 	 	.copying(copying),
 	 	.outputReady(BRAM_outputReady),
 	 	
-	 	.address_A(address_A),
-	 	.writeEnable_A(writeEnable_A),
-	 	.address_B(address_B),
-	 	.writeEnable_B(writeEnable_B),
-	 	.dataInReal_A(dataInReal_A),
-	 	.dataInImag_A(dataInImag_A),
-	 	.dataInReal_B(dataInReal_B),
-	 	.dataInImag_B(dataInImag_B)
+	 	.address_A(ram0_address_A),
+	 	.writeEnable_A(ram0_writeEnable_A),
+	 	.address_B(ram0_address_B),
+	 	.writeEnable_B(ram0_writeEnable_B),
+	 	.dataInReal_A(ram0_dataInReal_A),
+	 	.dataInImag_A(ram0_dataInImag_A),
+	 	.dataInReal_B(ram0_dataInReal_B),
+	 	.dataInImag_B(ram0_dataInImag_B)
 		);
+		
 	
 	//_______________________________
 	//
@@ -375,6 +427,25 @@
  	//Stage Results
  	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutReal [`NFFT -1:0],
  	output wire [`SFFT_OUTPUT_WIDTH -1:0] StageOutImag [`NFFT -1:0],
+ 	
+ 	//BRAM IO
+ 	output logic [`nFFT -1:0] ram_address_A,
+ 	output logic ram_writeEnable_A,
+ 	
+ 	output wire [`SFFT_OUTPUT_WIDTH -1:0] ram_dataInReal_A,
+ 	output wire [`SFFT_OUTPUT_WIDTH -1:0] ram_dataInImag_A,
+ 	
+ 	input logic [`SFFT_OUTPUT_WIDTH -1:0] ram_dataOutReal_A,
+ 	input logic [`SFFT_OUTPUT_WIDTH -1:0] ram_dataOutImag_A,
+ 	
+ 	output logic [`nFFT -1:0] ram_address_B,
+ 	output logic ram_writeEnable_B,
+ 	
+ 	output wire [`SFFT_OUTPUT_WIDTH -1:0] ram_dataInReal_B,
+ 	output wire [`SFFT_OUTPUT_WIDTH -1:0] ram_dataInImag_B,
+ 	
+ 	input logic [`SFFT_OUTPUT_WIDTH -1:0] ram_dataOutReal_B,
+ 	input logic [`SFFT_OUTPUT_WIDTH -1:0] ram_dataOutImag_B,
  	
  	//State control
  	output reg idle,
@@ -445,6 +516,19 @@
  		wInImag = imagCoefficents[kValues[btflyCounter]];
  	end
  	
+ 	always @(*) begin
+ 		ram_address_A = aIndexes[btflyCounter];
+ 	end
+ 	
+ 	assign ram_dataInReal_A = AOutReal;
+ 	assign ram_dataInImag_A = AOutImag;
+ 	
+ 	always @(*) begin
+ 		ram_address_B = bIndexes[btflyCounter];
+ 	end
+ 	
+ 	assign ram_dataInReal_B = BOutReal;
+ 	assign ram_dataInImag_B = BOutImag;
  	
  	//_______________________________
 	//
@@ -464,6 +548,9 @@
  			
  			StageReal_Buffer <= '{default:0};
  			StageImag_Buffer <= '{default:0};
+ 			
+ 			ram_writeEnable_A <= 0;
+ 			ram_writeEnable_B <= 0;
  		end
  		
  		else begin
@@ -474,6 +561,9 @@
  					StageReal_Buffer[i] <= StageInReal[i];
  					StageImag_Buffer[i] <= StageInImag[i];
  				end
+ 				
+ 				ram_writeEnable_A <= 1;
+ 				ram_writeEnable_B <= 1;
  			end
  			
  			else if (idle==0) begin
@@ -497,6 +587,9 @@
  						idle <= 1;
 
  						virtualStageCounter <= 0;
+ 						
+ 						ram_writeEnable_A <= 0;
+ 						ram_writeEnable_B <= 0;
  					end
  					else begin 						
 		 				//Move onto next virtual stage
