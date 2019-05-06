@@ -32,7 +32,8 @@
  	reg advanceSignal =0;
  	
  	//Outputs
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0];
+ 	logic [`nFFT -1:0] output_address = 0;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal;
  	wire OutputValid;
  
  	SFFT_Pipeline sfft(
@@ -42,7 +43,8 @@
 	 	.SampleAmplitudeIn(SampleAmplitudeIn),
 	 	.advanceSignal(advanceSignal),
 	 	
-	 	.SFFT_Out(SFFT_Out),
+	 	.output_address(output_address),
+	 	.SFFT_OutReal(SFFT_OutReal),
 	 	.OutputValid(OutputValid)
 	 	);
 	 	

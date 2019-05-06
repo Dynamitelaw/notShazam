@@ -22,8 +22,9 @@
  	input [`SFFT_INPUT_WIDTH -1:0] SampleAmplitudeIn,
  	input advanceSignal,
  	
- 	//Outputs
- 	output logic [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0],
+ 	//Output BRAM IO
+ 	input logic [`nFFT -1:0] output_address,
+ 	output logic [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal,
  	output logic OutputValid
  	);
  	
@@ -273,11 +274,11 @@
 	 */
 	
 	//Input bus
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutImag_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutReal_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutImag_A;
  	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutImag_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutReal_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataOutImag_B;
  	
  	//Output bus
 	wire [`nFFT -1:0] ramStage_address_A;
@@ -291,6 +292,8 @@
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataInReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramStage_dataInImag_B;
 
+	wire [1:0] pipelineStage_access_pointer;
+	
 	//State control bus
  	wire idle;
  	//assign inputReceived = ~idle;
@@ -332,7 +335,7 @@
 	 	.ram_dataInImag_B(ramStage_dataInImag_B),
 	 	.ram_dataOutReal_B(ramStage_dataOutReal_B),
 	 	.ram_dataOutImag_B(ramStage_dataOutImag_B),
-	 	.ram_access_pointer(),
+	 	.ram_access_pointer(pipelineStage_access_pointer),
  	
 	 	.idle(idle),
 	 	.virtualStageCounter(virtualStageCounter),
@@ -340,85 +343,336 @@
 	 	.outputReady(OutputValid)
 	 	);	
 	 	
-	/*
-	 * BRAM buffer
-	 */
 	 
-	//Input bus
-	logic [`nFFT -1:0] ramBuffer_address_A;
- 	logic ramBuffer_writeEnable_A;
- 	logic [`nFFT -1:0] ramBuffer_address_B;
- 	logic ramBuffer_writeEnable_B;
- 	
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInReal_A;
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInImag_A;
- 	
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInReal_B;
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataInImag_B;
- 	
- 	//Output bus
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutReal_A;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutImag_A;
- 	
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutReal_B;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer_dataOutImag_B;
+	/*
+	 * Output handling
+	 */
 	
-	assign ramStage_dataOutReal_A = ramBuffer_dataOutReal_A;
- 	assign ramStage_dataOutImag_A = ramBuffer_dataOutImag_A;
- 	
- 	assign ramStage_dataOutReal_B = ramBuffer_dataOutReal_B;
- 	assign ramStage_dataOutImag_B = ramBuffer_dataOutImag_B;
+	logic [1:0] output_access_pointer = 2;
 	
-	pipelineBuffer_RAM BRAM(
-	 	.readClk(~clk),
-	 	.writeClk(clk),
-	 	
-	 	.read_address_A(ramBuffer_address_A),
-	 	.write_address_A(ramBuffer_address_A),
-	 	.writeEnable_A(ramBuffer_writeEnable_A),
-	 	.dataInReal_A(ramBuffer_dataInReal_A),
-	 	.dataInImag_A(ramBuffer_dataInImag_A),
-	 	.read_address_B(ramBuffer_address_B),
-	 	.write_address_B(ramBuffer_address_B),
-	 	.writeEnable_B(ramBuffer_writeEnable_B),
-	 	.dataInReal_B(ramBuffer_dataInReal_B),
-	 	.dataInImag_B(ramBuffer_dataInImag_B),
-	 	
-	 	.dataOutReal_A(ramBuffer_dataOutReal_A),
-	 	.dataOutImag_A(ramBuffer_dataOutImag_A),
-	 	.dataOutReal_B(ramBuffer_dataOutReal_B),
-	 	.dataOutImag_B(ramBuffer_dataOutImag_B)
-	 	);
-	
-	//Buffer access control
-	always @(*) begin		
-		if (ramCopier_writeEnable_A) begin
-			//Give access to copier stage
-			ramBuffer_address_A = ramCopier_address_A;
-		 	ramBuffer_writeEnable_A = ramCopier_writeEnable_A;
-		 	ramBuffer_dataInReal_A = ramCopier_dataInReal_A;
-		 	ramBuffer_dataInImag_A = ramCopier_dataInImag_A;
-		 	
-		 	ramBuffer_address_B = ramCopier_address_B;
-		 	ramBuffer_writeEnable_B = ramCopier_writeEnable_B;
-		 	ramBuffer_dataInReal_B = ramCopier_dataInReal_B;
-		 	ramBuffer_dataInImag_B = ramCopier_dataInImag_B;
+	always @(posedge OutputValid) begin
+		if (reset) begin
+			output_access_pointer <= 2;
 		end
 		
 		else begin
-			//Give access to pipeline stage
-			ramBuffer_address_A = ramStage_address_A;
-		 	ramBuffer_writeEnable_A = ramStage_writeEnable_A;
-		 	ramBuffer_dataInReal_A = ramStage_dataInReal_A;
-		 	ramBuffer_dataInImag_A = ramStage_dataInImag_A;
-		 	
-		 	ramBuffer_address_B = ramStage_address_B;
-		 	ramBuffer_writeEnable_B = ramStage_writeEnable_B;
-		 	ramBuffer_dataInReal_B = ramStage_dataInReal_B;
-		 	ramBuffer_dataInImag_B = ramStage_dataInImag_B;
+			if (output_access_pointer == 2) begin
+				output_access_pointer <= 0;
+			end
+			else begin
+				output_access_pointer <= output_access_pointer + 1;
+			end
 		end
 	end
 	
+	
+	//_______________________________
+	//
+	// Generate BRAM buffers
+	//_______________________________
+	
+	/*
+	 * Buffer 0
+	 */
+	logic ramBuffer0_readClock;
+	
+	//Input bus
+	logic [`nFFT -1:0] ramBuffer0_address_A;
+ 	logic ramBuffer0_writeEnable_A;
+ 	logic [`nFFT -1:0] ramBuffer0_address_B;
+ 	logic ramBuffer0_writeEnable_B;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataInReal_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataInImag_A;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataInReal_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataInImag_B;
+ 	
+ 	//Output bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutImag_B;
+	
+	pipelineBuffer_RAM BRAM_0(
+	 	.readClk(ramBuffer0_readClock),
+	 	.writeClk(clk),
+	 	
+	 	.read_address_A(ramBuffer0_address_A),
+	 	.write_address_A(ramBuffer0_address_A),
+	 	.writeEnable_A(ramBuffer0_writeEnable_A),
+	 	.dataInReal_A(ramBuffer0_dataInReal_A),
+	 	.dataInImag_A(ramBuffer0_dataInImag_A),
+	 	.read_address_B(ramBuffer0_address_B),
+	 	.write_address_B(ramBuffer0_address_B),
+	 	.writeEnable_B(ramBuffer0_writeEnable_B),
+	 	.dataInReal_B(ramBuffer0_dataInReal_B),
+	 	.dataInImag_B(ramBuffer0_dataInImag_B),
+	 	
+	 	.dataOutReal_A(ramBuffer0_dataOutReal_A),
+	 	.dataOutImag_A(ramBuffer0_dataOutImag_A),
+	 	.dataOutReal_B(ramBuffer0_dataOutReal_B),
+	 	.dataOutImag_B(ramBuffer0_dataOutImag_B)
+	 	);
+	
+	//Buffer 0 access control
+	always @(*) begin		
+		if (copier_access_pointer == 0) begin
+			//Give access to copier stage
+			ramBuffer0_address_A = ramCopier_address_A;
+		 	ramBuffer0_writeEnable_A = ramCopier_writeEnable_A;
+		 	ramBuffer0_dataInReal_A = ramCopier_dataInReal_A;
+		 	ramBuffer0_dataInImag_A = ramCopier_dataInImag_A;
+		 	
+		 	ramBuffer0_address_B = ramCopier_address_B;
+		 	ramBuffer0_writeEnable_B = ramCopier_writeEnable_B;
+		 	ramBuffer0_dataInReal_B = ramCopier_dataInReal_B;
+		 	ramBuffer0_dataInImag_B = ramCopier_dataInImag_B;
+		 	
+		 	ramBuffer0_readClock = ~clk;
+		end
+		
+		else if (pipelineStage_access_pointer == 0) begin
+			//Give access to pipeline stage
+			ramBuffer0_address_A = ramStage_address_A;
+		 	ramBuffer0_writeEnable_A = ramStage_writeEnable_A;
+		 	ramBuffer0_dataInReal_A = ramStage_dataInReal_A;
+		 	ramBuffer0_dataInImag_A = ramStage_dataInImag_A;
+		 	
+		 	ramBuffer0_address_B = ramStage_address_B;
+		 	ramBuffer0_writeEnable_B = ramStage_writeEnable_B;
+		 	ramBuffer0_dataInReal_B = ramStage_dataInReal_B;
+		 	ramBuffer0_dataInImag_B = ramStage_dataInImag_B;
+		 	
+		 	ramStage_dataOutReal_A = ramBuffer0_dataOutReal_A;
+		 	ramStage_dataOutImag_A = ramBuffer0_dataOutImag_A;
+		 	
+		 	ramStage_dataOutReal_B = ramBuffer0_dataOutReal_B;
+		 	ramStage_dataOutImag_B = ramBuffer0_dataOutImag_B;
+		 	
+		 	ramBuffer0_readClock = ~clk;
+		end
+		
+		else if (output_access_pointer == 0) begin
+			//Give access to output port
+			ramBuffer0_address_A = output_address;
+		 	ramBuffer0_writeEnable_A = 0;
+		 	ramBuffer0_dataInReal_A = 0;
+		 	ramBuffer0_dataInImag_A = 0;
+		 	
+		 	ramBuffer0_address_B = 0;
+		 	ramBuffer0_writeEnable_B = 0;
+		 	ramBuffer0_dataInReal_B = 0;
+		 	ramBuffer0_dataInImag_B = 0;
+		 	
+		 	SFFT_OutReal = ramBuffer0_dataOutReal_A;
+		 	
+		 	ramBuffer0_readClock = ~clk;
+		end
+	end
+	
+	/*
+	 * Buffer 1
+	 */
+	logic ramBuffer1_readClock;
+	
+	//Input bus
+	logic [`nFFT -1:0] ramBuffer1_address_A;
+ 	logic ramBuffer1_writeEnable_A;
+ 	logic [`nFFT -1:0] ramBuffer1_address_B;
+ 	logic ramBuffer1_writeEnable_B;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataInReal_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataInImag_A;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataInReal_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataInImag_B;
+ 	
+ 	//Output bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutImag_B;
+	
+	pipelineBuffer_RAM BRAM_1(
+	 	.readClk(ramBuffer1_readClock),
+	 	.writeClk(clk),
+	 	
+	 	.read_address_A(ramBuffer1_address_A),
+	 	.write_address_A(ramBuffer1_address_A),
+	 	.writeEnable_A(ramBuffer1_writeEnable_A),
+	 	.dataInReal_A(ramBuffer1_dataInReal_A),
+	 	.dataInImag_A(ramBuffer1_dataInImag_A),
+	 	.read_address_B(ramBuffer1_address_B),
+	 	.write_address_B(ramBuffer1_address_B),
+	 	.writeEnable_B(ramBuffer1_writeEnable_B),
+	 	.dataInReal_B(ramBuffer1_dataInReal_B),
+	 	.dataInImag_B(ramBuffer1_dataInImag_B),
+	 	
+	 	.dataOutReal_A(ramBuffer1_dataOutReal_A),
+	 	.dataOutImag_A(ramBuffer1_dataOutImag_A),
+	 	.dataOutReal_B(ramBuffer1_dataOutReal_B),
+	 	.dataOutImag_B(ramBuffer1_dataOutImag_B)
+	 	);
+	
+	//Buffer 1 access control
+	always @(*) begin		
+		if (copier_access_pointer == 1) begin
+			//Give access to copier stage
+			ramBuffer1_address_A = ramCopier_address_A;
+		 	ramBuffer1_writeEnable_A = ramCopier_writeEnable_A;
+		 	ramBuffer1_dataInReal_A = ramCopier_dataInReal_A;
+		 	ramBuffer1_dataInImag_A = ramCopier_dataInImag_A;
+		 	
+		 	ramBuffer1_address_B = ramCopier_address_B;
+		 	ramBuffer1_writeEnable_B = ramCopier_writeEnable_B;
+		 	ramBuffer1_dataInReal_B = ramCopier_dataInReal_B;
+		 	ramBuffer1_dataInImag_B = ramCopier_dataInImag_B;
+		 	
+		 	ramBuffer1_readClock = ~clk;
+		end
+		
+		else if (pipelineStage_access_pointer == 1) begin
+			//Give access to pipeline stage
+			ramBuffer1_address_A = ramStage_address_A;
+		 	ramBuffer1_writeEnable_A = ramStage_writeEnable_A;
+		 	ramBuffer1_dataInReal_A = ramStage_dataInReal_A;
+		 	ramBuffer1_dataInImag_A = ramStage_dataInImag_A;
+		 	
+		 	ramBuffer1_address_B = ramStage_address_B;
+		 	ramBuffer1_writeEnable_B = ramStage_writeEnable_B;
+		 	ramBuffer1_dataInReal_B = ramStage_dataInReal_B;
+		 	ramBuffer1_dataInImag_B = ramStage_dataInImag_B;
+		 	
+		 	ramStage_dataOutReal_A = ramBuffer1_dataOutReal_A;
+		 	ramStage_dataOutImag_A = ramBuffer1_dataOutImag_A;
+		 	
+		 	ramStage_dataOutReal_B = ramBuffer1_dataOutReal_B;
+		 	ramStage_dataOutImag_B = ramBuffer1_dataOutImag_B;
+		 	
+		 	ramBuffer1_readClock = ~clk;
+		end
+		
+		else if (output_access_pointer == 1) begin
+			//Give access to output port
+			ramBuffer1_address_A = output_address;
+		 	ramBuffer1_writeEnable_A = 0;
+		 	ramBuffer1_dataInReal_A = 0;
+		 	ramBuffer1_dataInImag_A = 0;
+		 	
+		 	ramBuffer1_address_B = 0;
+		 	ramBuffer1_writeEnable_B = 0;
+		 	ramBuffer1_dataInReal_B = 0;
+		 	ramBuffer1_dataInImag_B = 0;
+		 	
+		 	SFFT_OutReal = ramBuffer1_dataOutReal_A;
+		 	
+		 	ramBuffer1_readClock = ~clk;
+		end
+	end
+	
+	/*
+	 * Buffer 2
+	 */
+	logic ramBuffer2_readClock;
+	
+	//Input bus
+	logic [`nFFT -1:0] ramBuffer2_address_A;
+ 	logic ramBuffer2_writeEnable_A;
+ 	logic [`nFFT -1:0] ramBuffer2_address_B;
+ 	logic ramBuffer2_writeEnable_B;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataInReal_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataInImag_A;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataInReal_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataInImag_B;
+ 	
+ 	//Output bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutImag_B;
+	
+	pipelineBuffer_RAM BRAM_2(
+	 	.readClk(ramBuffer2_readClock),
+	 	.writeClk(clk),
+	 	
+	 	.read_address_A(ramBuffer2_address_A),
+	 	.write_address_A(ramBuffer2_address_A),
+	 	.writeEnable_A(ramBuffer2_writeEnable_A),
+	 	.dataInReal_A(ramBuffer2_dataInReal_A),
+	 	.dataInImag_A(ramBuffer2_dataInImag_A),
+	 	.read_address_B(ramBuffer2_address_B),
+	 	.write_address_B(ramBuffer2_address_B),
+	 	.writeEnable_B(ramBuffer2_writeEnable_B),
+	 	.dataInReal_B(ramBuffer2_dataInReal_B),
+	 	.dataInImag_B(ramBuffer2_dataInImag_B),
+	 	
+	 	.dataOutReal_A(ramBuffer2_dataOutReal_A),
+	 	.dataOutImag_A(ramBuffer2_dataOutImag_A),
+	 	.dataOutReal_B(ramBuffer2_dataOutReal_B),
+	 	.dataOutImag_B(ramBuffer2_dataOutImag_B)
+	 	);
+	
+	//Buffer 2 access control
+	always @(*) begin		
+		if (copier_access_pointer == 2) begin
+			//Give access to copier stage
+			ramBuffer2_address_A = ramCopier_address_A;
+		 	ramBuffer2_writeEnable_A = ramCopier_writeEnable_A;
+		 	ramBuffer2_dataInReal_A = ramCopier_dataInReal_A;
+		 	ramBuffer2_dataInImag_A = ramCopier_dataInImag_A;
+		 	
+		 	ramBuffer2_address_B = ramCopier_address_B;
+		 	ramBuffer2_writeEnable_B = ramCopier_writeEnable_B;
+		 	ramBuffer2_dataInReal_B = ramCopier_dataInReal_B;
+		 	ramBuffer2_dataInImag_B = ramCopier_dataInImag_B;
+		 	
+		 	ramBuffer2_readClock = ~clk;
+		end
+		
+		else if (pipelineStage_access_pointer == 0) begin
+			//Give access to pipeline stage
+			ramBuffer2_address_A = ramStage_address_A;
+		 	ramBuffer2_writeEnable_A = ramStage_writeEnable_A;
+		 	ramBuffer2_dataInReal_A = ramStage_dataInReal_A;
+		 	ramBuffer2_dataInImag_A = ramStage_dataInImag_A;
+		 	
+		 	ramBuffer2_address_B = ramStage_address_B;
+		 	ramBuffer2_writeEnable_B = ramStage_writeEnable_B;
+		 	ramBuffer2_dataInReal_B = ramStage_dataInReal_B;
+		 	ramBuffer2_dataInImag_B = ramStage_dataInImag_B;
+		 	
+		 	ramStage_dataOutReal_A = ramBuffer2_dataOutReal_A;
+		 	ramStage_dataOutImag_A = ramBuffer2_dataOutImag_A;
+		 
+		 	ramStage_dataOutReal_B = ramBuffer2_dataOutReal_B;
+		 	ramStage_dataOutImag_B = ramBuffer2_dataOutImag_B;
+		 	
+		 	ramBuffer2_readClock = ~clk;
+		end
+		
+		else if (output_access_pointer == 0) begin
+			//Give access to output port
+			ramBuffer2_address_A = output_address;
+		 	ramBuffer2_writeEnable_A = 0;
+		 	ramBuffer2_dataInReal_A = 0;
+		 	ramBuffer2_dataInImag_A = 0;
+		 	
+		 	ramBuffer2_address_B = 0;
+		 	ramBuffer2_writeEnable_B = 0;
+		 	ramBuffer2_dataInReal_B = 0;
+		 	ramBuffer2_dataInImag_B = 0;
+		 	
+		 	SFFT_OutReal = ramBuffer2_dataOutReal_A;
+		 	
+		 	ramBuffer2_readClock = ~clk;
+		end
+	end
 	
 	//_______________________________
 	//
@@ -547,7 +801,6 @@
  	always @ (posedge clk) begin
  		if (reset) begin
  			idle <= 1;
- 			startNextCycle <= 0;
  		
  			outputReady <= 0;
  			btflyCounter <= 0;
