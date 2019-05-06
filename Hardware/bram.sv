@@ -9,16 +9,20 @@
   * NOTE: Not currently in use
   */
  module pipelineBuffer_RAM(
- 	input clk,
+ 	input readClk,
+ 	input writeClk,
  	
  	//Inputs
- 	input logic [`nFFT -1:0] address_A,
+ 	input logic [`nFFT -1:0] read_address_A,
+ 	input logic [`nFFT -1:0] write_address_A,
  	input logic writeEnable_A,
- 	input logic [`nFFT -1:0] address_B,
- 	input logic writeEnable_B,
  	
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_A,
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_A,
+ 	
+ 	input logic [`nFFT -1:0] read_address_B,
+ 	input logic [`nFFT -1:0] write_address_B,
+ 	input logic writeEnable_B,
  	
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] dataInReal_B,
  	input logic [`SFFT_OUTPUT_WIDTH -1:0] dataInImag_B,
@@ -31,25 +35,27 @@
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] dataOutImag_B
  	);
  		
-	logic [`SFFT_OUTPUT_WIDTH -1:0] Real_Mem [`NFFT -1:0] = '{default:0};
- 	logic [`SFFT_OUTPUT_WIDTH -1:0] Imag_Mem [`NFFT -1:0] = '{default:0};
+	logic [`SFFT_OUTPUT_WIDTH -1:0] Real_Mem [`NFFT -1:0];
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] Imag_Mem [`NFFT -1:0];
 	
-	always @(posedge clk) begin
+	always @(posedge writeClk) begin
 		if (writeEnable_A) begin
-			Real_Mem[address_A] <= dataInReal_A;
-			Imag_Mem[address_A] <= dataInImag_A;
+			Real_Mem[write_address_A] <= dataInReal_A;
+			Imag_Mem[write_address_A] <= dataInImag_A;
 		end
 		
 		if (writeEnable_B) begin
-			Real_Mem[address_B] <= dataInReal_B;
-			Imag_Mem[address_B] <= dataInImag_B;
+			Real_Mem[write_address_B] <= dataInReal_B;
+			Imag_Mem[write_address_B] <= dataInImag_B;
 		end
+	end
+	
+	always @(posedge readClk) begin
+		dataOutReal_A <= Real_Mem[read_address_A];
+		dataOutImag_A <= Imag_Mem[read_address_A];
 		
-		dataOutReal_A <= Real_Mem[address_A];
-		dataOutImag_A <= Imag_Mem[address_A];
-		
-		dataOutReal_B <= Real_Mem[address_B];
-		dataOutImag_B <= Imag_Mem[address_B];
+		dataOutReal_B <= Real_Mem[read_address_B];
+		dataOutImag_B <= Imag_Mem[read_address_B];
 	end
 	
 	//_______________________________

@@ -209,7 +209,7 @@
 			newSampleReady <= 0;
 		end
 		
-		else if ((advanceSignal_Processed==1) && (newSampleReady==0)) begin
+		else if ((advanceSignal_Processed==1) && (newSampleReady==0) && (inputReceived==0)) begin
 			newSampleReady <= 1;
 		end
 	end	
@@ -242,6 +242,7 @@
  	
 	//State control bus
 	wire copying;
+	assign inputReceived = copying;
 	wire copier_outputReady;
 	wire [1:0] copier_access_pointer;
 	 	
@@ -292,7 +293,7 @@
 
 	//State control bus
  	wire idle;
- 	assign inputReceived = ~idle;
+ 	//assign inputReceived = ~idle;
  	wire [`SFFT_STAGECOUNTER_WIDTH -1:0] virtualStageCounter;
  	
  	//ROM inputs
@@ -335,7 +336,7 @@
  	
 	 	.idle(idle),
 	 	.virtualStageCounter(virtualStageCounter),
-	 	.inputReady(newSampleReady),
+	 	.inputReady(copier_outputReady),
 	 	.outputReady(OutputValid)
 	 	);	
 	 	
@@ -369,14 +370,17 @@
  	assign ramStage_dataOutImag_B = ramBuffer_dataOutImag_B;
 	
 	pipelineBuffer_RAM BRAM(
-	 	.clk(clk),
+	 	.readClk(~clk),
+	 	.writeClk(clk),
 	 	
-	 	.address_A(ramBuffer_address_A),
+	 	.read_address_A(ramBuffer_address_A),
+	 	.write_address_A(ramBuffer_address_A),
 	 	.writeEnable_A(ramBuffer_writeEnable_A),
-	 	.address_B(ramBuffer_address_B),
-	 	.writeEnable_B(ramBuffer_writeEnable_B),
 	 	.dataInReal_A(ramBuffer_dataInReal_A),
 	 	.dataInImag_A(ramBuffer_dataInImag_A),
+	 	.read_address_B(ramBuffer_address_B),
+	 	.write_address_B(ramBuffer_address_B),
+	 	.writeEnable_B(ramBuffer_writeEnable_B),
 	 	.dataInReal_B(ramBuffer_dataInReal_B),
 	 	.dataInImag_B(ramBuffer_dataInImag_B),
 	 	
@@ -387,21 +391,8 @@
 	 	);
 	
 	//Buffer access control
-	always @(*) begin
-		if (ramStage_writeEnable_A) begin
-			//Give access to pipeline stage
-			ramBuffer_address_A = ramStage_address_A;
-		 	ramBuffer_writeEnable_A = ramStage_writeEnable_A;
-		 	ramBuffer_dataInReal_A = ramStage_dataInReal_A;
-		 	ramBuffer_dataInImag_A = ramStage_dataInImag_A;
-		 	
-		 	ramBuffer_address_B = ramStage_address_B;
-		 	ramBuffer_writeEnable_B = ramStage_writeEnable_B;
-		 	ramBuffer_dataInReal_B = ramStage_dataInReal_B;
-		 	ramBuffer_dataInImag_B = ramStage_dataInImag_B;
-		end
-		
-		else if (ramCopier_writeEnable_A) begin
+	always @(*) begin		
+		if (ramCopier_writeEnable_A) begin
 			//Give access to copier stage
 			ramBuffer_address_A = ramCopier_address_A;
 		 	ramBuffer_writeEnable_A = ramCopier_writeEnable_A;
@@ -412,6 +403,19 @@
 		 	ramBuffer_writeEnable_B = ramCopier_writeEnable_B;
 		 	ramBuffer_dataInReal_B = ramCopier_dataInReal_B;
 		 	ramBuffer_dataInImag_B = ramCopier_dataInImag_B;
+		end
+		
+		else begin
+			//Give access to pipeline stage
+			ramBuffer_address_A = ramStage_address_A;
+		 	ramBuffer_writeEnable_A = ramStage_writeEnable_A;
+		 	ramBuffer_dataInReal_A = ramStage_dataInReal_A;
+		 	ramBuffer_dataInImag_A = ramStage_dataInImag_A;
+		 	
+		 	ramBuffer_address_B = ramStage_address_B;
+		 	ramBuffer_writeEnable_B = ramStage_writeEnable_B;
+		 	ramBuffer_dataInReal_B = ramStage_dataInReal_B;
+		 	ramBuffer_dataInImag_B = ramStage_dataInImag_B;
 		end
 	end
 	
@@ -516,8 +520,8 @@
 	
 		.AReal(ram_dataInReal_A),
 		.AImag(ram_dataInImag_A),
-		.BReal(ram_dataOutReal_B),
-		.BImag(ram_dataOutImag_B)
+		.BReal(ram_dataInReal_B),
+		.BImag(ram_dataInImag_B)
 		);
 		
  	//MUX for selecting butterfly inputs
@@ -543,6 +547,7 @@
  	always @ (posedge clk) begin
  		if (reset) begin
  			idle <= 1;
+ 			startNextCycle <= 0;
  		
  			outputReady <= 0;
  			btflyCounter <= 0;
@@ -556,7 +561,9 @@
  		
  		else begin
  			if ((idle==1) && (inputReady==1) && (outputReady==0)) begin
- 				//Start processing 				
+ 				//Start processing
+ 				idle <= 0;
+ 							
  				ram_writeEnable_A <= 1;
  				ram_writeEnable_B <= 1;
  			end
