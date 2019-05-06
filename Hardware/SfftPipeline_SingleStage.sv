@@ -14,7 +14,7 @@
   *
   * Output port provides access to an internal BRAM module where the results are stored. The reader must provide the address of the result they wish to read.
   *
-  * Max sampling frequency ~= (CLK_FREQ*DOWNSAMPLE_PRE_FACTOR) / (log2(NFFT)*NFFT/2+2). Output indeterminate if exceeded.
+  * Max sampling frequency ~= (CLK_FREQ*DOWNSAMPLE_PRE_FACTOR*DOWNSAMPLE_POST_FACTOR) / (log2(NFFT)*NFFT/2+2). Output indeterminate if exceeded.
   */
  module SFFT_Pipeline(
  	input clk,
@@ -130,11 +130,16 @@
  	//Counter for input downsampling
  	reg [`nDOWNSAMPLE_PRE -1:0] downsamplePRECounter = 0;
  	always @ (posedge advanceSignal) begin
-		downsamplePRECounter <= downsamplePRECounter + 1;
+ 		if (downsamplePRECounter == `SFFT_DOWNSAMPLE_PRE_FACTOR -1) begin
+			downsamplePRECounter <= 0;
+		end
+		else begin
+			downsamplePRECounter <= downsamplePRECounter + 1;
+		end
 	end
 	
 	always @ (posedge clk) begin
-		advanceSignal_Intermediate <= (downsamplePRECounter == 0) && advanceSignal;
+		advanceSignal_Intermediate <= (downsamplePRECounter == `SFFT_DOWNSAMPLE_PRE_FACTOR -1) && advanceSignal;
 	end
 `else
 	assign SampleAmplitudeIn_Processed = SampleAmplitudeIn;
@@ -148,11 +153,16 @@
 `ifdef SFFT_DOWNSAMPLE_POST
 	reg [`nDOWNSAMPLE_POST -1:0] downsamplePOSTCounter = 0;
 	always @ (posedge advanceSignal_Intermediate) begin
-		downsamplePOSTCounter <= downsamplePOSTCounter + 1;
+		if (downsamplePOSTCounter == `SFFT_DOWNSAMPLE_POST_FACTOR -1) begin
+			downsamplePOSTCounter <= 0;
+		end
+		else begin
+			downsamplePOSTCounter <= downsamplePOSTCounter + 1;
+		end
 	end
 	
 	always @ (posedge clk) begin
-		advanceSignal_Processed <= (downsamplePOSTCounter == 0) && advanceSignal_Intermediate;
+		advanceSignal_Processed <= (downsamplePOSTCounter == `SFFT_DOWNSAMPLE_POST_FACTOR -1) && advanceSignal_Intermediate;
 	end
 `else
 	always @(*) begin

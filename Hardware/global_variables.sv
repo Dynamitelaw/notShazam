@@ -19,12 +19,12 @@
 `define SFFT_STAGECOUNTER_WIDTH 3  //>= log2(nFFT)
 
 `define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calculation
-`define SFFT_DOWNSAMPLE_PRE_FACTOR 2  //must be power of 2
-`define nDOWNSAMPLE_PRE 1  //log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
+`define SFFT_DOWNSAMPLE_PRE_FACTOR 3
+`define nDOWNSAMPLE_PRE 2  // >= log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
 
-//`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
-`define SFFT_DOWNSAMPLE_POST_FACTOR 8  //must be power of 2
-`define nDOWNSAMPLE_POST 3  //log2(SFFT_DOWNSAMPLE_POST_FACTOR)
+`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
+`define SFFT_DOWNSAMPLE_POST_FACTOR 5
+`define nDOWNSAMPLE_POST 3  // >= log2(SFFT_DOWNSAMPLE_POST_FACTOR)
 
 // Audio Codec Macros
 `define AUDIO_IN_GAIN 9'h010

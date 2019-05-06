@@ -1,5 +1,10 @@
 /*
  * This module takes in samples of amplitudes, and outputs the N point FFT
+ *
+ * NOTE: This version of the pipeline is behind the Single-stage version in terms of development.
+ * Differences include:
+ *    -BRAM implementation (currently none)
+ *    -IO port differences
  */
  
  `include "global_variables.sv"
@@ -11,7 +16,7 @@
   * Samples the input signal <SampleAmplitudeIn> at the rising edge of <advanceSignal>. Begins processing the FFT immediately.
   * Only outputs the real components of the FFT result. Will raise <OutputValid> high for 1 cycle when the output is finished.
   *
-  * Max sampling frequency ~= CLK_FREQ / (NFFT/2+1). Output indeterminate if exceeded.
+  * Max sampling frequency ~= (CLK_FREQ*DOWNSAMPLE_PRE_FACTOR*DOWNSAMPLE_POST_FACTOR) / (NFFT/2+1). Output indeterminate if exceeded.
   */
  module SFFT_Pipeline(
  	input clk,
@@ -114,11 +119,16 @@
  	//Counter for input downsampling
  	reg [`nDOWNSAMPLE_PRE -1:0] downsamplePRECounter = 0;
  	always @ (posedge advanceSignal) begin
-		downsamplePRECounter <= downsamplePRECounter + 1;
+ 		if (downsamplePRECounter == `SFFT_DOWNSAMPLE_PRE_FACTOR -1) begin
+			downsamplePRECounter <= 0;
+		end
+		else begin
+			downsamplePRECounter <= downsamplePRECounter + 1;
+		end
 	end
 	
 	always @ (posedge clk) begin
-		advanceSignal_Intermediate <= (downsamplePRECounter == 0) && advanceSignal;
+		advanceSignal_Intermediate <= (downsamplePRECounter == `SFFT_DOWNSAMPLE_PRE_FACTOR -1) && advanceSignal;
 	end
 `else
 	assign SampleAmplitudeIn_Processed = SampleAmplitudeIn;
@@ -132,11 +142,16 @@
 `ifdef SFFT_DOWNSAMPLE_POST
 	reg [`nDOWNSAMPLE_POST -1:0] downsamplePOSTCounter = 0;
 	always @ (posedge advanceSignal_Intermediate) begin
-		downsamplePOSTCounter <= downsamplePOSTCounter + 1;
+		if (downsamplePOSTCounter == `SFFT_DOWNSAMPLE_POST_FACTOR -1) begin
+			downsamplePOSTCounter <= 0;
+		end
+		else begin
+			downsamplePOSTCounter <= downsamplePOSTCounter + 1;
+		end
 	end
 	
 	always @ (posedge clk) begin
-		advanceSignal_Processed <= (downsamplePOSTCounter == 0) && advanceSignal_Intermediate;
+		advanceSignal_Processed <= (downsamplePOSTCounter == `SFFT_DOWNSAMPLE_POST_FACTOR -1) && advanceSignal_Intermediate;
 	end
 `else
 	always @(*) begin
