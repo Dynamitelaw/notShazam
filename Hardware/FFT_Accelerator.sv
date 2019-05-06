@@ -94,7 +94,7 @@ module FFT_Accelerator(
 	 	.advanceSignal(advance),
 	 	
 	 	.output_address(output_address),
-	 	.SFFT_Out(SFFT_Out),
+	 	.SFFT_OutReal(SFFT_Out),
 	 	.OutputValid(SfftOutputValid)
 	 	);
 	

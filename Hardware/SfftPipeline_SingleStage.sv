@@ -12,6 +12,8 @@
   * Samples the input signal <SampleAmplitudeIn> at the rising edge of <advanceSignal>. Begins processing the FFT immediately.
   * Only outputs the real components of the FFT result. Will raise <OutputValid> high for 1 cycle when the output is finished.
   *
+  * Output port provides access to an internal BRAM module where the results are stored. The reader must provide the address of the result they wish to read.
+  *
   * Max sampling frequency ~= (CLK_FREQ*DOWNSAMPLE_PRE_FACTOR) / (log2(NFFT)*NFFT/2+2). Output indeterminate if exceeded.
   */
  module SFFT_Pipeline(
@@ -296,7 +298,6 @@
 	
 	//State control bus
  	wire idle;
- 	//assign inputReceived = ~idle;
  	wire [`SFFT_STAGECOUNTER_WIDTH -1:0] virtualStageCounter;
  	
  	//ROM inputs
@@ -345,7 +346,7 @@
 	 	
 	 
 	/*
-	 * Output handling
+	 * Output access handling
 	 */
 	
 	logic [1:0] output_access_pointer = 2;
@@ -416,7 +417,7 @@
 	 	.dataOutImag_B(ramBuffer0_dataOutImag_B)
 	 	);
 	
-	//Buffer 0 access control
+	//Buffer 0 write access control
 	always @(*) begin		
 		if (copier_access_pointer == 0) begin
 			//Give access to copier stage
@@ -445,12 +446,6 @@
 		 	ramBuffer0_dataInReal_B = ramStage_dataInReal_B;
 		 	ramBuffer0_dataInImag_B = ramStage_dataInImag_B;
 		 	
-		 	ramStage_dataOutReal_A = ramBuffer0_dataOutReal_A;
-		 	ramStage_dataOutImag_A = ramBuffer0_dataOutImag_A;
-		 	
-		 	ramStage_dataOutReal_B = ramBuffer0_dataOutReal_B;
-		 	ramStage_dataOutImag_B = ramBuffer0_dataOutImag_B;
-		 	
 		 	ramBuffer0_readClock = ~clk;
 		end
 		
@@ -465,8 +460,6 @@
 		 	ramBuffer0_writeEnable_B = 0;
 		 	ramBuffer0_dataInReal_B = 0;
 		 	ramBuffer0_dataInImag_B = 0;
-		 	
-		 	SFFT_OutReal = ramBuffer0_dataOutReal_A;
 		 	
 		 	ramBuffer0_readClock = ~clk;
 		end
@@ -517,7 +510,7 @@
 	 	.dataOutImag_B(ramBuffer1_dataOutImag_B)
 	 	);
 	
-	//Buffer 1 access control
+	//Buffer 1 write access control
 	always @(*) begin		
 		if (copier_access_pointer == 1) begin
 			//Give access to copier stage
@@ -546,12 +539,6 @@
 		 	ramBuffer1_dataInReal_B = ramStage_dataInReal_B;
 		 	ramBuffer1_dataInImag_B = ramStage_dataInImag_B;
 		 	
-		 	ramStage_dataOutReal_A = ramBuffer1_dataOutReal_A;
-		 	ramStage_dataOutImag_A = ramBuffer1_dataOutImag_A;
-		 	
-		 	ramStage_dataOutReal_B = ramBuffer1_dataOutReal_B;
-		 	ramStage_dataOutImag_B = ramBuffer1_dataOutImag_B;
-		 	
 		 	ramBuffer1_readClock = ~clk;
 		end
 		
@@ -566,8 +553,6 @@
 		 	ramBuffer1_writeEnable_B = 0;
 		 	ramBuffer1_dataInReal_B = 0;
 		 	ramBuffer1_dataInImag_B = 0;
-		 	
-		 	SFFT_OutReal = ramBuffer1_dataOutReal_A;
 		 	
 		 	ramBuffer1_readClock = ~clk;
 		end
@@ -618,7 +603,7 @@
 	 	.dataOutImag_B(ramBuffer2_dataOutImag_B)
 	 	);
 	
-	//Buffer 2 access control
+	//Buffer 2 write access control
 	always @(*) begin		
 		if (copier_access_pointer == 2) begin
 			//Give access to copier stage
@@ -647,12 +632,6 @@
 		 	ramBuffer2_dataInReal_B = ramStage_dataInReal_B;
 		 	ramBuffer2_dataInImag_B = ramStage_dataInImag_B;
 		 	
-		 	ramStage_dataOutReal_A = ramBuffer2_dataOutReal_A;
-		 	ramStage_dataOutImag_A = ramBuffer2_dataOutImag_A;
-		 
-		 	ramStage_dataOutReal_B = ramBuffer2_dataOutReal_B;
-		 	ramStage_dataOutImag_B = ramBuffer2_dataOutImag_B;
-		 	
 		 	ramBuffer2_readClock = ~clk;
 		end
 		
@@ -668,9 +647,59 @@
 		 	ramBuffer2_dataInReal_B = 0;
 		 	ramBuffer2_dataInImag_B = 0;
 		 	
-		 	SFFT_OutReal = ramBuffer2_dataOutReal_A;
-		 	
 		 	ramBuffer2_readClock = ~clk;
+		end
+	end
+	
+	/*
+	 * Read access control
+	 */
+	 
+	//pipelineStage buffer read control
+	always @(*) begin		
+		if (output_access_pointer == 0) begin
+			//Read from buffer 0
+			ramStage_dataOutReal_A = ramBuffer0_dataOutReal_A;
+		 	ramStage_dataOutImag_A = ramBuffer0_dataOutImag_A;
+		 
+		 	ramStage_dataOutReal_B = ramBuffer0_dataOutReal_B;
+		 	ramStage_dataOutImag_B = ramBuffer0_dataOutImag_B;
+		end
+		
+		else if (output_access_pointer == 1) begin
+			//Read from buffer 1
+			ramStage_dataOutReal_A = ramBuffer1_dataOutReal_A;
+		 	ramStage_dataOutImag_A = ramBuffer1_dataOutImag_A;
+		 
+		 	ramStage_dataOutReal_B = ramBuffer1_dataOutReal_B;
+		 	ramStage_dataOutImag_B = ramBuffer1_dataOutImag_B;
+		end
+		
+		else if (output_access_pointer == 2) begin
+			//Read from buffer 2
+			ramStage_dataOutReal_A = ramBuffer2_dataOutReal_A;
+		 	ramStage_dataOutImag_A = ramBuffer2_dataOutImag_A;
+		 
+		 	ramStage_dataOutReal_B = ramBuffer2_dataOutReal_B;
+		 	ramStage_dataOutImag_B = ramBuffer2_dataOutImag_B;
+		end
+	end
+	
+	//output buffer read control
+	always @(*) begin		
+		if (output_access_pointer == 0) begin
+			//Read from buffer 0
+			SFFT_OutReal = ramBuffer0_dataOutReal_A;
+		end
+		
+		else if (output_access_pointer == 1) begin
+			//Read from buffer 1
+			SFFT_OutReal = ramBuffer1_dataOutReal_A;
+		end
+		
+		else if (output_access_pointer == 2) begin
+			//Read from buffer 2
+			SFFT_OutReal = ramBuffer2_dataOutReal_A;
 		end
 	end
 	
@@ -760,9 +789,6 @@
  	reg [`SFFT_FIXED_POINT_ACCURACY:0] wInReal;
  	reg [`SFFT_FIXED_POINT_ACCURACY:0] wInImag;
  	
- 	//Ouputs
-	 	//*NOTE: Now connected directly to BRAM buffer outside this module
- 	
  	//Instantiate B
  	butterfly B(
 		.aReal(ram_dataOutReal_A),
@@ -772,6 +798,7 @@
 		.wReal(wInReal),
 		.wImag(wInImag),
 	
+		//Connect outputs directly to BRAM buffer outside of this module
 		.AReal(ram_dataInReal_A),
 		.AImag(ram_dataInImag_A),
 		.BReal(ram_dataInReal_B),
@@ -841,7 +868,7 @@
  						ram_writeEnable_A <= 0;
  						ram_writeEnable_B <= 0;
  						
- 						//Increment BRAM access pointer
+ 						//Select which BRAM buffer to use next
  						if (ram_access_pointer == 2) begin
  							ram_access_pointer <= 0;
  						end
@@ -1039,6 +1066,7 @@ module copyToRamStage(
 					copying <= 0;
 					outputReady <= 1;
 					
+					//Select which BRAM buffer to use next
 					if (ram_access_pointer == 2) begin
 						ram_access_pointer <= 0;
 					end
