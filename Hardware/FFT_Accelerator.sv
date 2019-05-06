@@ -81,7 +81,9 @@ module FFT_Accelerator(
 	end
 	
 	//Instantiate SFFT pipeline
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out [`NFFT -1:0];
+	wire [`nFFT -1:0] output_address;
+	assign output_address = address[`nFFT -1:0];
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out;
  	wire SfftOutputValid;
  
  	SFFT_Pipeline sfft(
@@ -91,6 +93,7 @@ module FFT_Accelerator(
 	 	.SampleAmplitudeIn(audioInMono),
 	 	.advanceSignal(advance),
 	 	
+	 	.output_address(output_address),
 	 	.SFFT_Out(SFFT_Out),
 	 	.OutputValid(SfftOutputValid)
 	 	);
@@ -129,12 +132,14 @@ module FFT_Accelerator(
 			readOutBus_buffer[0] <= timeCounter[7:0];
 			
 			//Amplitudes out. Assuming 32 bit frequency amplitude
+			/*
 			for (i=0; i< `NFFT; i=i+1) begin
 				readOutBus_buffer[i*4+7] <= SFFT_Out[i][31:24];
 				readOutBus_buffer[i*4+6] <= SFFT_Out[i][23:16];
 				readOutBus_buffer[i*4+5] <= SFFT_Out[i][15:8];
 				readOutBus_buffer[i*4+4] <= SFFT_Out[i][7:0];
 			end			
+			*/
 			
 			//Populate value 247 with input sample amplitude. Must be disabled if NFFT > 128
 			if (advance) begin

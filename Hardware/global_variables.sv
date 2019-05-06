@@ -1,6 +1,6 @@
 // FFT Macros
-`define NFFT 8 // if change this, change FREQ_WIDTH. Must be power of 2
-`define nFFT 3  //log2(NFFT)
+`define NFFT 128 // if change this, change FREQ_WIDTH. Must be power of 2
+`define nFFT 7  //log2(NFFT)
 
 `define FREQS (`NFFT / 2)
 `define FREQ_WIDTH 8 // if change NFFT, change this
