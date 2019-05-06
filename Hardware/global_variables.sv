@@ -1,6 +1,6 @@
 // FFT Macros
-`define NFFT 128 // if change this, change FREQ_WIDTH. Must be power of 2
-`define nFFT 7  //log2(NFFT)
+`define NFFT 512 // if change this, change FREQ_WIDTH. Must be power of 2
+`define nFFT 9  //log2(NFFT)
 
 `define FREQS (`NFFT / 2)
 `define FREQ_WIDTH 8 // if change NFFT, change this
@@ -18,9 +18,9 @@
 `define SFFT_FIXED_POINT_ACCURACY 7
 `define SFFT_STAGECOUNTER_WIDTH 3  //>= log2(nFFT)
 
-//`define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calculation
-`define SFFT_DOWNSAMPLE_PRE_FACTOR 8  //must be power of 2
-`define nDOWNSAMPLE_PRE 3  //log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
+`define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calculation
+`define SFFT_DOWNSAMPLE_PRE_FACTOR 2  //must be power of 2
+`define nDOWNSAMPLE_PRE 1  //log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
 
 //`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
 `define SFFT_DOWNSAMPLE_POST_FACTOR 8  //must be power of 2
