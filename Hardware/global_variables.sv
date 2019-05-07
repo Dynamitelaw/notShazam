@@ -22,7 +22,7 @@
 `define SFFT_DOWNSAMPLE_PRE_FACTOR 3
 `define nDOWNSAMPLE_PRE 2  // >= log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
 
-//`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
+`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
 `define SFFT_DOWNSAMPLE_POST_FACTOR 5
 `define nDOWNSAMPLE_POST 3  // >= log2(SFFT_DOWNSAMPLE_POST_FACTOR)
 
