@@ -126,7 +126,12 @@
  		movingSum = movingSum + SampleAmplitudeIn - WindowBuffers[`SFFT_DOWNSAMPLE_PRE_FACTOR -1];
  	end
  	
- 	assign SampleAmplitudeIn_Processed = movingSum[`SFFT_INPUT_WIDTH + `nDOWNSAMPLE_PRE -1:`nDOWNSAMPLE_PRE];  //right shift by nDOWNSAMPLE_PRE to divide sum into average
+ 	logic [`SFFT_INPUT_WIDTH + `nDOWNSAMPLE_PRE -1:0] movingAverage;
+ 	always @(*) begin
+ 		movingAverage = movingSum/`SFFT_DOWNSAMPLE_PRE_FACTOR;
+ 	end
+ 	
+ 	assign SampleAmplitudeIn_Processed = movingAverage[`SFFT_INPUT_WIDTH -1:0];  //right shift by nDOWNSAMPLE_PRE to divide sum into average
  	
  	//Counter for input downsampling
  	reg [`nDOWNSAMPLE_PRE -1:0] downsamplePRECounter = 0;
