@@ -85,6 +85,7 @@ module FFT_Accelerator(
 	assign sampleBeingTaken = chipselect;
 	
 	//Instantiate SFFT pipeline
+	wire outputReadError;
 	logic [`nFFT -1:0] sfft_output_address;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out;
  	wire SfftOutputValid;
@@ -97,6 +98,7 @@ module FFT_Accelerator(
 	 	.advanceSignal(advance),
 	 	
 	 	.OutputBeingRead(sampleBeingTaken),
+	 	.outputReadError(outputReadError),
 	 	.output_address(sfft_output_address),
 	 	.SFFT_OutReal(SFFT_Out),
 	 	.OutputValid(SfftOutputValid)	 	
@@ -144,7 +146,7 @@ module FFT_Accelerator(
 		if (address < 4) begin
 			readdata = timer_buffer[address];
 		end
-		else if (address < ((`NFFT *4)+4)) begin
+		else if (address < ((`NFFT *2)+4)) begin
 			//Convert input address into subset of SFFT_Out
 			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
 			if (address % 4 == 0) begin
@@ -159,6 +161,10 @@ module FFT_Accelerator(
 			else if (address % 4 == 3) begin
 				readdata = SFFT_Out[31:24];
 			end
+		end
+		else if (address == ((`NFFT *2)+4)) begin
+			//Address for the read error byte
+			readdata = {7'b0, outputReadError};
 		end
 		else begin
 			//Address not part of our output
