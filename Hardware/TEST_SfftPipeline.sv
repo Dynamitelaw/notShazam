@@ -52,6 +52,7 @@
  	
  	//Outputs
  	logic [`nFFT -1:0] output_address = 0;
+ 	wire outputReadError;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal;
  	wire OutputValid;
  
@@ -63,6 +64,7 @@
 	 	.advanceSignal(advanceSignal),
 	 	
 	 	.OutputBeingRead(OutputBeingRead),
+	 	.outputReadError(outputReadError),
 	 	.output_address(output_address),
 	 	.SFFT_OutReal(SFFT_OutReal),
 	 	.OutputValid(OutputValid)

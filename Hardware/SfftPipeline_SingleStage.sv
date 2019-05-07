@@ -26,6 +26,7 @@
  	
  	//Output BRAM IO
  	input logic OutputBeingRead,
+ 	output logic outputReadError,
  	input logic [`nFFT -1:0] output_address,
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal,
  	output logic OutputValid
@@ -379,7 +380,14 @@
 	
 	always @(posedge clk) begin
 		if (OutputBeingRead == 0) begin
-			output_access_pointer = nextOutput_access_pointer; //Only update output_access_pointer when we are not reading from software
+			output_access_pointer <= nextOutput_access_pointer; //Only update output_access_pointer when we are not reading from software
+			outputReadError <= 0;
+		end
+		else begin
+			if (output_access_pointer == copier_access_pointer) begin
+				//The copy stage has caught up with where the driver is reading from. Set error flag high
+				outputReadError <= 1;
+			end
 		end
 	end
 	
