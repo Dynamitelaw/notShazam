@@ -25,6 +25,7 @@
  	input advanceSignal,
  	
  	//Output BRAM IO
+ 	input logic OutputBeingRead,
  	input logic [`nFFT -1:0] output_address,
  	output logic [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal,
  	output logic OutputValid
@@ -326,8 +327,6 @@
 	 	.clk(clk),
 	 	.reset(reset),
 	 	
-	 	.StageInReal(shuffledSamples),
-	 	.StageInImag(StageInImag),
 	 	.realCoefficents(realCoefficents),
 		.imagCoefficents(imagCoefficents),
 		.kValues(kValues_In),
@@ -358,21 +357,24 @@
 	/*
 	 * Output access handling
 	 */
-	
-	logic [1:0] output_access_pointer = 2;
+	 	
+	logic [1:0] nextOutput_access_pointer = 3;  //Points to the most recent output of the pipeline
 	
 	always @(posedge OutputValid) begin
 		if (reset) begin
-			output_access_pointer <= 2;
+			nextOutput_access_pointer <= 3;
 		end
 		
 		else begin
-			if (output_access_pointer == 2) begin
-				output_access_pointer <= 0;
-			end
-			else begin
-				output_access_pointer <= output_access_pointer + 1;
-			end
+			nextOutput_access_pointer <= output_access_pointer + 1;
+		end
+	end
+	
+	logic [1:0] output_access_pointer;  //Points to the buffer we're currently reading from the software
+	
+	always @(posedge clk) begin
+		if (OutputBeingRead == 0) begin
+			output_access_pointer = nextOutput_access_pointer; //Only update output_access_pointer when we are not reading from software
 		end
 	end
 	
@@ -662,6 +664,99 @@
 	end
 	
 	/*
+	 * Buffer 3
+	 */
+	logic ramBuffer3_readClock;
+	
+	//Input bus
+	logic [`nFFT -1:0] ramBuffer3_address_A;
+ 	logic ramBuffer3_writeEnable_A;
+ 	logic [`nFFT -1:0] ramBuffer3_address_B;
+ 	logic ramBuffer3_writeEnable_B;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataInReal_A;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataInImag_A;
+ 	
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataInReal_B;
+ 	logic [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataInImag_B;
+ 	
+ 	//Output bus
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutReal_A;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutImag_A;
+ 	
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutReal_B;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutImag_B;
+	
+	pipelineBuffer_RAM BRAM_3(
+	 	.readClk(ramBuffer3_readClock),
+	 	.writeClk(clk),
+	 	
+	 	.read_address_A(ramBuffer3_address_A),
+	 	.write_address_A(ramBuffer3_address_A),
+	 	.writeEnable_A(ramBuffer3_writeEnable_A),
+	 	.dataInReal_A(ramBuffer3_dataInReal_A),
+	 	.dataInImag_A(ramBuffer3_dataInImag_A),
+	 	.read_address_B(ramBuffer3_address_B),
+	 	.write_address_B(ramBuffer3_address_B),
+	 	.writeEnable_B(ramBuffer3_writeEnable_B),
+	 	.dataInReal_B(ramBuffer3_dataInReal_B),
+	 	.dataInImag_B(ramBuffer3_dataInImag_B),
+	 	
+	 	.dataOutReal_A(ramBuffer3_dataOutReal_A),
+	 	.dataOutImag_A(ramBuffer3_dataOutImag_A),
+	 	.dataOutReal_B(ramBuffer3_dataOutReal_B),
+	 	.dataOutImag_B(ramBuffer3_dataOutImag_B)
+	 	);
+	
+	//Buffer 3 write access control
+	always @(*) begin		
+		if (copier_access_pointer == 3) begin
+			//Give access to copier stage
+			ramBuffer3_address_A = ramCopier_address_A;
+		 	ramBuffer3_writeEnable_A = ramCopier_writeEnable_A;
+		 	ramBuffer3_dataInReal_A = ramCopier_dataInReal_A;
+		 	ramBuffer3_dataInImag_A = ramCopier_dataInImag_A;
+		 	
+		 	ramBuffer3_address_B = ramCopier_address_B;
+		 	ramBuffer3_writeEnable_B = ramCopier_writeEnable_B;
+		 	ramBuffer3_dataInReal_B = ramCopier_dataInReal_B;
+		 	ramBuffer3_dataInImag_B = ramCopier_dataInImag_B;
+		 	
+		 	ramBuffer3_readClock = ~clk;
+		end
+		
+		else if (pipelineStage_access_pointer == 3) begin
+			//Give access to pipeline stage
+			ramBuffer3_address_A = ramStage_address_A;
+		 	ramBuffer3_writeEnable_A = ramStage_writeEnable_A;
+		 	ramBuffer3_dataInReal_A = ramStage_dataInReal_A;
+		 	ramBuffer3_dataInImag_A = ramStage_dataInImag_A;
+		 	
+		 	ramBuffer3_address_B = ramStage_address_B;
+		 	ramBuffer3_writeEnable_B = ramStage_writeEnable_B;
+		 	ramBuffer3_dataInReal_B = ramStage_dataInReal_B;
+		 	ramBuffer3_dataInImag_B = ramStage_dataInImag_B;
+		 	
+		 	ramBuffer3_readClock = ~clk;
+		end
+		
+		else if (output_access_pointer == 3) begin
+			//Give access to output port
+			ramBuffer3_address_A = output_address;
+		 	ramBuffer3_writeEnable_A = 0;
+		 	ramBuffer3_dataInReal_A = 0;
+		 	ramBuffer3_dataInImag_A = 0;
+		 	
+		 	ramBuffer3_address_B = 0;
+		 	ramBuffer3_writeEnable_B = 0;
+		 	ramBuffer3_dataInReal_B = 0;
+		 	ramBuffer3_dataInImag_B = 0;
+		 	
+		 	ramBuffer3_readClock = ~clk;
+		end
+	end
+	
+	/*
 	 * Read access control
 	 */
 	 
@@ -693,6 +788,15 @@
 		 	ramStage_dataOutReal_B = ramBuffer2_dataOutReal_B;
 		 	ramStage_dataOutImag_B = ramBuffer2_dataOutImag_B;
 		end
+		
+		else if (output_access_pointer == 3) begin
+			//Read from buffer 3
+			ramStage_dataOutReal_A = ramBuffer3_dataOutReal_A;
+		 	ramStage_dataOutImag_A = ramBuffer3_dataOutImag_A;
+		 
+		 	ramStage_dataOutReal_B = ramBuffer3_dataOutReal_B;
+		 	ramStage_dataOutImag_B = ramBuffer3_dataOutImag_B;
+		end
 	end
 	
 	//output buffer read control
@@ -711,6 +815,11 @@
 			//Read from buffer 2
 			SFFT_OutReal = ramBuffer2_dataOutReal_A;
 		end
+		
+		else if (output_access_pointer == 3) begin
+			//Read from buffer 3
+			SFFT_OutReal = ramBuffer3_dataOutReal_A;
+		end
 	end
 	
 	//_______________________________
@@ -718,7 +827,7 @@
 	// Simulation Probes
 	//_______________________________
 	
-	
+	/*
 	wire [`SFFT_INPUT_WIDTH -1:0] PROBE_SampleBuffers [`NFFT -1:0];
 	assign PROBE_SampleBuffers = SampleBuffers;
 	
@@ -732,7 +841,7 @@
 	wire [`SFFT_INPUT_WIDTH -1:0] PROBE_WindowBuffers [`SFFT_DOWNSAMPLE_PRE_FACTOR -1:0];
 	assign PROBE_WindowBuffers = WindowBuffers;
 `endif
-	
+	*/
 	
  endmodule  //SFFT_Pipeline
  
@@ -744,9 +853,6 @@
  	input clk,
  	input reset,
  	
- 	//Stage Inputs
- 	input logic [`SFFT_OUTPUT_WIDTH -1:0] StageInReal [`NFFT -1:0],
- 	input logic [`SFFT_OUTPUT_WIDTH -1:0] StageInImag [`NFFT -1:0],
  	//Coefficient ROM
  	input logic [`SFFT_FIXED_POINT_ACCURACY:0] realCoefficents [(`NFFT / 2) -1:0],
 	input logic [`SFFT_FIXED_POINT_ACCURACY:0] imagCoefficents [(`NFFT / 2) -1:0],
@@ -879,12 +985,7 @@
  						ram_writeEnable_B <= 0;
  						
  						//Select which BRAM buffer to use next
- 						if (ram_access_pointer == 2) begin
- 							ram_access_pointer <= 0;
- 						end
- 						else begin
- 							ram_access_pointer <= ram_access_pointer + 1;
- 						end
+ 						ram_access_pointer <= ram_access_pointer + 1;
  					end
  					else begin 						
 		 				//Move onto next virtual stage
@@ -1077,12 +1178,7 @@ module copyToRamStage(
 					outputReady <= 1;
 					
 					//Select which BRAM buffer to use next
-					if (ram_access_pointer == 2) begin
-						ram_access_pointer <= 0;
-					end
-					else begin
-						ram_access_pointer <= ram_access_pointer + 1;
-					end
+					ram_access_pointer <= ram_access_pointer + 1;
 				end
 			end
 			

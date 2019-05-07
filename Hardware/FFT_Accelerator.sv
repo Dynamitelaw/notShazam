@@ -80,9 +80,12 @@ module FFT_Accelerator(
 		audioInMono = adc_right_out + adc_left_out;
 	end
 	
+	//Determine when the driver is in the middle of pulling a sample
+	wire sampleBeingTaken;
+	assign sampleBeingTaken = chipselect;
+	
 	//Instantiate SFFT pipeline
-	wire [`nFFT -1:0] output_address;
-	assign output_address = address[`nFFT -1:0];
+	logic [`nFFT -1:0] sfft_output_address;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out;
  	wire SfftOutputValid;
  
@@ -93,9 +96,10 @@ module FFT_Accelerator(
 	 	.SampleAmplitudeIn(audioInMono),
 	 	.advanceSignal(advance),
 	 	
-	 	.output_address(output_address),
+	 	.OutputBeingRead(sampleBeingTaken),
+	 	.output_address(sfft_output_address),
 	 	.SFFT_OutReal(SFFT_Out),
-	 	.OutputValid(SfftOutputValid)
+	 	.OutputValid(SfftOutputValid)	 	
 	 	);
 	
 	//Sample counter
@@ -112,91 +116,57 @@ module FFT_Accelerator(
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
-
+		
 	
-	//Determine when the driver is in the middle of pulling a sample
-	wire sampleBeingTaken;
-	assign sampleBeingTaken = chipselect;
-	
-	//Map peaks output onto readOutBus
-	reg [7:0] readOutBus_buffer [1023:0];
+	//Map timer output
+	parameter readOutSize = 2048;
+	reg [7:0] timer_buffer [3:0];
 	integer i;
 	always @(posedge clk) begin
 		if (sampleBeingTaken == 0) begin
 			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
 			
 			//Counter -> address 0-3. Assuming 32 bit counter
-			readOutBus_buffer[3] <= timeCounter[31:24];
-			readOutBus_buffer[2] <= timeCounter[23:16];
-			readOutBus_buffer[1] <= timeCounter[15:8];
-			readOutBus_buffer[0] <= timeCounter[7:0];
-			
-			//Amplitudes out. Assuming 32 bit frequency amplitude
-			/*
-			for (i=0; i< `NFFT; i=i+1) begin
-				readOutBus_buffer[i*4+7] <= SFFT_Out[i][31:24];
-				readOutBus_buffer[i*4+6] <= SFFT_Out[i][23:16];
-				readOutBus_buffer[i*4+5] <= SFFT_Out[i][15:8];
-				readOutBus_buffer[i*4+4] <= SFFT_Out[i][7:0];
-			end			
-			*/
-			
-			//Populate value 247 with input sample amplitude. Must be disabled if NFFT > 128
-			if (advance) begin
-				readOutBus_buffer[247*4+7] <= {8{audioInMono[23]}};
-				readOutBus_buffer[247*4+6] <= audioInMono[23:16];
-				readOutBus_buffer[247*4+5] <= audioInMono[15:8];
-				readOutBus_buffer[247*4+4] <= audioInMono[7:0];
-			end
-			
-			//Populate last 7 values with fixed test values. Must be disabled if NFFT > 128
-			readOutBus_buffer[248*4+7] <= 8'b00000000;
-			readOutBus_buffer[248*4+6] <= 8'b00000000;
-			readOutBus_buffer[248*4+5] <= 8'b00000000;
-			readOutBus_buffer[248*4+4] <= 8'b00000000;
-			
-			readOutBus_buffer[249*4+7] <= 8'b11111111;
-			readOutBus_buffer[249*4+6] <= 8'b11111111;
-			readOutBus_buffer[249*4+5] <= 8'b11111111;
-			readOutBus_buffer[249*4+4] <= 8'b11111111;
-			
-			readOutBus_buffer[250*4+7] <= 8'b11111111;
-			readOutBus_buffer[250*4+6] <= 8'b00000000;
-			readOutBus_buffer[250*4+5] <= 8'b00000000;
-			readOutBus_buffer[250*4+4] <= 8'b00000000;
-			
-			readOutBus_buffer[251*4+7] <= 8'b11111111;
-			readOutBus_buffer[251*4+6] <= 8'b00000000;
-			readOutBus_buffer[251*4+5] <= 8'b11111111;
-			readOutBus_buffer[251*4+4] <= 8'b00000000;
-			
-			readOutBus_buffer[252*4+7] <= 8'b11110000;
-			readOutBus_buffer[252*4+6] <= 8'b00000000;
-			readOutBus_buffer[252*4+5] <= 8'b00000000;
-			readOutBus_buffer[252*4+4] <= 8'b00000000;
-			
-			readOutBus_buffer[253*4+7] <= 8'b11010010;
-			readOutBus_buffer[253*4+6] <= 8'b00000000;
-			readOutBus_buffer[253*4+5] <= 8'b00000000;
-			readOutBus_buffer[253*4+4] <= 8'b00000000;
-			
-			readOutBus_buffer[254*4+7] <= 8'h01;
-			readOutBus_buffer[254*4+6] <= 8'h23;
-			readOutBus_buffer[254*4+5] <= 8'h45;
-			readOutBus_buffer[254*4+4] <= 8'h67;
+			timer_buffer[3] <= timeCounter[31:24];
+			timer_buffer[2] <= timeCounter[23:16];
+			timer_buffer[1] <= timeCounter[15:8];
+			timer_buffer[0] <= timeCounter[7:0];
 		end
 	end
 	
+	//Calculate BRRAM address for pipeline output
+	always @(*) begin
+		sfft_output_address = ((address[`nFFT -1:0])-4)/4;
+	end
+	
 	//Read handling
-	always @(posedge clk) begin
-		if (address < 1024) begin
-			readdata <= readOutBus_buffer[address];
+	always @(*) begin
+		if (address < 4) begin
+			readdata = timer_buffer[address];
+		end
+		else if (address < ((`NFFT *4)+4)) begin
+			//Convert input address into subset of SFFT_Out
+			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
+			if (address % 4 == 0) begin
+				readdata = SFFT_Out[7:0];
+			end
+			else if (address % 4 == 1) begin
+				readdata = SFFT_Out[15:8];
+			end
+			else if (address % 4 == 2) begin
+				readdata = SFFT_Out[23:16];
+			end
+			else if (address % 4 == 3) begin
+				readdata = SFFT_Out[31:24];
+			end
 		end
 		else begin
-			readdata <= 0;
+			//Address not part of our output
+			readdata = 0;
 		end
 	end
-		
+	
+	
 	//Sample inputs
 	always @(posedge advance) begin
 		counter <= counter + 1;
