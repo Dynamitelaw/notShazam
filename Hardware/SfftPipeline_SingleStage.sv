@@ -366,7 +366,7 @@
 		end
 		
 		else begin
-			nextOutput_access_pointer <= output_access_pointer + 1;
+			nextOutput_access_pointer <= nextOutput_access_pointer + 1;
 		end
 	end
 	
@@ -473,7 +473,7 @@
 		 	ramBuffer0_dataInReal_B = 0;
 		 	ramBuffer0_dataInImag_B = 0;
 		 	
-		 	ramBuffer0_readClock = ~clk;
+		 	ramBuffer0_readClock = clk;
 		end
 	end
 	
@@ -566,7 +566,7 @@
 		 	ramBuffer1_dataInReal_B = 0;
 		 	ramBuffer1_dataInImag_B = 0;
 		 	
-		 	ramBuffer1_readClock = ~clk;
+		 	ramBuffer1_readClock = clk;
 		end
 	end
 	
@@ -631,8 +631,8 @@
 		 	
 		 	ramBuffer2_readClock = ~clk;
 		end
-		
-		else if (pipelineStage_access_pointer == 0) begin
+
+		else if (pipelineStage_access_pointer == 2) begin
 			//Give access to pipeline stage
 			ramBuffer2_address_A = ramStage_address_A;
 		 	ramBuffer2_writeEnable_A = ramStage_writeEnable_A;
@@ -647,7 +647,7 @@
 		 	ramBuffer2_readClock = ~clk;
 		end
 		
-		else if (output_access_pointer == 0) begin
+		else if (output_access_pointer == 2) begin
 			//Give access to output port
 			ramBuffer2_address_A = output_address;
 		 	ramBuffer2_writeEnable_A = 0;
@@ -659,7 +659,7 @@
 		 	ramBuffer2_dataInReal_B = 0;
 		 	ramBuffer2_dataInImag_B = 0;
 		 	
-		 	ramBuffer2_readClock = ~clk;
+		 	ramBuffer2_readClock = clk;
 		end
 	end
 	
@@ -752,7 +752,7 @@
 		 	ramBuffer3_dataInReal_B = 0;
 		 	ramBuffer3_dataInImag_B = 0;
 		 	
-		 	ramBuffer3_readClock = ~clk;
+		 	ramBuffer3_readClock = clk;
 		end
 	end
 	
@@ -762,7 +762,7 @@
 	 
 	//pipelineStage buffer read control
 	always @(*) begin		
-		if (output_access_pointer == 0) begin
+		if (pipelineStage_access_pointer == 0) begin
 			//Read from buffer 0
 			ramStage_dataOutReal_A = ramBuffer0_dataOutReal_A;
 		 	ramStage_dataOutImag_A = ramBuffer0_dataOutImag_A;
@@ -771,7 +771,7 @@
 		 	ramStage_dataOutImag_B = ramBuffer0_dataOutImag_B;
 		end
 		
-		else if (output_access_pointer == 1) begin
+		else if (pipelineStage_access_pointer == 1) begin
 			//Read from buffer 1
 			ramStage_dataOutReal_A = ramBuffer1_dataOutReal_A;
 		 	ramStage_dataOutImag_A = ramBuffer1_dataOutImag_A;
@@ -780,7 +780,7 @@
 		 	ramStage_dataOutImag_B = ramBuffer1_dataOutImag_B;
 		end
 		
-		else if (output_access_pointer == 2) begin
+		else if (pipelineStage_access_pointer == 2) begin
 			//Read from buffer 2
 			ramStage_dataOutReal_A = ramBuffer2_dataOutReal_A;
 		 	ramStage_dataOutImag_A = ramBuffer2_dataOutImag_A;
@@ -789,7 +789,7 @@
 		 	ramStage_dataOutImag_B = ramBuffer2_dataOutImag_B;
 		end
 		
-		else if (output_access_pointer == 3) begin
+		else if (pipelineStage_access_pointer == 3) begin
 			//Read from buffer 3
 			ramStage_dataOutReal_A = ramBuffer3_dataOutReal_A;
 		 	ramStage_dataOutImag_A = ramBuffer3_dataOutImag_A;
@@ -827,7 +827,9 @@
 	// Simulation Probes
 	//_______________________________
 	
-	/*
+	wire [`nFFT -1:0] PROBE_shuffledInputIndexes [`NFFT -1:0];
+	assign PROBE_shuffledInputIndexes = shuffledInputIndexes;
+	
 	wire [`SFFT_INPUT_WIDTH -1:0] PROBE_SampleBuffers [`NFFT -1:0];
 	assign PROBE_SampleBuffers = SampleBuffers;
 	
@@ -841,7 +843,7 @@
 	wire [`SFFT_INPUT_WIDTH -1:0] PROBE_WindowBuffers [`SFFT_DOWNSAMPLE_PRE_FACTOR -1:0];
 	assign PROBE_WindowBuffers = WindowBuffers;
 `endif
-	*/
+	
 	
  endmodule  //SFFT_Pipeline
  
@@ -1036,7 +1038,7 @@
 	//Butterfly Indexes
 	wire [`nFFT -1:0] PROBE_aIndexes [(`NFFT / 2) -1:0];
 	assign PROBE_aIndexes = aIndexes;
-	wire [`nFFT -1:0] PROBE_bIndexes [(`NFFT / 2) -1:0];sim/:Sfft_Testbench:sfft:copier:address_A
+	wire [`nFFT -1:0] PROBE_bIndexes [(`NFFT / 2) -1:0];
 
 	assign PROBE_bIndexes = bIndexes;
 	*/
@@ -1089,14 +1091,13 @@ module butterfly(
 	
 	//Do butterfly calculation
 	always @ (*) begin
-		//TODO It works perfectly with A and B flipped, and I have no idea how or why
 		//A = a + wb
-		BReal = aReal + (wReal_Extended*bReal_Adjusted) - (wImag_Extended*bImag_Adjusted);
-		BImag = aImag + (wReal_Extended*bImag_Adjusted) + (wImag_Extended*bReal_Adjusted);
+		AReal = aReal + (wReal_Extended*bReal_Adjusted) - (wImag_Extended*bImag_Adjusted);
+		AImag = aImag + (wReal_Extended*bImag_Adjusted) + (wImag_Extended*bReal_Adjusted);
 		
 		//B = a - wb
-		AReal = aReal - (wReal_Extended*bReal_Adjusted) + (wImag_Extended*bImag_Adjusted);
-		AImag = aImag - (wReal_Extended*bImag_Adjusted) - (wImag_Extended*bReal_Adjusted);
+		BReal = aReal - (wReal_Extended*bReal_Adjusted) + (wImag_Extended*bImag_Adjusted);
+		BImag = aImag - (wReal_Extended*bImag_Adjusted) - (wImag_Extended*bReal_Adjusted);
 	end
 endmodule  //butterfly
 
