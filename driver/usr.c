@@ -20,13 +20,11 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define R 2
-#define RADIUS (R << 2)
 
 int fft_accelerator_fd;
 
 /* Read and print the position */
-void print_peaks() {
+void print_spec() {
   fft_accelerator_arg_t vla;
   fft_accelerator_peaks_t peaks;
 
@@ -82,6 +80,69 @@ void print_peaks() {
 }
 
 
+int get_samples(int n, struct fft_accelerator_peaks_t *sample_array){
+	fft_accelerator_arg_t vla;
+
+	int c = 0
+
+	for (int i = 0; i < n; i++) {
+		vla.peak_struct = sample_array + i;
+		if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
+			perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
+			return c;
+		}
+		c++;
+	}
+	return c;
+}
+
+
+void check_samples(int n, struct fft_accelerator_peaks_t *sample_array) {
+	int invalid_count;
+	int valid_times_count;
+	int missed;
+	uint32_t time = sample_array[0].time;
+	struct point points[N_FREQUENCIES];
+	uint8_t has_valid = sample_array[0].valid == 1;
+	uint8_t is_good = had_valid;
+	if (sample_array[0].valid == 1) {
+		points = sample_array[0].points;
+	}
+	for (int i = 1; i < n; i++) {
+		if (sample_array[i].valid == 1) {
+			if (sample_array[i].time == time) {
+				if (has_valid == 0) {
+					has_valid = 1;
+					is_good  = 1;
+					points = sample_array[0].points;
+				} else {
+					for (int j == 0; j < N_FREQUENCIES; j++) {
+						if (points[j] != sample_array[0].points[j]) {
+							invalid_count++;
+							is_good = 0;
+							break;
+						}
+					}
+				}
+			} else {
+				missed += sample_array[i].time - (time + 1);
+				valid_times_count += is_good;
+				time = sample_array[i].time;
+				has_valid = sample_array[0].valid;
+				is good = has_valid;
+				if (sample_array[0].valid == 1) {
+					points = sample_array[0].points;
+				}
+			}
+		} // NOT VALID -- continue;
+	}
+
+	printf("invalid samples: %d\n", invalid_count);
+	printf("valid times: %d\n", valid_times_count);
+	printf("missed times: %d\n", missed);
+}
+				
+
 int main()
 {
   int i;
@@ -95,8 +156,15 @@ int main()
     return -1;
   }
 
-  //printf("peaks: ");
-  print_peaks();
+  int n = 3;
+
+  struct fft_accelerator_peaks_t samples[n];
+  int received = get_samples(n, samples);
+  if (received != n) {
+	  printf("could not get all samples. only got %d\n", received);
+  }
+
+  check_samples(received, samples);
 
   printf("FFT Accelerator Userspace program terminating\n");
   return 0;

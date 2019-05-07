@@ -10,8 +10,11 @@
 #define AMPL_WIDTH_BYTES 4
 #define AMPL_WIDTH_BITS 24
 #define AMPL_FRACTIONAL_BITS 7
+#define COUNTER_WIDTH_BYES 4
 
-#define NFFT 128 
+#define N_FREQUENCIES 128 
+
+#define AMPLITUDES_SIZE (N_FREQUENCIES * AMPL_WIDTH_BYTES)
 
 
 typedef struct {
@@ -20,8 +23,9 @@ typedef struct {
 } point;
 
 typedef struct {
-	point points[NFFT];
+	point points[N_FREQUENCIES];
 	uint32_t time; // consider moving this inside point
+	uint8_t valid;
 } fft_accelerator_peaks_t;
   
 
