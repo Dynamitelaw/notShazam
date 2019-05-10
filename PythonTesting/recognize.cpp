@@ -1,13 +1,10 @@
 /*
- * Tomin Perea-Chamblee
- * Present Assumptions: 
- * 	1. Will be handed complete FFT Spectrogram (Python)
- *	2. Bin cutoffs are predefined
  */
 
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <list>
 #include <set>
@@ -17,19 +14,32 @@
 #include <cfloat>
 #include <cmath>
 
+/*
 #define NFFT 256
 #define NBINS 6
 #define BIN0 0
-#define BIN1 1
-#define BIN2 4
-#define BIN3 13
-#define BIN4 24
-#define BIN5 37
-#define BIN6 116
+#define BIN1 5
+#define BIN2 10
+#define BIN3 20
+#define BIN4 40
+#define BIN5 80
+#define BIN6 120
+*/
+#define NFFT 512
+#define NBINS 6
+#define BIN0 0
+#define BIN1 10
+#define BIN2 20
+#define BIN3 40
+#define BIN4 80
+#define BIN5 160
+#define BIN6 240
 
-#define PRUNING_COEF 2.3f
-#define PRUNING_TIME_WINDOW 2000
-#define NORM_POW 1.5f
+#define PRUNING_COEF 1.4f
+#define PRUNING_TIME_WINDOW 500
+#define NORM_POW 1.0f
+#define STD_DEV_COEF 1.25
+#define T_ZONE 4
 
 struct peak_raw {
 	float ampl;
@@ -40,7 +50,6 @@ struct peak_raw {
 struct peak {
 	uint16_t freq;
 	uint16_t time;
-	// peak(uint16_t freq, uint16_t time) : freq(freq), time(time) {}
 };
 
 struct fingerprint {
@@ -91,11 +100,22 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 	std::string song_name, uint16_t song_ID);
 
 std::unordered_map<uint16_t, count_ID> identify_sample(
-	std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<uint64_t, song_data> database,
+	const std::list<hash_pair> & sample_prints, 
+	const std::unordered_multimap<uint64_t, song_data> & database,
 	std::list<database_info> song_list);
 
 std::list<peak> generate_constellation_map(std::vector<std::vector<float>> fft, int nfft);
+
+void write_constellation(std::list<peak> pruned, std::string filename);
+
+std::list<peak> read_constellation(std::string filename);
+
+float score(const struct count_ID &c) {
+	return ((float) c.count)/std::pow(c.num_hashes, NORM_POW);	
+}
+bool sortByScore(const struct count_ID &lhs, const struct count_ID &rhs) { 
+	return score(lhs) > score(rhs); 
+}
 
 int main()
 {
@@ -114,7 +134,6 @@ int main()
 	std::string temp_s;
 	
 	std::string output;
-	float max_count;
 	int hash_count;
 	
 	std::fstream file;
@@ -174,37 +193,47 @@ int main()
 		std::cout << "{" <<  num_db << "} ";
 		temp_s = line; 
 		std::list<hash_pair> identify;
+		// identify = hash_create_noise(temp_s, num_db);
 		identify = hash_create_noise(temp_s + "_NOISY", num_db);
 		
 		std::cout << temp_s << + "_NOISY" << std::endl;
+		// std::cout << temp_s << std::endl;
 
 		results = identify_sample(identify, db, song_names);
 
 		temp_match = "";	
-		max_count = 0;
-		for(std::list<database_info>::iterator iter = song_names.begin(); 
-			iter != song_names.end(); ++iter){	
-	
-		float count_percent;
-		count_percent = (float) results[iter->song_ID].count;
-		count_percent = count_percent/std::pow(results[iter->song_ID].num_hashes, NORM_POW);	
-				
-		std::cout << "-" << results[iter->song_ID].song << 
-			" /" << count_percent << "/" << results[iter->song_ID].count << std::endl;
-		
-		if(count_percent > max_count){
-			temp_match = results[iter->song_ID].song;
-			max_count = count_percent;
-			}
-		
+		std::vector<count_ID> sorted_results;
+		for(auto iter = results.begin(); 
+			iter != results.end(); ++iter){	
+			sorted_results.push_back(iter->second);
+		}
+		std::sort(sorted_results.begin(), sorted_results.end(), sortByScore);
+		for (auto c = sorted_results.cbegin(); c != sorted_results.cend(); c++) {
+		    std::cout << "-" << c->song << " /" << score(*c) << "/" << c->count << std::endl;
 		}
 
-		if(temp_match == temp_s)
+
+	
+		// float count_percent;
+		// count_percent = (float) results[iter->song_ID].count;
+		// count_percent = count_percent/std::pow(results[iter->song_ID].num_hashes, NORM_POW);	
+				
+		// std::cout << "-" << results[iter->song_ID].song << 
+		// 	" /" << count_percent << "/" << results[iter->song_ID].count << std::endl;
+		
+		//if(count_percent > max_count){
+		//	temp_match = results[iter->song_ID].song;
+		//	max_count = count_percent;
+		//	}
+		
+		//}
+
+		if(sorted_results[0].song == temp_s)
 		{
 			correct++;
 		}
 
-		output = "Song Name: " + temp_match;
+		output = "Song Name: " + sorted_results[0].song;
 		std::cout << "*************************************"
 			<< "*************************" << std::endl;
 		std::cout << output << std::endl;
@@ -221,8 +250,8 @@ int main()
 
 
 std::unordered_map<uint16_t, count_ID> identify_sample(
-	std::list<hash_pair> sample_prints, 
-	std::unordered_multimap<uint64_t, song_data> database,
+	const std::list<hash_pair> & sample_prints, 
+	const std::unordered_multimap<uint64_t, song_data> & database,
 	std::list<database_info> song_list)
 {
 	std::cout << "call to identify" << std::endl;
@@ -248,15 +277,11 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 	for(auto iter = sample_prints.begin(); 
 		iter != sample_prints.end(); ++iter){	
 		
-	    std::pair<std::unordered_multimap<uint64_t,song_data>::iterator,
-	    	std::unordered_multimap<uint64_t,song_data>::iterator> ret;
-	    
 	    // get all the entries at this hash location
-	    ret = database.equal_range(iter->fingerprint);
+	    const auto & ret = database.equal_range(iter->fingerprint);
 
 	    //lets insert the song_ID, time anchor pairs in our new database
-	    for(std::unordered_multimap<uint64_t,song_data>::iterator
-			    it = ret.first; it != ret.second; ++it){
+	    for(auto  it = ret.first; it != ret.second; ++it){
 		  
 		    new_key = it->second.song_ID;
 		    new_key = new_key << 16;
@@ -276,11 +301,11 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 			    it = db2.begin(); it != db2.end(); ++it){
 		
 		//full target zone matched
-		if(it->second >= 4)
+		if(it->second >= T_ZONE)
 		{
 			//std::cout << it->second << std::endl;
 			identity = it->first >> 32;
-			results[identity].count += (int) it->second;
+			results[identity].count += (int) (it->second);
 		}
 	}    
 
@@ -292,12 +317,33 @@ std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID)
 {	
 	std::cout << "call to hash_create" << std::endl;
 	std::cout << "Song ID = " << song_ID << std::endl; 
-	std::vector<std::vector<float>> fft;
-	fft = read_fft(song_name);	
+	//std::vector<std::vector<float>> fft;
+	//fft = read_fft(song_name);	
 
 	std::list<peak> pruned_peaks;
-	pruned_peaks = generate_constellation_map(fft, NFFT);
-
+	//pruned_peaks = generate_constellation_map(fft, NFFT);
+	pruned_peaks = read_constellation(song_name);			
+	/*
+	//write_constellation(pruned_peaks, song_name);
+	//check that read constellation is the same
+	if(song_ID)
+	{
+		std::list<peak> pruned_copy;
+		pruned_copy = read_constellation(song_name);
+		if(pruned_copy.front().freq == pruned_peaks.front().freq
+			&& pruned_copy.front().time == pruned_peaks.front().time
+			&& pruned_copy.back().freq == pruned_peaks.back().freq
+			&& pruned_copy.back().time == pruned_peaks.back().time)
+		{
+			std::cout << "Proper constellation stored\n";
+		}
+		else
+		{
+			std::cout << "Error storing/reading constellation\n";
+		}
+	}	
+	*/
+	
 	std::list<hash_pair> hash_entries;
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
 
@@ -479,16 +525,19 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 	struct peak other_point;
 	struct peak anchor_point;
 
-	target_zone_t = 4;
+	int target_offset = 2;
+
+	target_zone_t = T_ZONE;
+	
 
 	for(std::list<peak>::iterator it = pruned.begin(); 
-			std::next(it, target_zone_t +3) != pruned.end(); it++){
+	 std::next(it, target_zone_t + target_offset) != pruned.end(); it++){
 
 		anchor_point= *it;
 	
 		for(uint16_t i = 1; i <= target_zone_t; i++){
 			
-			other_point = *(std::next(it, i + 3));
+			other_point = *(std::next(it, i + target_offset));
 			
 			f.anchor = anchor_point.freq;
 			f.point = other_point.freq;
@@ -556,8 +605,15 @@ std::vector<std::vector<float>> read_fft_noise(std::string filename)
 	std::string line;
 	std::vector<std::vector<float>> fft;
 	file.open(filename.c_str());
+	bool first = true;
+
+	int offset = 20000;
 	 
 	while(getline(file, line)){
+	   if (first) {
+               first = false;
+	       continue;
+	   }
 	   if(!line.empty()){
 		std::istringstream ss(line);
 		std::vector<float> line_vector;
@@ -567,6 +623,11 @@ std::vector<std::vector<float>> read_fft_noise(std::string filename)
 		  std::string::size_type sz;
 		  float temp;
 
+		  if (counter < offset) {
+			  counter++;
+			  continue;
+		  }
+
 		  ss >> word;
 		  if(!word.empty()){
 		  	temp = std::stof(word, &sz);
@@ -575,7 +636,7 @@ std::vector<std::vector<float>> read_fft_noise(std::string filename)
 		  line_vector.push_back(temp);
 		  counter++;
 		
-		} while(ss && counter < 22050);
+		} while(ss && counter <  offset + 11025/2);
 		fft.push_back(line_vector);
 	   }
 	}
@@ -592,8 +653,13 @@ std::vector<std::vector<float>> read_fft(std::string filename)
 	std::string line;
 	std::vector<std::vector<float>> fft;
 	file.open(filename.c_str());
+	bool first = true;
 	 
 	while(getline(file, line)){
+	   if (first) {
+               first = false;
+	       continue;
+	   }
 	   if(!line.empty()){
 		std::istringstream ss(line);
 		std::vector<float> line_vector;
@@ -671,28 +737,63 @@ std::list<peak_raw> get_raw_peaks(std::vector<std::vector<float>> fft, int nfft)
 
 std::list<peak> prune_in_time(std::list<peak_raw> unpruned_peaks) {
 	int time = 0;
-	int avg, den;
-	float num = 0;
-	den = 0;
+	float num[NBINS + 1] = { };  
+	float den[NBINS + 1] = { };  
+	float dev[NBINS + 1] = { };
+	int bin;
+	unsigned int bin_counts[NBINS + 1] = { };  
+	unsigned int bin_prune_counts[NBINS + 1] = { };  
 	std::list<peak> pruned_peaks;
 	auto add_iter = unpruned_peaks.cbegin();
+	auto dev_iter = unpruned_peaks.cbegin();
 	for(auto avg_iter = unpruned_peaks.cbegin(); add_iter != unpruned_peaks.cend(); ){
+	
 		if (avg_iter->time <= time + PRUNING_TIME_WINDOW && avg_iter != unpruned_peaks.cend()) {
-			den++;
-			num += avg_iter->ampl;
+			bin = freq_to_bin(avg_iter->freq);
+			den[bin]++;
+			num[bin] += avg_iter->ampl;
 			avg_iter++;
 		} else {
-			avg = num/den;
+
+			while(dev_iter != avg_iter){
+				if (dev_iter->time <= time + PRUNING_TIME_WINDOW 
+					&& dev_iter != unpruned_peaks.cend()) {
+				
+					bin = freq_to_bin(dev_iter->freq);
+					if(den[bin]){
+						dev[bin] += pow(dev_iter->ampl - num[bin]/den[bin], 2);
+					}
+					else{
+						dev[bin] = den[bin];
+					}
+				}
+				dev_iter++;	
+			}
+			for (int i = 1; i <= NBINS; i++)
+			{
+				if(den[i]){
+					dev[i] = sqrt(dev[i]/den[i]);
+				}
+				//std::cout << dev[i] << " ";
+			}
+			//std::cout << std::endl;
 			while (add_iter != avg_iter) {
-				if (add_iter->ampl > PRUNING_COEF*avg) {
+				bin = freq_to_bin(add_iter->freq);
+				if (den[bin] && add_iter->ampl > STD_DEV_COEF*dev[bin] + num[bin]/den[bin]  ) {
 					pruned_peaks.push_back({add_iter->freq, add_iter->time});
+					bin_counts[freq_to_bin(add_iter->freq)]++;
+				} else {
+					bin_prune_counts[freq_to_bin(add_iter->freq)]++;
 				}
 				add_iter++;
 			}
-			num = 0;
-			den = 0;
+			memset(num, 0, sizeof(num));
+			memset(den, 0, sizeof(den));
 			time += PRUNING_TIME_WINDOW;
 		}
+	}
+	for (int i = 1; i <= NBINS; i++) {
+		std::cout << "bin " << i << ": " << bin_counts[i] << "|  pruned: " << bin_prune_counts[i] << std::endl;
 	}
 	return pruned_peaks;
 }
@@ -706,3 +807,67 @@ std::list<peak> generate_constellation_map(std::vector<std::vector<float>> fft, 
 	return prune_in_time(unpruned_map);
 }
 
+void write_constellation(std::list<peak> pruned, std::string filename){
+	
+	std::ofstream fout;
+	uint32_t peak_32;
+	struct peak temp;
+
+	fout.open(filename+".peak", std::ios::binary | std::ios::out);
+	for(std::list<peak>::iterator it = pruned.begin(); 
+			it != pruned.end(); it++){
+
+		temp = *it;
+	
+		peak_32 = temp.freq;
+		peak_32 = peak_32 << 16;
+		peak_32 |= temp.time;
+		
+		fout.write((char *)&peak_32,sizeof(peak_32));
+	}
+	
+	fout.close();
+}
+
+
+std::list<peak> read_constellation(std::string filename){
+
+	std::ifstream fin;
+	std::list<peak> constellation;
+	uint32_t peak_32;
+	struct peak temp;
+	std::streampos size;
+  	char * memblock;
+	int i;
+	
+	fin.open(filename+".peak", std::ios::binary | std::ios::in 
+			| std::ios::ate);
+
+	i = 0;
+      	if (fin.is_open())
+       	{
+	     size = fin.tellg(); 
+	     memblock = new char [size];
+	     
+	     fin.seekg (0, std::ios::beg);
+	     fin.read (memblock, size);
+	     fin.close();
+	     
+	     while(i < size)
+	     {
+
+		    peak_32 = *(uint32_t *)(memblock+i);
+		    temp.time = peak_32;
+		    temp.freq = peak_32 >> 16;
+		    constellation.push_back(temp);
+		    /* MUST incremet by this amount here*/
+		    i += sizeof(peak_32);
+	     }
+
+
+	     delete[] memblock;
+	}
+
+	return constellation;
+
+}
