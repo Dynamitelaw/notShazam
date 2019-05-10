@@ -10,7 +10,7 @@ else
 	KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
         PWD := $(shell pwd)
 
-default: module usr
+default: module usr recognize
 
 module:
 	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} modules
