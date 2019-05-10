@@ -13,7 +13,7 @@ else
 default: module usr recognize
 
 module:
-	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} modules
+	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} modules -std=c++0x
 
 clean:
 	${MAKE} -C ${KERNEL_SOURCE} SUBDIRS=${PWD} clean
