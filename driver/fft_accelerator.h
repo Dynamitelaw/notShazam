@@ -11,31 +11,29 @@
 #define AMPL_WIDTH_BITS 24
 #define AMPL_FRACTIONAL_BITS 7
 #define COUNTER_WIDTH_BYES 4
+#define SAMPLING_FREQ 48000u
 
-#define N_FREQUENCIES 128 
+#define N_FREQUENCIES 256 
 
 #define AMPLITUDES_SIZE (N_FREQUENCIES * AMPL_WIDTH_BYTES)
 
 
-typedef struct {
-	int32_t ampl;
-	//uint8_t freq;
-} point;
+typedef int32_t ampl_t;
 
 typedef struct {
-	point points[N_FREQUENCIES];
-	uint32_t time; // consider moving this inside point
+	ampl_t fft[N_FREQUENCIES];
+	uint32_t time; 
 	uint8_t valid;
-} fft_accelerator_peaks_t;
+} fft_accelerator_fft_t;
   
 
 typedef struct {
-  fft_accelerator_peaks_t *peak_struct;
+  fft_accelerator_fft_t *fft_struct;
 } fft_accelerator_arg_t;
 
 #define FFT_ACCELERATOR_MAGIC 'p'
 
 /* ioctls and their arguments */
-#define FFT_ACCELERATOR_READ_PEAKS  _IOR(FFT_ACCELERATOR_MAGIC, 2, fft_accelerator_arg_t *)
+#define FFT_ACCELERATOR_READ_FFT  _IOR(FFT_ACCELERATOR_MAGIC, 2, fft_accelerator_arg_t *)
 
 #endif

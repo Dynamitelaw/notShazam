@@ -26,17 +26,17 @@ int fft_accelerator_fd;
 /* Read and print the position */
 void print_spec() {
   fft_accelerator_arg_t vla;
-  fft_accelerator_peaks_t peaks;
+  fft_accelerator_fft_t fft_struct;
 
-  vla.peak_struct = &peaks;
+  vla.fft_struct = &fft_struct;
   
-  if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
-      perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
+  if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_FFT, &vla)) {
+      perror("ioctl(FFT_ACCELERATOR_READ_FFT) failed");
       return;
   }
   /*
   for (int p = 247; p < 255; p++){
-    printf("(time: %u, address: %d, amplitude_raw: %d  0x%x, amplitude_ntohl: %d  0x%x) \n", peaks.time, p, peaks.points[p].ampl, peaks.points[p].ampl, ntohl(peaks.points[p].ampl), ntohl(peaks.points[p].ampl));
+    printf("(time: %u, address: %d, amplitude_raw: %d  0x%x, amplitude_ntohl: %d  0x%x) \n", fft_struct.time, p, fft_struct.points[p].ampl, fft_struct.points[p].ampl, ntohl(fft_struct.points[p].ampl), ntohl(fft_struct.points[p].ampl));
   }
   */
    
@@ -48,8 +48,8 @@ void print_spec() {
     //Zero out display array
     memset(displayArray, 0, 128*displayRows+newlines+1);
 
-    if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
-      perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
+    if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_FFT, &vla)) {
+      perror("ioctl(FFT_ACCELERATOR_READ_FFT) failed");
       return;
     }
     
@@ -62,8 +62,8 @@ void print_spec() {
 
     for (int r=0; r<displayRows; r++){
       scaleFactor = scaleFactor/15;
-      for (int c=0; c<NFFT; c+=1){
-        scaledAmplitude = abs(peaks.points[c].ampl)/scaleFactor;
+      for (int c=0; c<N_FREQUENCIES; c+=1){
+        scaledAmplitude = abs(fft_struct.fft[c])/scaleFactor;
         if (scaledAmplitude > 0)
           strcat(displayArray, "|");
         else
@@ -80,15 +80,15 @@ void print_spec() {
 }
 
 
-int get_samples(int n, struct fft_accelerator_peaks_t *sample_array){
+int get_samples(int n, fft_accelerator_fft_t *sample_array){
 	fft_accelerator_arg_t vla;
 
-	int c = 0
+	int c = 0;
 
 	for (int i = 0; i < n; i++) {
-		vla.peak_struct = sample_array + i;
-		if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_PEAKS, &vla)) {
-			perror("ioctl(FFT_ACCELERATOR_READ_PEAKS) failed");
+		vla.fft_struct = sample_array + i;
+		if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_FFT, &vla)) {
+			perror("ioctl(FFT_ACCELERATOR_READ_FFT) failed");
 			return c;
 		}
 		c++;
@@ -97,16 +97,25 @@ int get_samples(int n, struct fft_accelerator_peaks_t *sample_array){
 }
 
 
-void check_samples(int n, struct fft_accelerator_peaks_t *sample_array) {
-	int invalid_count;
-	int valid_times_count;
-	int missed;
+void check_samples(int n, fft_accelerator_fft_t *sample_array) {
+	int invalid_count = 0;
+	int valid_times_count = 0;
+	int missed = 0;
+	int corrupt = 0;
 	uint32_t time = sample_array[0].time;
-	struct point points[N_FREQUENCIES];
+	ampl_t fft[N_FREQUENCIES];
 	uint8_t has_valid = sample_array[0].valid == 1;
-	uint8_t is_good = had_valid;
+	uint8_t is_good = has_valid;
+	for (int i = 0; i < n; i++) {
+		if (sample_array[0].valid != 0 && sample_array[0].valid != 1)
+			printf("non legal \"valid\" value\n");
+	}
+	printf("valids are good \n");
+	
 	if (sample_array[0].valid == 1) {
-		points = sample_array[0].points;
+		memcpy(fft, sample_array[0].fft, sizeof(fft));
+	} else {
+		invalid_count++;
 	}
 	for (int i = 1; i < n; i++) {
 		if (sample_array[i].valid == 1) {
@@ -114,11 +123,11 @@ void check_samples(int n, struct fft_accelerator_peaks_t *sample_array) {
 				if (has_valid == 0) {
 					has_valid = 1;
 					is_good  = 1;
-					points = sample_array[0].points;
+					memcpy(fft, sample_array[i].fft, sizeof(fft));
 				} else {
-					for (int j == 0; j < N_FREQUENCIES; j++) {
-						if (points[j] != sample_array[0].points[j]) {
-							invalid_count++;
+					for (int j = 0; j < N_FREQUENCIES; j++) {
+						if (fft[j] != sample_array[0].fft[j]) {
+							corrupt++;
 							is_good = 0;
 							break;
 						}
@@ -129,17 +138,21 @@ void check_samples(int n, struct fft_accelerator_peaks_t *sample_array) {
 				valid_times_count += is_good;
 				time = sample_array[i].time;
 				has_valid = sample_array[0].valid;
-				is good = has_valid;
-				if (sample_array[0].valid == 1) {
-					points = sample_array[0].points;
+				is_good = has_valid;
+				if (sample_array[i].valid == 1) {
+					memcpy(fft, sample_array[i].fft, sizeof(fft));
 				}
 			}
 		} // NOT VALID -- continue;
+		else {
+			invalid_count++;
+		}
 	}
 
 	printf("invalid samples: %d\n", invalid_count);
 	printf("valid times: %d\n", valid_times_count);
 	printf("missed times: %d\n", missed);
+	printf("corrupt samples: %d\n", missed);
 }
 				
 
@@ -158,7 +171,7 @@ int main()
 
   int n = 3;
 
-  struct fft_accelerator_peaks_t samples[n];
+  fft_accelerator_fft_t samples[n];
   int received = get_samples(n, samples);
   if (received != n) {
 	  printf("could not get all samples. only got %d\n", received);

@@ -18,6 +18,7 @@
  * checkpatch.pl --file --no-tree fft_accelerator.c
  */
 
+#include <linux/delay.h>
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/errno.h>
@@ -37,10 +38,10 @@
 #define DRIVER_NAME "fft_accelerator"
 
 /* Device registers */
-#define TIME_COUNT(x)     (x)
-//#define FREQUENCIES(x)   ((x) + 4)
-#define AMPLITUDES(x)    ((x) + COUNTER_WIDTH_BYTES)
-#define VALID(X)         ((x) + AMPLITUDES(x) + AMPLITUDES_SIZE)
+#define AMPLITUDES(x)    (x) 
+#define TIME_COUNT(x)    (AMPLITUDES(x) + AMPLITUDES_SIZE)
+#define VALID(x)         (TIME_COUNT(x) + COUNTER_WIDTH_BYES) 
+#define READING(x)       (VALID(x) + 1)
 
 /*
  * Information about our device
@@ -53,17 +54,35 @@ struct fft_accelerator_dev {
 
 // TODO rewrite this.  Right now it is a sketch. Double check subleties with bit widths,
 // and make sure addresses match with hardware.
-static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peak_struct) {
+static int fft_accelerator_read_sample(fft_accelerator_fft_t *fft_struct) {
 	int i;
+	static uint32_t prev_time = 0;
 	
 	// THIS PART IS NOT FULLY PARAMETRIZED -- 
 	// ioread*() calls may need to change if bit widths change.
-	peak_struct->time = ioread32(TIME_COUNT(dev.virtbase)); 
-	for (i = 0; i < N_FREQUENCIES; i++) {
-		//peak_struct->points[i].freq = ioread8(FREQUENCIES(dev.virtbase) + i*FREQ_WIDTH_BYTES);
-		peak_struct->points[i].ampl = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
+	int tries = 0;
+	while (1) {
+		while ((sample_struct->time = ioread32(TIME_COUNT(dev.virtbase))) == prev_time) {
+			tries++;
+			if (tries > 15){
+				return -1;
+			}
+			usleep_range(1000, 2000);
+		}
+		iowrite8(0x1u, READING(dev.virtbase));
+		for (i = 0; i < N_FREQUENCIES; i++) {
+			sample_struct->fft[i] = ioread32(AMPLITUDES(dev.virtbase) + i*AMPL_WIDTH_BYTES);
+		}
+		sample_struct->valid = ioread8(VALID(dev.virtbase)); 
+		iowrite8(0x0u, READING(dev.virtbase));
+		if (sample_struct->valid){
+			break;
+		} else {
+			tries++;
+		}
 	}
-	peak_struct->valid = ioread32(VALID(dev.virtbase)); 
+	prev_time = sample_struct->time;
+	return 0;
 }
 
 
@@ -76,8 +95,8 @@ static void fft_accelerator_read_peaks(fft_accelerator_peaks_t *peak_struct) {
  */
 static long fft_accelerator_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
-	fft_accelerator_peaks_t peaks;
-	fft_accelerator_peaks_t *dest;
+	fft_accelerator_fft_t *sample;
+	fft_accelerator_fft_t *dest;
 	fft_accelerator_arg_t arg_k;
 
 	if (copy_from_user(&arg_k, (fft_accelerator_arg_t *) arg, sizeof(fft_accelerator_arg_t)))
@@ -85,15 +104,25 @@ static long fft_accelerator_ioctl(struct file *f, unsigned int cmd, unsigned lon
 
 	switch (cmd) {
 
-	case FFT_ACCELERATOR_READ_PEAKS:
-		printk("about to read peaks\n");
-		fft_accelerator_read_peaks(&peaks);
+	case FFT_ACCELERATOR_READ_FFT:
+		sample = kmalloc(sizeof(fft_accelerator_fft_t), GFP_KERNEL);
+		if (sample == NULL) {
+			printk("nomem");
+			return -ENOMEM;
+		}
+		printk("about to read sample\n");
+		if (fft_accelerator_read_sample(sample) == -1) {
+			kfree(sample);			
+			return -EIO;
+		}
 		printk("Read Peaks\n");
-		dest = arg_k.peak_struct;
-		printk("derefed peaks dest\n");
-		if (copy_to_user(dest, &peaks,
-				 sizeof(fft_accelerator_peaks_t)))
+		dest = arg_k.sample_struct;
+		if (copy_to_user(dest, sample,
+				 sizeof(fft_accelerator_fft_t))) {
+			kfree(sample);			
 			return -EACCES;
+		}
+		kfree(sample);
 		break;
 
 	default:
