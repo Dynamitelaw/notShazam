@@ -648,13 +648,19 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 	std::vector<float> fft_temp;
 	uint64_t time;
 
-	for (int i = 0; i < samples; i++) {
+	for (uint32_t i = 0; i < samples; i++) {
 		time = get_sample(fft_temp);
-		if (time == ERR_IO || time == ERR_NVALID) {
-			std::cout << "Could not get audio fft\n";
+		//this assumes we miss nothing
+	
+		for(uint32_t j = 0; i < fft_temp.size(), j++){
+
+			spec[j].push_back(fft_temp[j]);
+		}	
+		//if (time == ERR_IO || time == ERR_NVALID) {
+		//	std::cout << "Could not get audio fft\n";
 			// spec[0].size < samples
-			return spec;
-		}
+		//	return spec;
+		//}
 		// copy contents of fft_temp into spec[i], averaging if there are missed times.
 	}
 	return spec;
