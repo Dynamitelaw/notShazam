@@ -81,7 +81,7 @@ parameter AUD_ADC_PATH			= 9'd149;
 parameter AUD_DAC_PATH			= 9'h006;
 parameter AUD_POWER				= 9'h000100000;
 parameter AUD_DATA_FORMAT		= 9'd73;
-parameter AUD_SAMPLE_CTRL		= 9'd0;
+parameter AUD_SAMPLE_CTRL		= `SAMPLE_RATE_CNTRL;
 parameter AUD_SET_ACTIVE		= 9'h001;
 
 /*****************************************************************************

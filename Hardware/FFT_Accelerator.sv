@@ -81,14 +81,22 @@ module FFT_Accelerator(
 	end
 	
 	//Determine when the driver is in the middle of pulling a sample
+	logic [7:0] driverReading = 8'd0;
+	always @(posedge clk) begin
+		if (chipselect && write) begin
+			driverReading <= writedata;
+		end	
+	end
+	
 	wire sampleBeingTaken;
-	assign sampleBeingTaken = chipselect;
+	assign sampleBeingTaken = driverReading[0];
 	
 	//Instantiate SFFT pipeline
-	wire outputReadError;
-	logic [`nFFT -1:0] sfft_output_address;
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out;
+ 	wire [`NFFT -1:0] SFFT_Out ;
  	wire SfftOutputValid;
+ 	wire outputReadError;
+ 	wire [`nFFT -1:0] output_address;
+ 	assign output_address = address[`nFFT +1:2];
  
  	SFFT_Pipeline sfft(
 	 	.clk(clk),
@@ -97,11 +105,12 @@ module FFT_Accelerator(
 	 	.SampleAmplitudeIn(audioInMono),
 	 	.advanceSignal(advance),
 	 	
+	 	//Output BRAM IO
 	 	.OutputBeingRead(sampleBeingTaken),
-	 	.outputReadError(outputReadError),
-	 	.output_address(sfft_output_address),
-	 	.SFFT_OutReal(SFFT_Out),
-	 	.OutputValid(SfftOutputValid)	 	
+ 		.outputReadError(outputReadError),
+ 		.output_address(output_address),
+ 		.SFFT_OutReal(SFFT_OUT),
+	 	.OutputValid(SfftOutputValid)
 	 	);
 	
 	//Sample counter
@@ -118,9 +127,9 @@ module FFT_Accelerator(
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
-		
+
 	
-	//Map timer output
+	//Map timer counter output
 	parameter readOutSize = 2048;
 	reg [7:0] timer_buffer [3:0];
 	integer i;
@@ -136,17 +145,10 @@ module FFT_Accelerator(
 		end
 	end
 	
-	//Calculate BRRAM address for pipeline output
-	always @(*) begin
-		sfft_output_address = ((address[`nFFT -1:0])-4)/4;
-	end
 	
 	//Read handling
 	always @(*) begin
-		if (address < 4) begin
-			readdata = timer_buffer[address];
-		end
-		else if (address < ((`NFFT *2)+4)) begin
+		if (address < `NFFT*2) begin
 			//Convert input address into subset of SFFT_Out
 			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
 			if (address % 4 == 0) begin
@@ -162,17 +164,17 @@ module FFT_Accelerator(
 				readdata = SFFT_Out[31:24];
 			end
 		end
-		else if (address == ((`NFFT *2)+4)) begin
-			//Address for the read error byte
-			readdata = {7'b0, outputReadError};
+		else if (address[15:2] == `NFFT/2) begin
+			//Send the timer counter
+			readdata = timer_buffer[address[1:0]];
 		end
 		else begin
-			//Address not part of our output
-			readdata = 0;
+			//Send the valid byte
+			readdata = {7'b0, ~outputReadError};
 		end
 	end
 	
-	
+		
 	//Sample inputs
 	always @(posedge advance) begin
 		counter <= counter + 1;
