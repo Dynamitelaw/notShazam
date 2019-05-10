@@ -630,6 +630,7 @@ uint64_t get_sample(std::vector<float> & fft) {
 		return ERR_NVALID;
 	}
 	for (int i = 0; i < N_FREQUENCIES; i++) {
+		std::cout << fft_struct.fft[i] << std::endl;
 		fft.push_back(ampl2float(fft_struct.fft[i]));
 	}
 	return fft_struct.time;
