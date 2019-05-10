@@ -600,7 +600,7 @@ std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft)
 
 
 uint32_t sec_to_samples(float sec) {
-	return (int) sec*SAMPLING_FREQ; 
+	return (int) sec*SAMPLING_FREQ/DOWN_SAMPLING_FACTOR; 
 }
 
 float samples_to_sec(uint32_t samples) {
@@ -652,7 +652,7 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 		time = get_sample(fft_temp);
 		//this assumes we miss nothing
 	
-		for(uint32_t j = 0; j < fft_temp.size(); j++){
+		for(uint32_t j = 0; j < N_FREQUENCIES; j++){
 
 			spec[j].push_back(fft_temp[j]);
 		}	
