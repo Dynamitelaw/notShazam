@@ -54,7 +54,7 @@ struct fft_accelerator_dev {
 
 // TODO rewrite this.  Right now it is a sketch. Double check subleties with bit widths,
 // and make sure addresses match with hardware.
-static int fft_accelerator_read_sample(fft_accelerator_fft_t *fft_struct) {
+static int fft_accelerator_read_sample(fft_accelerator_fft_t *sample_struct) {
 	int i;
 	static uint32_t prev_time = 0;
 	
