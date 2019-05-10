@@ -638,6 +638,7 @@ uint64_t get_sample(std::vector<float> & fft) {
 
 std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 	uint32_t samples = sec_to_samples(sec);
+	std::cout << samples << std::endl;
 	std::vector<std::vector<float>> spec;
 	spec.reserve(N_FREQUENCIES);
 	for (int i = 0; i < N_FREQUENCIES; i++) {
@@ -650,7 +651,6 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 
 	for (uint32_t i = 0; i < samples; i++) {
 		time = get_sample(fft_temp);
-		std::cout << time << std::endl;
 		//this assumes we miss nothing
 	
 		for(uint32_t j = 0; j < N_FREQUENCIES; j++){
