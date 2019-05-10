@@ -116,7 +116,7 @@ static long fft_accelerator_ioctl(struct file *f, unsigned int cmd, unsigned lon
 			return -EIO;
 		}
 		printk("Read Peaks\n");
-		dest = arg_k.sample_struct;
+		dest = arg_k.fft_struct;
 		if (copy_to_user(dest, sample,
 				 sizeof(fft_accelerator_fft_t))) {
 			kfree(sample);			
