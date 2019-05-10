@@ -81,7 +81,7 @@ static int fft_accelerator_read_sample(fft_accelerator_fft_t *sample_struct) {
 			tries++;
 		}
 	}
-	printk("Sample time delta: %d\n", sample_struct->time - prev_time);
+	printk("\tSample time delta: %d\n", sample_struct->time - prev_time);
 	prev_time = sample_struct->time;
 	return 0;
 }
@@ -111,7 +111,7 @@ static long fft_accelerator_ioctl(struct file *f, unsigned int cmd, unsigned lon
 			printk("nomem");
 			return -ENOMEM;
 		}
-		printk("about to read sample\n");
+		printk("About to read sample\n");
 		if (fft_accelerator_read_sample(sample) == -1) {
 			kfree(sample);			
 			return -EIO;
