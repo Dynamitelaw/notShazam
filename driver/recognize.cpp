@@ -652,7 +652,7 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 		time = get_sample(fft_temp);
 		//this assumes we miss nothing
 	
-		for(uint32_t j = 0; i < fft_temp.size(), j++){
+		for(uint32_t j = 0; j < fft_temp.size(); j++){
 
 			spec[j].push_back(fft_temp[j]);
 		}	
