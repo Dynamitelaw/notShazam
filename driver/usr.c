@@ -169,7 +169,7 @@ int main()
     return -1;
   }
 
-  int n = 3;
+  int n = 300;
 
   fft_accelerator_fft_t samples[n];
   int received = get_samples(n, samples);
