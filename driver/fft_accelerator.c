@@ -81,6 +81,7 @@ static int fft_accelerator_read_sample(fft_accelerator_fft_t *sample_struct) {
 			tries++;
 		}
 	}
+	printk("Sample time delta: %d\n", sample_struct->time - prev_time);
 	prev_time = sample_struct->time;
 	return 0;
 }
