@@ -95,8 +95,8 @@ module FFT_Accelerator(
  	wire [`NFFT -1:0] SFFT_Out ;
  	wire SfftOutputValid;
  	wire outputReadError;
- 	wire [`nFFT -1:0] output_address;
- 	assign output_address = address[`nFFT +1:2];
+ 	logic [`nFFT -1:0] output_address = 0;
+ 	//assign output_address = address[`nFFT +1:2];
  
  	SFFT_Pipeline sfft(
 	 	.clk(clk),
@@ -119,7 +119,21 @@ module FFT_Accelerator(
 		timeCounter <= timeCounter + 1;
 	end
 	
+	// DEBUG CODE
+	logic [31:0] ampl0_buff;
+	always (*) begin
+		ampl0_buff = SFFT_OUT;
+	end
 	
+	//Instantiate hex decoders
+	hex7seg h5( .a(ampl0_buff[23:20]),.y(HEX5) ), // left digit
+		h4( .a(ampl0_buff[19:16]),.y(HEX4) ),
+		h3( .a(ampl0_buff[15:12]),.y(HEX3) ),
+		h2( .a(ampl0_buff[11:8]),.y(HEX2) ),
+		h1( .a(ampl0_buff[7:4]),.y(HEX1) ),
+		h0( .a(ampl0_buff[3:0]),.y(HEX0) );
+	
+	/*
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
@@ -127,7 +141,8 @@ module FFT_Accelerator(
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
-
+	*/
+	
 	
 	//Map timer counter output
 	parameter readOutSize = 2048;
