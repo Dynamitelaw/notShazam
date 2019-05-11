@@ -120,18 +120,15 @@ module FFT_Accelerator(
 	end
 	
 	// DEBUG CODE
-	logic [31:0] ampl0_buff;
-	always (*) begin
-		ampl0_buff = SFFT_OUT;
-	end
+	logic [31:0] ampl0_buff = 0;
 	
 	//Instantiate hex decoders
-	hex7seg h5( .a(ampl0_buff[23:20]),.y(HEX5) ), // left digit
-		h4( .a(ampl0_buff[19:16]),.y(HEX4) ),
-		h3( .a(ampl0_buff[15:12]),.y(HEX3) ),
-		h2( .a(ampl0_buff[11:8]),.y(HEX2) ),
-		h1( .a(ampl0_buff[7:4]),.y(HEX1) ),
-		h0( .a(ampl0_buff[3:0]),.y(HEX0) );
+	hex7seg h5( .a(4'b0),.y(HEX5) ), // left digit
+		h4( .a({3'b0, chipselect}),.y(HEX4) ),
+		h3( .a(address[7:4]),.y(HEX3) ),
+		h2( .a(address[3:0]),.y(HEX2) ),
+		h1( .a(readdata[7:4]),.y(HEX1) ),
+		h0( .a(readdata[3:0]),.y(HEX0) );
 	
 	/*
 	//Instantiate hex decoders
@@ -142,7 +139,6 @@ module FFT_Accelerator(
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 	*/
-	
 	
 	//Map timer counter output
 	parameter readOutSize = 2048;
@@ -162,24 +158,29 @@ module FFT_Accelerator(
 	
 	
 	//Read handling
+	logic [15:0] address_buffer;
+	always @(posedge clk) begin
+		address_buffer <= address;
+	end
+	
 	always @(*) begin
-		if (address < `NFFT*2) begin
+		if (address_buffer < `NFFT*2) begin
 			//Convert input address into subset of SFFT_Out
 			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
-			if (address % 4 == 0) begin
+			if (address_buffer % 4 == 0) begin
 				readdata = SFFT_Out[7:0];
 			end
-			else if (address % 4 == 1) begin
+			else if (address_buffer % 4 == 1) begin
 				readdata = SFFT_Out[15:8];
 			end
-			else if (address % 4 == 2) begin
+			else if (address_buffer % 4 == 2) begin
 				readdata = SFFT_Out[23:16];
 			end
-			else if (address % 4 == 3) begin
+			else if (address_buffer % 4 == 3) begin
 				readdata = SFFT_Out[31:24];
 			end
 		end
-		else if (address[15:2] == `NFFT/2) begin
+		else if (address_buffer[15:2] == `NFFT/2) begin
 			//Send the timer counter
 			readdata = timer_buffer[address[1:0]];
 		end
