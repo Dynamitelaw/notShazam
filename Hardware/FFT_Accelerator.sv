@@ -92,7 +92,7 @@ module FFT_Accelerator(
 	assign sampleBeingTaken = driverReading[0];
 	
 	//Instantiate SFFT pipeline
- 	wire [`NFFT -1:0] SFFT_Out ;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out;
  	wire SfftOutputValid;
  	wire outputReadError;
  	logic [`nFFT -1:0] output_address = 0;
@@ -122,11 +122,12 @@ module FFT_Accelerator(
 	// DEBUG CODE
 	logic [31:0] ampl0_buff = 0;
 	
+	logic [`SFFT_OUTPUT_WIDTH -1:0] fml;
 	//Instantiate hex decoders
-	hex7seg h5( .a(4'b0),.y(HEX5) ), // left digit
-		h4( .a({3'b0, chipselect}),.y(HEX4) ),
-		h3( .a(address[7:4]),.y(HEX3) ),
-		h2( .a(address[3:0]),.y(HEX2) ),
+	hex7seg h5( .a(SFFT_Out[15:12]),.y(HEX5) ), // left digit
+		h4( .a(SFFT_Out[11:8]),.y(HEX4) ),
+		h3( .a(SFFT_Out[7:4]),.y(HEX3) ),
+		h2( .a(SFFT_Out[3:0]),.y(HEX2) ),
 		h1( .a(readdata[7:4]),.y(HEX1) ),
 		h0( .a(readdata[3:0]),.y(HEX0) );
 	

@@ -28,7 +28,7 @@
  	input logic OutputBeingRead,
  	output logic outputReadError,
  	input logic [`nFFT -1:0] output_address,
- 	output logic [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal,
+ 	output reg [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal,
  	output logic OutputValid
  	);
  	
@@ -1105,12 +1105,19 @@ module butterfly(
 	//Do butterfly calculation
 	always @ (*) begin
 		//A = a + wb
-		AReal = aReal + (wReal_Extended*bReal_Adjusted) - (wImag_Extended*bImag_Adjusted);
-		AImag = aImag + (wReal_Extended*bImag_Adjusted) + (wImag_Extended*bReal_Adjusted);
+		//AReal = aReal + (wReal_Extended*bReal_Adjusted) - (wImag_Extended*bImag_Adjusted);
+		//AImag = aImag + (wReal_Extended*bImag_Adjusted) + (wImag_Extended*bReal_Adjusted);
 		
 		//B = a - wb
-		BReal = aReal - (wReal_Extended*bReal_Adjusted) + (wImag_Extended*bImag_Adjusted);
-		BImag = aImag - (wReal_Extended*bImag_Adjusted) - (wImag_Extended*bReal_Adjusted);
+		//BReal = aReal - (wReal_Extended*bReal_Adjusted) + (wImag_Extended*bImag_Adjusted);
+		//BImag = aImag - (wReal_Extended*bImag_Adjusted) - (wImag_Extended*bReal_Adjusted);
+		
+		//DEBUG
+		AReal = 32'b11111111_11110000_10101010_01010101;
+		AImag = 32'b11111111_11110000_10101010_01010101;
+		
+		BReal = 32'b11111111_11110000_10101010_01010101;
+		BImag = 32'b11111111_11110000_10101010_01010101;
 	end
 endmodule  //butterfly
 
