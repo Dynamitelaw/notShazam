@@ -166,7 +166,7 @@ int main()
 
 		num_db++;
 		   
-		temp_s = "constellationFiles/"+ line;
+		temp_s = "./constellationFiles/"+ line;
 		hash_count = 0;
 			
 		std::list<hash_pair> temp;
