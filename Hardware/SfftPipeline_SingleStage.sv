@@ -462,7 +462,7 @@
 	 
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
 	 assign ramBuffer0_dataOutConcatenated_B = {ramBuffer0_dataOutReal_B, ramBuffer0_dataOutImag_B};
-	 assign probe = ramBuffer0_dataInReal_A;
+	 assign probe = ramBuffer0_dataOutReal_B ;
 	 
 	 bramNewer BRAM_0(
 		.address_a ( ramBuffer0_address_A ),
