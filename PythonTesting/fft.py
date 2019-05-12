@@ -34,10 +34,10 @@ def generateFFT(audioDirPath, songName, fftResolution):
         j = 0
         while j < fftResolution/2:
             #Magnitude/ Absolute Value
-            fmag.write(str(np.abs(fft_temp[i])))
+            fmag.write(str(np.abs(fft_temp[j])))
             fmag.write(" ")
             #Real Part of the FFT 
-            freal.write(str(np.abs(np.real(fft_temp[i]))))
+            freal.write(str(np.abs(np.real(fft_temp[j]))))
             freal.write(" ")
             j = j + 1
         
