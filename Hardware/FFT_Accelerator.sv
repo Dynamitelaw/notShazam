@@ -92,11 +92,12 @@ module FFT_Accelerator(
 	assign sampleBeingTaken = driverReading[0];
 	
 	//Instantiate SFFT pipeline
- 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_Out ;
  	wire SfftOutputValid;
  	wire outputReadError;
- 	logic [`nFFT -1:0] output_address = 0;
- 	//assign output_address = address[`nFFT +1:2];
+ 	wire [`nFFT -1:0] output_address;
+ 	assign output_address = address[`nFFT +1:2];
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] Output_Why;
  
  	SFFT_Pipeline sfft(
 	 	.clk(clk),
@@ -110,7 +111,8 @@ module FFT_Accelerator(
  		.outputReadError(outputReadError),
  		.output_address(output_address),
  		.SFFT_OutReal(SFFT_OUT),
-	 	.OutputValid(SfftOutputValid)
+	 	.OutputValid(SfftOutputValid),
+	 	.Output_Why(Output_Why)
 	 	);
 	
 	//Sample counter
@@ -119,18 +121,15 @@ module FFT_Accelerator(
 		timeCounter <= timeCounter + 1;
 	end
 	
-	// DEBUG CODE
-	logic [31:0] ampl0_buff = 0;
 	
-	logic [`SFFT_OUTPUT_WIDTH -1:0] fml;
 	//Instantiate hex decoders
-	hex7seg h5( .a(SFFT_Out[15:12]),.y(HEX5) ), // left digit
-		h4( .a(SFFT_Out[11:8]),.y(HEX4) ),
-		h3( .a(SFFT_Out[7:4]),.y(HEX3) ),
-		h2( .a(SFFT_Out[3:0]),.y(HEX2) ),
-		h1( .a(readdata[7:4]),.y(HEX1) ),
-		h0( .a(readdata[3:0]),.y(HEX0) );
-	
+	hex7seg h5( .a(Output_Why[23:20]),.y(HEX5) ), // left digit
+		h4( .a(Output_Why[19:16]),.y(HEX4) ),
+		h3( .a(Output_Why[15:12]),.y(HEX3) ),
+		h2( .a(Output_Why[11:8]),.y(HEX2) ),
+		h1( .a(Output_Why[7:4]),.y(HEX1) ),
+		h0( .a(Output_Why[3:0]),.y(HEX0) );
+		
 	/*
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
@@ -140,6 +139,7 @@ module FFT_Accelerator(
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 	*/
+
 	
 	//Map timer counter output
 	parameter readOutSize = 2048;
@@ -159,29 +159,24 @@ module FFT_Accelerator(
 	
 	
 	//Read handling
-	logic [15:0] address_buffer;
-	always @(posedge clk) begin
-		address_buffer <= address;
-	end
-	
 	always @(*) begin
-		if (address_buffer < `NFFT*2) begin
+		if (address < `NFFT*2) begin
 			//Convert input address into subset of SFFT_Out
 			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
-			if (address_buffer % 4 == 0) begin
-				readdata = SFFT_Out[7:0];
+			if (address % 4 == 0) begin
+				readdata = Output_Why[7:0];
 			end
-			else if (address_buffer % 4 == 1) begin
-				readdata = SFFT_Out[15:8];
+			else if (address % 4 == 1) begin
+				readdata = Output_Why[15:8];
 			end
-			else if (address_buffer % 4 == 2) begin
-				readdata = SFFT_Out[23:16];
+			else if (address % 4 == 2) begin
+				readdata = Output_Why[23:16];
 			end
-			else if (address_buffer % 4 == 3) begin
-				readdata = SFFT_Out[31:24];
+			else if (address % 4 == 3) begin
+				readdata = Output_Why[31:24];
 			end
 		end
-		else if (address_buffer[15:2] == `NFFT/2) begin
+		else if (address[15:2] == `NFFT/2) begin
 			//Send the timer counter
 			readdata = timer_buffer[address[1:0]];
 		end
@@ -248,5 +243,6 @@ module debouncer(input clk, input [3:0] buttonsIn, output logic [3:0] buttonsOut
 	end
 
 endmodule
+
 
 

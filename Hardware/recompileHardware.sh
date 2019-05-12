@@ -32,3 +32,8 @@ git add *.dtb
 git commit -m "compiled new version of hardware files"
 git push
 date
+
+#Beep to signal completion
+echo -ne '\007'
+echo -ne '\007'
+echo -ne '\007'
