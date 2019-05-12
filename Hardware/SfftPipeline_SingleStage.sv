@@ -3,9 +3,9 @@
  */
  
 `include "global_variables.sv"
-`include "bram.sv"
+//`include "bram.sv"
 //`include "bramNew.v"
-//`include "bramNewer.v"
+`include "bramNewer.v"
  
  
  /*
@@ -424,7 +424,7 @@
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutImag_B;
 	
-	
+	/*
 	pipelineBuffer_RAM BRAM_0(
 	 	.readClk(clk),
 	 	.writeClk(clk),
@@ -445,22 +445,22 @@
 	 	.dataOutReal_B(ramBuffer0_dataOutReal_B),
 	 	.dataOutImag_B(ramBuffer0_dataOutImag_B)
 	 	);
-	 
+	 */
 	 
 	 //Concatenate dataIn bus
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataInConcatenated_A;
-	 assign ramBuffer0_dataInConcatenated = {ramBuffer0_dataInReal_A, ramBuffer0_dataInImag_A};
+	 assign ramBuffer0_dataInConcatenated_A = {ramBuffer0_dataInReal_A, ramBuffer0_dataInImag_A};
 	 
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataInConcatenated_B;
-	 assign ramBuffer0_dataInConcatenated = {ramBuffer0_dataInReal_B, ramBuffer0_dataInImag_B};
+	 assign ramBuffer0_dataInConcatenated_B = {ramBuffer0_dataInReal_B, ramBuffer0_dataInImag_B};
 	 
 	 //Concatenate dataOut bus
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_A;
-	 assign ramBuffer0_dataOutConcatenated = {ramBuffer0_dataOutReal_A, ramBuffer0_dataOutImag_A};
+	 assign ramBuffer0_dataOutConcatenated_A = {ramBuffer0_dataOutReal_A, ramBuffer0_dataOutImag_A};
 	 
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
-	 assign ramBuffer0_dataOutConcatenated = {ramBuffer0_dataOutReal_B, ramBuffer0_dataOutImag_B};
-	 /*
+	 assign ramBuffer0_dataOutConcatenated_B = {ramBuffer0_dataOutReal_B, ramBuffer0_dataOutImag_B};
+	 
 	 bramNewer BRAM_0(
 		.address_a ( ramBuffer0_address_A ),
 		.address_b ( ramBuffer0_address_B ),
@@ -472,7 +472,7 @@
 		.q_a ( ramBuffer0_dataOutConcatenated_A ),
 		.q_b ( ramBuffer0_dataOutConcatenated_B )
 		);
-	*/
+	
 	
 	//Buffer 0 write access control
 	always @(*) begin		
@@ -546,7 +546,7 @@
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutImag_B;
 	
-	
+	/*
 	pipelineBuffer_RAM BRAM_1(
 	 	.readClk(clk),
 	 	.writeClk(clk),
@@ -567,22 +567,22 @@
 	 	.dataOutReal_B(ramBuffer1_dataOutReal_B),
 	 	.dataOutImag_B(ramBuffer1_dataOutImag_B)
 	 	);
-	 
+	 */
 	 
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataInConcatenated_A;
-	assign ramBuffer1_dataInConcatenated = {ramBuffer1_dataInReal_A, ramBuffer1_dataInImag_A};
+	assign ramBuffer1_dataInConcatenated_A = {ramBuffer1_dataInReal_A, ramBuffer1_dataInImag_A};
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataInConcatenated_B;
-	assign ramBuffer1_dataInConcatenated = {ramBuffer1_dataInReal_B, ramBuffer1_dataInImag_B};
+	assign ramBuffer1_dataInConcatenated_B = {ramBuffer1_dataInReal_B, ramBuffer1_dataInImag_B};
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_A;
-	assign ramBuffer1_dataOutConcatenated = {ramBuffer1_dataOutReal_A, ramBuffer1_dataOutImag_A};
+	assign ramBuffer1_dataOutConcatenated_A = {ramBuffer1_dataOutReal_A, ramBuffer1_dataOutImag_A};
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_B;
-	assign ramBuffer1_dataOutConcatenated = {ramBuffer1_dataOutReal_B, ramBuffer1_dataOutImag_B};
-	/*
+	assign ramBuffer1_dataOutConcatenated_B = {ramBuffer1_dataOutReal_B, ramBuffer1_dataOutImag_B};
+	
 	bramNewer BRAM_1(
 		.address_a ( ramBuffer1_address_A ),
 		.address_b ( ramBuffer1_address_B ),
@@ -594,7 +594,7 @@
 		.q_a ( ramBuffer1_dataOutConcatenated_A ),
 		.q_b ( ramBuffer1_dataOutConcatenated_B )
 		);
-	*/
+	
 	
 	//Buffer 1 write access control
 	always @(*) begin		
@@ -668,7 +668,7 @@
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutImag_B;
 	
-	
+	/*
 	pipelineBuffer_RAM BRAM_2(
 	 	.readClk(clk),
 	 	.writeClk(clk),
@@ -689,23 +689,23 @@
 	 	.dataOutReal_B(ramBuffer2_dataOutReal_B),
 	 	.dataOutImag_B(ramBuffer2_dataOutImag_B)
 	 	);
-	 
+	*/ 
 	
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataInConcatenated_A;
-	assign ramBuffer2_dataInConcatenated = {ramBuffer2_dataInReal_A, ramBuffer2_dataInImag_A};
+	assign ramBuffer2_dataInConcatenated_A = {ramBuffer2_dataInReal_A, ramBuffer2_dataInImag_A};
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataInConcatenated_B;
-	assign ramBuffer2_dataInConcatenated = {ramBuffer2_dataInReal_B, ramBuffer2_dataInImag_B};
+	assign ramBuffer2_dataInConcatenated_B = {ramBuffer2_dataInReal_B, ramBuffer2_dataInImag_B};
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_A;
-	assign ramBuffer2_dataOutConcatenated = {ramBuffer1_dataOutReal_A, ramBuffer2_dataOutImag_A};
+	assign ramBuffer2_dataOutConcatenated_A = {ramBuffer1_dataOutReal_A, ramBuffer2_dataOutImag_A};
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_B;
-	assign ramBuffer2_dataOutConcatenated = {ramBuffer2_dataOutReal_B, ramBuffer2_dataOutImag_B};
+	assign ramBuffer2_dataOutConcatenated_B = {ramBuffer2_dataOutReal_B, ramBuffer2_dataOutImag_B};
 
-	/*
+	
 	bramNewer BRAM_2(
 		.address_a ( ramBuffer2_address_A ),
 		.address_b ( ramBuffer2_address_B ),
@@ -717,7 +717,7 @@
 		.q_a ( ramBuffer2_dataOutConcatenated_A ),
 		.q_b ( ramBuffer2_dataOutConcatenated_B )
 		);
-	*/
+	
 	
 	//Buffer 2 write access control
 	always @(*) begin		
@@ -791,7 +791,7 @@
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutImag_B;
 	
-	
+	/*
 	pipelineBuffer_RAM BRAM_3(
 	 	.readClk(clk),
 	 	.writeClk(clk),
@@ -812,23 +812,23 @@
 	 	.dataOutReal_B(ramBuffer3_dataOutReal_B),
 	 	.dataOutImag_B(ramBuffer3_dataOutImag_B)
 	 	);
-	 
+	*/ 
 	
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataInConcatenated_A;
-	assign ramBuffer3_dataInConcatenated = {ramBuffer3_dataInReal_A, ramBuffer3_dataInImag_A};
+	assign ramBuffer3_dataInConcatenated_A = {ramBuffer3_dataInReal_A, ramBuffer3_dataInImag_A};
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataInConcatenated_B;
-	assign ramBuffer3_dataInConcatenated = {ramBuffer3_dataInReal_B, ramBuffer3_dataInImag_B};
+	assign ramBuffer3_dataInConcatenated_B = {ramBuffer3_dataInReal_B, ramBuffer3_dataInImag_B};
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_A;
-	assign ramBuffer3_dataOutConcatenated = {ramBuffer3_dataOutReal_A, ramBuffer3_dataOutImag_A};
+	assign ramBuffer3_dataOutConcatenated_A = {ramBuffer3_dataOutReal_A, ramBuffer3_dataOutImag_A};
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_B;
-	assign ramBuffer3_dataOutConcatenated = {ramBuffer3_dataOutReal_B, ramBuffer3_dataOutImag_B};
+	assign ramBuffer3_dataOutConcatenated_B = {ramBuffer3_dataOutReal_B, ramBuffer3_dataOutImag_B};
 
-	/*
+	
 	bramNewer BRAM_3(
 		.address_a ( ramBuffer3_address_A ),
 		.address_b ( ramBuffer3_address_B ),
@@ -840,7 +840,7 @@
 		.q_a ( ramBuffer3_dataOutConcatenated_A ),
 		.q_b ( ramBuffer3_dataOutConcatenated_B )
 		);
-	*/
+	
 	
 	//Buffer 3 write access control
 	always @(*) begin		
@@ -1117,8 +1117,9 @@
  			if ((idle==1) && (inputReady==1) && (outputReady==0)) begin
  				//Start processing
  				idle <= 0;
- 							
+ 					
  				processing <= 1;
+ 				btflyCounter <= 0;
  			end
  			
  			else if (idle==0) begin
@@ -1128,31 +1129,32 @@
  				//Toggle clockDivider
  				clockDivider <= ~clockDivider;
  				
- 				//Increment counter
- 				if (clockDivider) begin
- 					btflyCounter <= btflyCounter + 1;
- 				end
  				
- 				if (btflyCounter == (pipelineWidth-1)) begin
- 					//We've reached the last butterfly calculation in this virtual stage
- 					
- 					if (virtualStageCounter == `nFFT-1) begin
- 						//We've reached the last stage
- 						outputReady <= 1;
- 						idle <= 1;
+ 				if (clockDivider) begin
+ 					//Increment counter
+ 					btflyCounter <= btflyCounter + 1;
+ 				
+	 				if (btflyCounter == (pipelineWidth-1)) begin
+	 					//We've reached the last butterfly calculation in this virtual stage
+	 					
+	 					if (virtualStageCounter == `nFFT-1) begin
+	 						//We've reached the last stage
+	 						outputReady <= 1;
+	 						idle <= 1;
 
- 						virtualStageCounter <= 0;
- 						
- 						processing <= 0;
- 						
- 						//Select which BRAM buffer to use next
- 						ram_access_pointer <= ram_access_pointer + 1;
- 					end
- 					else begin 						
-		 				//Move onto next virtual stage
- 						virtualStageCounter <= virtualStageCounter + 1;
- 					end
- 				end
+	 						virtualStageCounter <= 0;
+	 						
+	 						processing <= 0;
+	 						
+	 						//Select which BRAM buffer to use next
+	 						ram_access_pointer <= ram_access_pointer + 1;
+	 					end
+	 					else begin 						
+			 				//Move onto next virtual stage
+	 						virtualStageCounter <= virtualStageCounter + 1;
+	 					end
+	 				end
+	 			end
  			end
  			
  			else if (outputReady) begin
@@ -1166,6 +1168,9 @@
 	//
 	// Simulation Probes
 	//_______________________________
+	
+	wire [bCounterWidth -1:0] PROBE_btflyCounter;
+	assign PROBE_btflyCounter = btflyCounter;
 	
 	/*
 	wire [`SFFT_OUTPUT_WIDTH -1:0] PROBE_StageReal [`NFFT -1:0];
