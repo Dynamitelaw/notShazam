@@ -5,7 +5,8 @@
 `include "global_variables.sv"
 //`include "bram.sv"
 //`include "bramNew.v"
-`include "bramNewer.v"
+//`include "bramNewer.v"
+`include "bramNewest.v"
  
  
  /*
@@ -461,7 +462,7 @@
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
 	 assign ramBuffer0_dataOutConcatenated_B = {ramBuffer0_dataOutReal_B, ramBuffer0_dataOutImag_B};
 	 
-	 bramNewer BRAM_0(
+	 bramNewest BRAM_0(
 		.address_a ( ramBuffer0_address_A ),
 		.address_b ( ramBuffer0_address_B ),
 		.clock ( clk ),
@@ -583,7 +584,7 @@
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_B;
 	assign ramBuffer1_dataOutConcatenated_B = {ramBuffer1_dataOutReal_B, ramBuffer1_dataOutImag_B};
 	
-	bramNewer BRAM_1(
+	bramNewest BRAM_1(
 		.address_a ( ramBuffer1_address_A ),
 		.address_b ( ramBuffer1_address_B ),
 		.clock ( clk ),
@@ -706,7 +707,7 @@
 	assign ramBuffer2_dataOutConcatenated_B = {ramBuffer2_dataOutReal_B, ramBuffer2_dataOutImag_B};
 
 	
-	bramNewer BRAM_2(
+	bramNewest BRAM_2(
 		.address_a ( ramBuffer2_address_A ),
 		.address_b ( ramBuffer2_address_B ),
 		.clock ( clk ),
@@ -829,7 +830,7 @@
 	assign ramBuffer3_dataOutConcatenated_B = {ramBuffer3_dataOutReal_B, ramBuffer3_dataOutImag_B};
 
 	
-	bramNewer BRAM_3(
+	bramNewest BRAM_3(
 		.address_a ( ramBuffer3_address_A ),
 		.address_b ( ramBuffer3_address_B ),
 		.clock ( clk ),
