@@ -98,6 +98,7 @@ module FFT_Accelerator(
  	wire [`nFFT -1:0] output_address;
  	assign output_address = address[`nFFT +1:2];
  	wire [`SFFT_OUTPUT_WIDTH -1:0] Output_Why;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] probe;
  
  	SFFT_Pipeline sfft(
 	 	.clk(clk),
@@ -112,7 +113,8 @@ module FFT_Accelerator(
  		.output_address(output_address),
  		.SFFT_OutReal(SFFT_OUT),
 	 	.OutputValid(SfftOutputValid),
-	 	.Output_Why(Output_Why)
+	 	.Output_Why(Output_Why),
+	 	.probe(probe)
 	 	);
 	
 	//Sample counter
@@ -123,12 +125,12 @@ module FFT_Accelerator(
 	
 	
 	//Instantiate hex decoders
-	hex7seg h5( .a(Output_Why[23:20]),.y(HEX5) ), // left digit
-		h4( .a(Output_Why[19:16]),.y(HEX4) ),
-		h3( .a(Output_Why[15:12]),.y(HEX3) ),
-		h2( .a(Output_Why[11:8]),.y(HEX2) ),
-		h1( .a(Output_Why[7:4]),.y(HEX1) ),
-		h0( .a(Output_Why[3:0]),.y(HEX0) );
+	hex7seg h5( .a(probe[23:20]),.y(HEX5) ), // left digit
+		h4( .a(probe[19:16]),.y(HEX4) ),
+		h3( .a(probe[15:12]),.y(HEX3) ),
+		h2( .a(probe[11:8]),.y(HEX2) ),
+		h1( .a(probe[7:4]),.y(HEX1) ),
+		h0( .a(probe[3:0]),.y(HEX0) );
 		
 	/*
 	//Instantiate hex decoders

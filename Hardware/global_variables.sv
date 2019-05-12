@@ -11,7 +11,7 @@
 
 `define PEAKS 6 // Changing this requires many changes in code
 
-`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
+//`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
 `define SFFT_INPUT_WIDTH 24
 `define SFFT_OUTPUT_WIDTH `INPUT_AMPL_WIDTH
 `define SFFT_FIXEDPOINT_INPUTSCALING  //define this macro if you want to scale adc inputs to match FixedPoint magnitudes. Increases accuracy, but could lead to overflow
