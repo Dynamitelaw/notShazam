@@ -454,14 +454,16 @@
 	 
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataInConcatenated_B;
 	 assign ramBuffer0_dataInConcatenated_B = {ramBuffer0_dataInReal_B, ramBuffer0_dataInImag_B};
-	 
-	 //Concatenate dataOut bus
-	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_A;
-	 assign ramBuffer0_dataOutConcatenated_A = {ramBuffer0_dataOutReal_A, ramBuffer0_dataOutImag_A};
-	 
-	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
-	 assign ramBuffer0_dataOutConcatenated_B = {ramBuffer0_dataOutReal_B, ramBuffer0_dataOutImag_B};
-	 
+
+	//Concatenate dataOut bus
+	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_A;
+	assign ramBuffer0_dataOutReal_A = ramBuffer0_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer0_dataOutImag_A = ramBuffer0_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+
+	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
+	assign ramBuffer0_dataOutReal_B = ramBuffer0_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer0_dataOutImag_B = ramBuffer0_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+ 
 	 bramNewest BRAM_0(
 		.address_a ( ramBuffer0_address_A ),
 		.address_b ( ramBuffer0_address_B ),
@@ -579,11 +581,13 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_A;
-	assign ramBuffer1_dataOutConcatenated_A = {ramBuffer1_dataOutReal_A, ramBuffer1_dataOutImag_A};
+	assign ramBuffer1_dataOutReal_A =  ramBuffer1_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer1_dataOutImag_A =  ramBuffer1_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_B;
-	assign ramBuffer1_dataOutConcatenated_B = {ramBuffer1_dataOutReal_B, ramBuffer1_dataOutImag_B};
-	
+	assign ramBuffer1_dataOutReal_B =  ramBuffer1_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer1_dataOutImag_B =  ramBuffer1_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+
 	bramNewest BRAM_1(
 		.address_a ( ramBuffer1_address_A ),
 		.address_b ( ramBuffer1_address_B ),
@@ -699,12 +703,15 @@
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataInConcatenated_B;
 	assign ramBuffer2_dataInConcatenated_B = {ramBuffer2_dataInReal_B, ramBuffer2_dataInImag_B};
 
+
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_A;
-	assign ramBuffer2_dataOutConcatenated_A = {ramBuffer1_dataOutReal_A, ramBuffer2_dataOutImag_A};
+	assign ramBuffer2_dataOutReal_A =  ramBuffer2_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer2_dataOutImag_A =  ramBuffer2_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_B;
-	assign ramBuffer2_dataOutConcatenated_B = {ramBuffer2_dataOutReal_B, ramBuffer2_dataOutImag_B};
+	assign ramBuffer2_dataOutReal_B =  ramBuffer2_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer2_dataOutImag_B =  ramBuffer2_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	
 	bramNewest BRAM_2(
@@ -824,10 +831,12 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_A;
-	assign ramBuffer3_dataOutConcatenated_A = {ramBuffer3_dataOutReal_A, ramBuffer3_dataOutImag_A};
+	assign ramBuffer3_dataOutReal_A =  ramBuffer3_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer3_dataOutImag_A =  ramBuffer3_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_B;
-	assign ramBuffer3_dataOutConcatenated_B = {ramBuffer3_dataOutReal_B, ramBuffer3_dataOutImag_B};
+	assign ramBuffer3_dataOutReal_B =  ramBuffer3_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer3_dataOutImag_B =  ramBuffer3_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	
 	bramNewest BRAM_3(
