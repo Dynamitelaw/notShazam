@@ -153,6 +153,13 @@ void check_samples(int n, fft_accelerator_fft_t *sample_array) {
 	printf("valid times: %d\n", valid_times_count);
 	printf("missed times: %d\n", missed);
 	printf("corrupt samples: %d\n", missed);
+
+	for (int i=0; i<n; i++){
+		for (int j=0; j<N_FREQUENCIES; j++) {
+			printf("%d ", sample_array[i].fft[j]);
+		}
+		printf("\n");
+	}
 }
 				
 
