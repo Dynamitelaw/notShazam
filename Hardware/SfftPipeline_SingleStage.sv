@@ -959,25 +959,29 @@
 		if (output_access_pointer == 0) begin
 			//Read from buffer 0
 			SFFT_OutReal = ramBuffer0_dataOutReal_A;
-			Output_Why = ramBuffer0_dataOutReal_A;
+			//Output_Why = ramBuffer0_dataOutReal_A;
+			Output_Why = {23'd0, output_address};
 		end
 		
 		else if (output_access_pointer == 1) begin
 			//Read from buffer 1
 			SFFT_OutReal = ramBuffer1_dataOutReal_A;
-			Output_Why = ramBuffer1_dataOutReal_A;
+			//Output_Why = ramBuffer1_dataOutReal_A;
+			Output_Why = {23'd0, output_address};
 		end
 		
 		else if (output_access_pointer == 2) begin
 			//Read from buffer 2
 			SFFT_OutReal = ramBuffer2_dataOutReal_A;
-			Output_Why = ramBuffer2_dataOutReal_A;
+			//Output_Why = ramBuffer2_dataOutReal_A;
+			Output_Why = {23'd0, output_address};
 		end
 		
 		else if (output_access_pointer == 3) begin
 			//Read from buffer 3
 			SFFT_OutReal = ramBuffer3_dataOutReal_A;
-			Output_Why = ramBuffer3_dataOutReal_A;
+			//Output_Why = ramBuffer3_dataOutReal_A;
+			Output_Why = {23'd0, output_address};
 		end
 	end
 	
