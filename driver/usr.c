@@ -91,6 +91,10 @@ int get_samples(int n, fft_accelerator_fft_t *sample_array){
 			perror("ioctl(FFT_ACCELERATOR_READ_FFT) failed");
 			return c;
 		}
+		for (int j = 0; j < N_FREQUENCIES; j++) {
+			printf("%d ", vla.fft_struct->fft[j]);
+		}
+		printf("\n");
 		c++;
 	}
 	return c;
