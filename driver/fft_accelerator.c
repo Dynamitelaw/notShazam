@@ -65,6 +65,7 @@ static int fft_accelerator_read_sample(fft_accelerator_fft_t *sample_struct) {
 		while ((sample_struct->time = ioread32(TIME_COUNT(dev.virtbase))) == prev_time) {
 			tries++;
 			if (tries > 15){
+				printk("\tSample time delta: %d\n", sample_struct->time - prev_time);
 				return -1;
 			}
 			usleep_range(1000, 2000);
