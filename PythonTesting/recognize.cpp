@@ -191,7 +191,7 @@ int main()
 	{
 		num_db++;
 		std::cout << "{" <<  num_db << "} ";
-		temp_s = line; 
+		temp_s = "./constellationFiles/"+line; 
 		std::list<hash_pair> identify;
 		// identify = hash_create_noise(temp_s, num_db);
 		identify = hash_create_noise(temp_s + "_NOISY", num_db);
@@ -357,8 +357,8 @@ std::list<hash_pair> hash_create_noise(std::string song_name, uint16_t song_ID)
 	fft = read_fft_noise(song_name);	
 
 	std::list<peak> pruned_peaks;
-	pruned_peaks = generate_constellation_map(fft, NFFT);
-
+	//pruned_peaks = generate_constellation_map(fft, NFFT);
+	pruned_peaks = read_constellation(song_name);			
 	std::list<hash_pair> hash_entries;
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
 
@@ -845,7 +845,7 @@ std::list<peak> read_constellation(std::string filename){
   	char * memblock;
 	int i;
 	
-	fin.open(filename+".peak", std::ios::binary | std::ios::in 
+	fin.open(filename+".realpeak", std::ios::binary | std::ios::in 
 			| std::ios::ate);
 
 	i = 0;
