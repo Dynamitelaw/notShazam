@@ -156,8 +156,31 @@ module FFT_Accelerator(
 			timer_buffer[0] <= timeCounter[7:0];
 		end
 	end
+
+	//Read handling
+	always @(*) begin
+		if (address < `NFFT*2) begin
+			//Convert input address into subset of SFFT_Out
+			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
+			if (address % 2 == 0) begin
+				readdata = address[7:0];
+			end
+			else if (address % 2 == 1) begin
+				readdata = address[15:8];
+			end
+		end
+		else if (address[15:2] == `NFFT/2) begin
+			//Send the timer counter
+			readdata = timer_buffer[address[1:0]];
+		end
+		else begin
+			//Send the valid byte
+			readdata = {7'b0, ~outputReadError};
+		end
+	end
 	
-	
+
+/*
 	//Read handling
 	always @(*) begin
 		if (address < `NFFT*2) begin
@@ -185,6 +208,8 @@ module FFT_Accelerator(
 			readdata = {7'b0, ~outputReadError};
 		end
 	end
+*/
+
 	
 		
 	//Sample inputs
