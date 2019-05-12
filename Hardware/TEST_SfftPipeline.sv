@@ -39,7 +39,7 @@
 //`include "SfftPipeline.sv"
 `include "SfftPipeline_SingleStage.sv"
 
-`define CALCULATION_DELAY #400
+`define CALCULATION_DELAY #800
  
  module Sfft_Testbench();
  	reg reset = 0;
@@ -54,6 +54,7 @@
  	logic [`nFFT -1:0] output_address = 0;
  	wire outputReadError;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] SFFT_OutReal;
+ 	wire [`SFFT_OUTPUT_WIDTH -1:0] Output_Why;
  	wire OutputValid;
  
  	SFFT_Pipeline sfft(
@@ -67,7 +68,8 @@
 	 	.outputReadError(outputReadError),
 	 	.output_address(output_address),
 	 	.SFFT_OutReal(SFFT_OutReal),
-	 	.OutputValid(OutputValid)
+	 	.OutputValid(OutputValid),
+	 	.Output_Why(Output_Why)
 	 	);
 	 	
  	initial
