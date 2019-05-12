@@ -603,45 +603,48 @@ std::vector<std::vector<float>> read_fft_noise(std::string filename)
 	std::cout << "call to read_fft_noise" << std::endl;
 	std::fstream file;
 	std::string line;
-	std::vector<std::vector<float>> fft;
 	file.open(filename.c_str());
-	bool first = true;
+
+	int i;
+	int length = 11025/2;
+
+	std::vector<std::vector<float>> fft;
+	fft.reserve(NFFT/2);
+	for (int j = 0; j < NFFT/2; i++) {
+		std::vector<float> vec;
+		vec.reserve(length);
+		fft.push_back(vec);
+	}
 
 	int offset = 20000;
-	 
-	while(getline(file, line)){
-	   if (first) {
-               first = false;
-	       continue;
-	   }
-	   if(!line.empty()){
-		std::istringstream ss(line);
-		std::vector<float> line_vector;
-		int counter = 0;
-		do{
-		  std::string word;
-		  std::string::size_type sz;
-		  float temp;
+	int counter = 0;
 
-		  if (counter < offset) {
-			  counter++;
-			  continue;
-		  }
+	while(getline(file, line) && counter < offset + length){
+		if(!line.empty()){
+			if (counter < offset) {
+				counter++;
+				continue;
+			}
+			std::istringstream ss(line);
+			std::vector<float> line_vector;
+			i = 0;
+			do{
+				std::string word;
+				float temp;
 
-		  ss >> word;
-		  if(!word.empty()){
-		  	temp = std::stof(word, &sz);
-		  }
-		
-		  line_vector.push_back(temp);
-		  counter++;
-		
-		} while(ss && counter <  offset + 11025/2);
-		fft.push_back(line_vector);
-	   }
+				ss >> word;
+				if(!word.empty()){
+					temp = std::stof(word);
+				}
+				fft[i].push_back(temp);
+				i++;
+
+			} while(ss);
+			counter++;
+		}
 	}
 	file.close();
-	
+
 	return fft;
 }
 
@@ -651,36 +654,38 @@ std::vector<std::vector<float>> read_fft(std::string filename)
 	std::cout << "call to read_fft" << std::endl;
 	std::fstream file;
 	std::string line;
-	std::vector<std::vector<float>> fft;
 	file.open(filename.c_str());
-	bool first = true;
-	 
-	while(getline(file, line)){
-	   if (first) {
-               first = false;
-	       continue;
-	   }
-	   if(!line.empty()){
-		std::istringstream ss(line);
-		std::vector<float> line_vector;
-		do{
-		  std::string word;
-		  std::string::size_type sz;
-		  float temp;
+	int i;
 
-		  ss >> word;
-		  if(!word.empty()){
-		  	temp = std::stof(word, &sz);
-		  }
-		
-		  line_vector.push_back(temp);
-		
-		} while(ss);
-		fft.push_back(line_vector);
-	   }
+	std::vector<std::vector<float>> fft;
+	fft.reserve(NFFT/2);
+	for (int j = 0; j < NFFT/2; i++) {
+		std::vector<float> vec;
+		fft.push_back(vec);
+	}
+
+	while(getline(file, line)){
+		if(!line.empty()){
+			i = 0;
+			std::istringstream ss(line);
+			std::vector<float> line_vector;
+			do{
+				std::string word;
+				float temp;
+
+				ss >> word;
+				if(!word.empty()){
+					temp = std::stof(word);
+				}
+
+				fft[i].push_back(temp);
+				i++;
+
+			} while(ss);
+		}
 	}
 	file.close();
-	
+
 	return fft;
 }
 
