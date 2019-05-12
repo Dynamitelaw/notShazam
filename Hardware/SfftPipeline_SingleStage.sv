@@ -3,9 +3,9 @@
  */
  
 `include "global_variables.sv"
-//`include "bram.sv"
+`include "bram.sv"
 //`include "bramNew.v"
-`include "bramNewer.v"
+//`include "bramNewer.v"
  
  
  /*
