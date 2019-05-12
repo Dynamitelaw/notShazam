@@ -148,12 +148,16 @@ int main()
 
 		num_db++;
 		   
-		temp_s = "./constellationFiles/"+line;
+		temp_s = line;
 		hash_count = 0;
 			
+		std::list<hash_pair> identify;
 		std::list<hash_pair> temp;
-		temp = hash_create(temp_s, num_db);
-		
+		temp = hash_create(temp_s+".mag", num_db);
+		temp = hash_create(temp_s+".real", num_db);
+		identify = hash_create_noise(temp_s + "_NOISY.mag", 0);
+		identify = hash_create_noise(temp_s + "_NOISY.real", 0);
+		/*
 		for(std::list<hash_pair>::iterator it = temp.begin(); 
 			  it != temp.end(); ++it){	
 
@@ -174,12 +178,12 @@ int main()
 		std::cout << " databased.\n Number of hash table entries: ";
 		std::cout << temp.size() << std::endl;
 	     	std::cout << std::endl;
-	     	std::cout << std::endl;
+	     	std::cout << std::endl;*/
 	   }
 	}
 	file.close();
 
-	/*DEBUG*/
+	/*DEBUG
 	std::cout << "Full database completed \n\n" << std::endl;
 
 	std::cout << "Next is identifying: \n\n" << std::endl;
@@ -244,7 +248,7 @@ int main()
 
 	}
 	file.close();
-	
+	*/
 	return 0;
 }
 
@@ -317,17 +321,17 @@ std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID)
 {	
 	std::cout << "call to hash_create" << std::endl;
 	std::cout << "Song ID = " << song_ID << std::endl; 
-	//std::vector<std::vector<float>> fft;
-	//fft = read_fft(song_name);	
+	std::vector<std::vector<float>> fft;
+	fft = read_fft(song_name);	
 
 	std::list<peak> pruned_peaks;
-	//pruned_peaks = generate_constellation_map(fft, NFFT);
-	pruned_peaks = read_constellation(song_name);			
-	/*
-	//write_constellation(pruned_peaks, song_name);
+	pruned_peaks = generate_constellation_map(fft, NFFT);
+	//pruned_peaks = read_constellation(song_name);			
+	
+	write_constellation(pruned_peaks, song_name);
 	//check that read constellation is the same
-	if(song_ID)
-	{
+	//if(song_ID)
+	//{
 		std::list<peak> pruned_copy;
 		pruned_copy = read_constellation(song_name);
 		if(pruned_copy.front().freq == pruned_peaks.front().freq
@@ -341,12 +345,12 @@ std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID)
 		{
 			std::cout << "Error storing/reading constellation\n";
 		}
-	}	
-	*/
+	//}	
+
 	
 	std::list<hash_pair> hash_entries;
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
-
+	
 	return hash_entries;
 }
 
@@ -358,6 +362,24 @@ std::list<hash_pair> hash_create_noise(std::string song_name, uint16_t song_ID)
 
 	std::list<peak> pruned_peaks;
 	pruned_peaks = generate_constellation_map(fft, NFFT);
+	write_constellation(pruned_peaks, song_name);
+	//check that read constellation is the same
+	//if(song_ID)
+	//{
+		std::list<peak> pruned_copy;
+		pruned_copy = read_constellation(song_name);
+		if(pruned_copy.front().freq == pruned_peaks.front().freq
+			&& pruned_copy.front().time == pruned_peaks.front().time
+			&& pruned_copy.back().freq == pruned_peaks.back().freq
+			&& pruned_copy.back().time == pruned_peaks.back().time)
+		{
+			std::cout << "Proper constellation stored\n";
+		}
+		else
+		{
+			std::cout << "Error storing/reading constellation\n";
+		}
+	//}	
 
 	std::list<hash_pair> hash_entries;
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
@@ -648,6 +670,7 @@ std::vector<std::vector<float>> read_fft_noise(std::string filename)
 	return fft;
 }
 
+
 std::vector<std::vector<float>> read_fft(std::string filename)
 {
 	std::cout << "call to read_fft" << std::endl;
@@ -818,7 +841,7 @@ void write_constellation(std::list<peak> pruned, std::string filename){
 	uint32_t peak_32;
 	struct peak temp;
 
-	fout.open(filename+".peak", std::ios::binary | std::ios::out);
+	fout.open(filename+"peak", std::ios::binary | std::ios::out);
 	for(std::list<peak>::iterator it = pruned.begin(); 
 			it != pruned.end(); it++){
 
@@ -845,7 +868,7 @@ std::list<peak> read_constellation(std::string filename){
   	char * memblock;
 	int i;
 	
-	fin.open(filename+".peak", std::ios::binary | std::ios::in 
+	fin.open(filename+"peak", std::ios::binary | std::ios::in 
 			| std::ios::ate);
 
 	i = 0;
