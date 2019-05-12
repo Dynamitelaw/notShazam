@@ -26,10 +26,10 @@ def generateFFT(audioDirPath, songName, fftResolution):
 
     length = len(signalData) - (len(signalData) % (fftResolution/2))
 
-    i = 1
+    i = 0
     while i < length:
         
-        fft_temp = np.fft.fft(signalData[i:i+(fftResolution/2 - 1)])
+        fft_temp = np.fft.fft(signalData[i:i+(fftResolution/2)])
 
         for item in fft_temp:
             #Magnitude/ Absolute Value
