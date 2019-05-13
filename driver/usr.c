@@ -178,7 +178,9 @@ int main()
     fprintf(stderr, "could not open %s\n", filename);
     return -1;
   }
-
+	
+  print_spec();
+  
   int n = 5;
 
   fft_accelerator_fft_t samples[n];
