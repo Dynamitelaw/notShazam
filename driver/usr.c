@@ -149,16 +149,19 @@ void check_samples(int n, fft_accelerator_fft_t *sample_array) {
 		}
 	}
 
-	printf("invalid samples: %d\n", invalid_count);
-	printf("valid times: %d\n", valid_times_count);
-	printf("missed times: %d\n", missed);
-	printf("corrupt samples: %d\n", missed);
+	//printf("invalid samples: %d\n", invalid_count);
+	//printf("valid times: %d\n", valid_times_count);
+	//printf("missed times: %d\n", missed);
+	//printf("corrupt samples: %d\n", missed);
 
 	for (int i=0; i<n; i++){
+		printf("Time: %x\n", sample_array[i].time);
+		printf("Valid: %x\n", sample_array[i].valid);
 		for (int j=0; j<N_FREQUENCIES; j++) {
 			printf("(%d:%x) ", j,sample_array[i].fft[j]);
 		}
-		printf("\n");
+		printf("======================\n");
+		
 	}
 }
 				
@@ -176,7 +179,7 @@ int main()
     return -1;
   }
 
-  int n = 300;
+  int n = 5;
 
   fft_accelerator_fft_t samples[n];
   int received = get_samples(n, samples);
