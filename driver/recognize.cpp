@@ -620,6 +620,7 @@ uint64_t get_sample(std::vector<float> & fft) {
 	fft_accelerator_fft_t fft_struct;
 	vla.fft_struct = &fft_struct;
 
+	fft.clear();
 	fft.reserve(N_FREQUENCIES);
 
 	if (ioctl(fft_accelerator_fd, FFT_ACCELERATOR_READ_FFT, &vla)) {
@@ -656,15 +657,15 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 		//this assumes we miss nothing
 	
 		for(uint32_t j = 0; j < N_FREQUENCIES; j++){
-
-			spec[j].push_back(fft_temp[j]);
+			spec[i].push_back(fft_temp[j]);
 		}	
-		//if (time == ERR_IO || time == ERR_NVALID) {
-		//	std::cout << "Could not get audio fft\n";
-			// spec[0].size < samples
-		//	return spec;
-		//}
-		// copy contents of fft_temp into spec[i], averaging if there are missed times.
+		if (time == ERR_IO || time == ERR_NVALID) {
+			std::cout << "Could not get audio fft\n";
+		        // spec[0].size < samples
+			return spec;
+		}
+		 //copy contents of fft_temp into spec[i], averaging if there are missed times.
+
 	}
 	return spec;
 }
@@ -911,7 +912,7 @@ std::list<peak> read_constellation(std::string filename){
   	char * memblock;
 	int i;
 	
-	fin.open(filename+".peak", std::ios::binary | std::ios::in 
+	fin.open(filename+".realpeak", std::ios::binary | std::ios::in 
 			| std::ios::ate);
 
 	i = 0;
