@@ -39,7 +39,7 @@
 //`include "SfftPipeline.sv"
 `include "SfftPipeline_SingleStage.sv"
 
-`define CALCULATION_DELAY #800
+`define CALCULATION_DELAY #10000
  
  module Sfft_Testbench();
  	reg reset = 0;
