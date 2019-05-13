@@ -3,13 +3,17 @@ set -x
 
 date
 
+#Delete old RBF in case git ignores the new one
+git rm output_files/*.rbf
+git commit -m "deleted old rbf"
+
 #CAT globalVariables used in compilation
 cat global_variables.sv
 
 #Regenerate ROM files
 matlab -nodisplay -nosplash -nodesktop -r "run('../MatlabTesting/GenerateRomFiles.m');exit;"
 
-#Recombile Verilog code
+#Recompile Verilog code
 embedded_command_shell.sh 
 echo "#############################"
 date
