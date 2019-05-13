@@ -164,15 +164,19 @@ module FFT_Accelerator(
 			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
 			if (address % 4 == 0) begin
 				readdata = Output_Why[7:0];
+				//readdata = 8'h11;
 			end
 			else if (address % 4 == 1) begin
 				readdata = Output_Why[15:8];
+				//readdata = 8'h22;
 			end
 			else if (address % 4 == 2) begin
 				readdata = Output_Why[23:16];
+				//readdata = 8'h33;
 			end
 			else if (address % 4 == 3) begin
 				readdata = Output_Why[31:24];
+				//readdata = 8'h44;
 			end
 		end
 		else if (address[15:2] == `NFFT/2) begin

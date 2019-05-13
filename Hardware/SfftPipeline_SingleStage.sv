@@ -961,6 +961,7 @@
 			SFFT_OutReal = ramBuffer0_dataOutReal_A;
 			//Output_Why = ramBuffer0_dataOutReal_A;
 			Output_Why = {23'd0, ramBuffer0_address_A};
+			//Output_Why = 32'd0;
 		end
 		
 		else if (output_access_pointer == 1) begin
@@ -968,6 +969,7 @@
 			SFFT_OutReal = ramBuffer1_dataOutReal_A;
 			//Output_Why = ramBuffer1_dataOutReal_A;
 			Output_Why = {23'd0, ramBuffer1_address_A};
+			//Output_Why = 32'd1;
 		end
 		
 		else if (output_access_pointer == 2) begin
@@ -975,6 +977,7 @@
 			SFFT_OutReal = ramBuffer2_dataOutReal_A;
 			//Output_Why = ramBuffer2_dataOutReal_A;
 			Output_Why = {23'd0, ramBuffer2_address_A};
+			//Output_Why = 32'd2;
 		end
 		
 		else if (output_access_pointer == 3) begin
@@ -982,6 +985,7 @@
 			SFFT_OutReal = ramBuffer3_dataOutReal_A;
 			//Output_Why = ramBuffer3_dataOutReal_A;
 			Output_Why = {23'd0, ramBuffer3_address_A};
+			//Output_Why = 32'd3;
 		end
 	end
 	
