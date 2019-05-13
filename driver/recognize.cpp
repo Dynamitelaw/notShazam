@@ -631,10 +631,10 @@ uint64_t get_sample(std::vector<float> & fft) {
 		return ERR_NVALID;
 	}
 	for (int i = 0; i < N_FREQUENCIES; i++) {
-		std::cout << ampl2float(fft_struct.fft[i]) << " ";
+		//std::cout << ampl2float(fft_struct.fft[i]) << " ";
 		fft.push_back(ampl2float(fft_struct.fft[i]));
 	}
-		std::cout << std::endl;
+		//std::cout << std::endl;
 	return fft_struct.time;
 }
 
@@ -652,15 +652,15 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 	std::vector<float> fft_temp;
 	uint64_t time;
 
-	for (uint32_t i = 0; i < 1; i++) {
+	for (uint32_t i = 0; i < samples; i++) {
 		time = get_sample(fft_temp);
 		//this assumes we miss nothing
 	
 		for(uint32_t j = 0; j < N_FREQUENCIES; j++){
-			std::cout << fft_temp[j] << " ";
+			//std::cout << fft_temp[j] << " ";
 			spec[j].push_back(fft_temp[j]);
 		}	
-			std::cout << std::endl;
+			//std::cout << std::endl;
 		if (time == ERR_IO || time == ERR_NVALID) {
 			std::cout << "Could not get audio fft\n";
 		        // spec[0].size < samples
