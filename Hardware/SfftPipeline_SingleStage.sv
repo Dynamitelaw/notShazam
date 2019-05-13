@@ -464,7 +464,7 @@
 	assign ramBuffer0_dataOutReal_B = ramBuffer0_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
 	assign ramBuffer0_dataOutImag_B = ramBuffer0_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
  
-	 bramNewest BRAM_0(
+	bramNewer BRAM_0(
 		.address_a ( ramBuffer0_address_A ),
 		.address_b ( ramBuffer0_address_B ),
 		.clock ( clk ),
@@ -588,7 +588,7 @@
 	assign ramBuffer1_dataOutReal_B =  ramBuffer1_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
 	assign ramBuffer1_dataOutImag_B =  ramBuffer1_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
-	bramNewest BRAM_1(
+	bramNewer BRAM_1(
 		.address_a ( ramBuffer1_address_A ),
 		.address_b ( ramBuffer1_address_B ),
 		.clock ( clk ),
@@ -839,7 +839,7 @@
 	assign ramBuffer3_dataOutImag_B =  ramBuffer3_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	
-	bramNewest BRAM_3(
+	bramNewer BRAM_3(
 		.address_a ( ramBuffer3_address_A ),
 		.address_b ( ramBuffer3_address_B ),
 		.clock ( clk ),
@@ -960,32 +960,56 @@
 			//Read from buffer 0
 			SFFT_OutReal = ramBuffer0_dataOutReal_A;
 			//Output_Why = ramBuffer0_dataOutReal_A;
-			Output_Why = {23'd0, ramBuffer0_address_A};
+			//Output_Why = {23'd0, ramBuffer0_address_A};
 			//Output_Why = 32'd0;
+			if (ramBuffer0_address_A % 2 == 0) begin
+				Output_Why = ramBuffer0_dataOutReal_A;
+			end
+			else begin
+				Output_Why = {30'd0, output_access_pointer};
+			end
 		end
 		
 		else if (output_access_pointer == 1) begin
 			//Read from buffer 1
 			SFFT_OutReal = ramBuffer1_dataOutReal_A;
 			//Output_Why = ramBuffer1_dataOutReal_A;
-			Output_Why = {23'd0, ramBuffer1_address_A};
+			//Output_Why = {23'd0, ramBuffer1_address_A};
 			//Output_Why = 32'd1;
+			if (ramBuffer1_address_A % 2 == 0) begin
+				Output_Why = ramBuffer1_dataOutReal_A;
+			end
+			else begin
+				Output_Why = {30'd0, output_access_pointer};
+			end
 		end
 		
 		else if (output_access_pointer == 2) begin
 			//Read from buffer 2
 			SFFT_OutReal = ramBuffer2_dataOutReal_A;
 			//Output_Why = ramBuffer2_dataOutReal_A;
-			Output_Why = {23'd0, ramBuffer2_address_A};
+			//Output_Why = {23'd0, ramBuffer2_address_A};
 			//Output_Why = 32'd2;
+			if (ramBuffer2_address_A % 2 == 0) begin
+				Output_Why = ramBuffer2_dataOutReal_A;
+			end
+			else begin
+				Output_Why = {30'd0, output_access_pointer};
+			end
 		end
 		
 		else if (output_access_pointer == 3) begin
 			//Read from buffer 3
 			SFFT_OutReal = ramBuffer3_dataOutReal_A;
 			//Output_Why = ramBuffer3_dataOutReal_A;
-			Output_Why = {23'd0, ramBuffer3_address_A};
+			//Output_Why = {23'd0, ramBuffer3_address_A};
 			//Output_Why = 32'd3;
+			if (ramBuffer3_address_A % 2 == 0) begin
+				Output_Why = ramBuffer3_dataOutReal_A;
+			end
+			else begin
+				Output_Why = {30'd0, output_access_pointer};
+			end
 		end
 	end
 	
