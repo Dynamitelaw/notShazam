@@ -156,7 +156,7 @@ void check_samples(int n, fft_accelerator_fft_t *sample_array) {
 
 	for (int i=0; i<n; i++){
 		for (int j=0; j<N_FREQUENCIES; j++) {
-			printf("%d ", sample_array[i].fft[j]);
+			printf("%x ", sample_array[i].fft[j]);
 		}
 		printf("\n");
 	}
