@@ -2,13 +2,8 @@
 
 
 // FFT Macros
-`ifdef RUNNING_SIMULATION
-	`define NFFT 512 // if change this, change FREQ_WIDTH. Must be power of 2
-	`define nFFT 9  //log2(NFFT)
-`else
-	`define NFFT 32 // if change this, change FREQ_WIDTH. Must be power of 2
-	`define nFFT 5  //log2(NFFT)
-`endif
+`define NFFT 512 // if change this, change FREQ_WIDTH. Must be power of 2
+`define nFFT 9  //log2(NFFT)
 
 `define FREQS (`NFFT / 2)
 `define FREQ_WIDTH 8 // if change NFFT, change this
