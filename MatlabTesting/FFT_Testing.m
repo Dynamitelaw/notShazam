@@ -17,7 +17,7 @@ notSame = bi2de(notSameArray);
 %disp(real(Z));
 disp(["Error = ", notSame]);
 
-floatingPointAccuracy = 11;
+floatingPointAccuracy = 7;
 %for i = 1:length(a)
 for i = 1:16
     %value = num2fixpt(real(Z(i)), sfix(24), 2^(-floatingPointAccuracy));% * 2^(floatingPointAccuracy);

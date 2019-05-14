@@ -5,6 +5,7 @@ defineN = regexp(filetext,expr,'match');
 defineN_array = split(defineN, ' ');
 N = str2num([char(defineN_array(3))]);
 
+disp(N);
 %Generate shuffled indexes
 disp('Generating shuffling indexes for input');
 
@@ -43,6 +44,9 @@ floatingPointAccuracy = str2num([char(defineFPA_array(3))]);
 realFileID = fopen('../Hardware/GeneratedParameters/realCoefficients.txt','w');
 imaginaryFileID = fopen('../Hardware/GeneratedParameters/imaginaryCoefficients.txt','w');
 
+real_pairs = zeros(N/2, 2);
+imag_pairs = zeros(N/2, 2);
+
 for k = 0:N/2-1
    %if k == 0
    %    k = 0.000001;
@@ -57,12 +61,46 @@ for k = 0:N/2-1
    fprintf(realFileID,'%s\n',dec2hex(realCoef, (floatingPointAccuracy+1)/4));
    fprintf(imaginaryFileID,'%s\n',dec2hex(imagCoef, (floatingPointAccuracy+1)/4));
    
-   disp('========================')
-   disp(k);
-   disp(w);
-   disp(q2dec([dec2hex(realCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
-   disp(q2dec([dec2hex(imagCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
+   %disp('========================')
+   %disp(k);
+   %disp(w);
+   %disp(q2dec([dec2hex(realCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
+   %disp(q2dec([dec2hex(imagCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy));
+   
+   real_pair = [real(w), q2dec([dec2hex(realCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy)];
+   imag_pair = [imag(w), q2dec([dec2hex(imagCoef, (floatingPointAccuracy+1)/4)], 0, floatingPointAccuracy)];
+   
+   %disp(real_pair);
+   %disp(imag_pair);
+
+   
+   real_pairs(k+1, :) = real_pair;
+   imag_pairs(k+1, :) = imag_pair;
 end
+
+real_err = real_pairs(:, 1) - real_pairs(:, 2);
+imag_err = imag_pairs(:, 1) - imag_pairs(:, 2);
+
+real_err = abs(real_err);
+imag_err = abs(imag_err);
+
+real_max = max(real_err);
+real_min = min(real_err);
+real_avg = mean(real_err);
+
+imag_max = max(imag_err);
+imag_min = min(imag_err);
+imag_avg = mean(imag_err);
+
+%disp('========================')
+disp(["Real Error Max:", real_max]);
+%disp(["Real Error Min:", real_min]);
+disp(["Real Error Avg:", real_avg]);
+disp('')
+disp(["Imag Error Max:", imag_max]);
+%disp(["Imag Error Min:", imag_min]);
+disp(["Imag Error Avg:", imag_avg]);
+%disp('========================')
 
 fclose(realFileID);
 fclose(imaginaryFileID);
