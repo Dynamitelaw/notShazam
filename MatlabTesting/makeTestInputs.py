@@ -1,4 +1,5 @@
 import math
+import random
 
 times = []
 SamplingFrequency = 512
@@ -8,12 +9,15 @@ for i in range(SamplingFrequency):
 
 amplitudes = []
 amplitudesMatlab = []
-frequency = 16
+frequency = 50
 for time in times:
-	amplitude = int(0.7*(2**10)*math.sin(2*3.141562653*frequency*time) + 2**11)
+	randomNum = (random.random())
+	amplitude = int(0.7*(2**6)*math.sin(2*3.141562653*frequency*time) + 2**7)
+	amplitude = int(0.7*(2**6)*randomNum)
 	amplitudes.append(amplitude)
 	
-	amplitudeMatlab = int(0.7*(2**10)*math.sin(2*3.141562653*frequency*time) + 2**11)
+	amplitudeMatlab = int(0.7*(2**6)*math.sin(2*3.141562653*frequency*time) + 2**7)
+	amplitudeMatlab = int(0.7*(2**6)*randomNum)
 	amplitudesMatlab.append(amplitudeMatlab)
 
 outputStrings = []
@@ -21,7 +25,7 @@ outputStringsMatlab = []
 for i in range(SamplingFrequency):
 	amplitude = amplitudes[i]
 	outputString = "24'd" + str(amplitude)
-	if (i != SamplingFrequency-1):
+	if (i != 0):
 		outputString += ", "
 		
 	if (i % 30 == 0):
@@ -32,8 +36,8 @@ for i in range(SamplingFrequency):
 	outputStringsMatlab.append(str(amplitudeMatlab) + " ")
 
 finalString = "reg [23:0] testWave [" + str(SamplingFrequency-1) + ":0] = '{"
-for string in outputStrings:
-	finalString += string
+for i in range(SamplingFrequency-1,-1,-1):
+	finalString += outputStrings[i]
 	
 finalString += "};"
 

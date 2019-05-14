@@ -26,8 +26,8 @@ function FFT = myFFT(x)
             stageOutputBuffer(index0+1) = moduleOutput(1);
             stageOutputBuffer(index1+1) = moduleOutput(2);
         end
-        disp(real(stageInputBuffer) * 2^7);
-        disp(real(stageOutputBuffer) * 2^7);
+        disp(real(stageInputBuffer) * 2^11);
+        disp(real(stageOutputBuffer) * 2^11);
     end
     
     FFT = stageOutputBuffer;
