@@ -953,57 +953,33 @@
 		if (output_access_pointer == 0) begin
 			//Read from buffer 0
 			SFFT_OutReal = ramBuffer0_dataOutReal_A;
-			//Output_Why = ramBuffer0_dataOutReal_A;
+			Output_Why = ramBuffer0_dataOutReal_A;
 			//Output_Why = {23'd0, ramBuffer0_address_A};
 			//Output_Why = 32'd0;
-			if (ramBuffer0_address_A % 2 == 0) begin
-				Output_Why = ramBuffer0_dataOutReal_A;
-			end
-			else begin
-				Output_Why = {30'd0, output_access_pointer};
-			end
 		end
 		
 		else if (output_access_pointer == 1) begin
 			//Read from buffer 1
 			SFFT_OutReal = ramBuffer1_dataOutReal_A;
-			//Output_Why = ramBuffer1_dataOutReal_A;
+			Output_Why = ramBuffer1_dataOutReal_A;
 			//Output_Why = {23'd0, ramBuffer1_address_A};
 			//Output_Why = 32'd1;
-			if (ramBuffer1_address_A % 2 == 0) begin
-				Output_Why = ramBuffer1_dataOutReal_A;
-			end
-			else begin
-				Output_Why = {30'd0, output_access_pointer};
-			end
 		end
 		
 		else if (output_access_pointer == 2) begin
 			//Read from buffer 2
 			SFFT_OutReal = ramBuffer2_dataOutReal_A;
-			//Output_Why = ramBuffer2_dataOutReal_A;
+			Output_Why = ramBuffer2_dataOutReal_A;
 			//Output_Why = {23'd0, ramBuffer2_address_A};
 			//Output_Why = 32'd2;
-			if (ramBuffer2_address_A % 2 == 0) begin
-				Output_Why = ramBuffer2_dataOutReal_A;
-			end
-			else begin
-				Output_Why = {30'd0, output_access_pointer};
-			end
 		end
 		
 		else if (output_access_pointer == 3) begin
 			//Read from buffer 3
 			SFFT_OutReal = ramBuffer3_dataOutReal_A;
-			//Output_Why = ramBuffer3_dataOutReal_A;
+			Output_Why = ramBuffer3_dataOutReal_A;
 			//Output_Why = {23'd0, ramBuffer3_address_A};
 			//Output_Why = 32'd3;
-			if (ramBuffer3_address_A % 2 == 0) begin
-				Output_Why = ramBuffer3_dataOutReal_A;
-			end
-			else begin
-				Output_Why = {30'd0, output_access_pointer};
-			end
 		end
 	end
 	
