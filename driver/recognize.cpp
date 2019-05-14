@@ -75,8 +75,6 @@ struct database_info{
 	int hash_count;
 };
 
-std::vector<std::vector<float>> read_fft(std::string filename);
-
 std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID);
 
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
@@ -98,8 +96,9 @@ std::list<hash_pair> hash_create_from_audio(float sec);
 float score(const struct count_ID &c) {
 	return ((float) c.count)/std::pow(c.num_hashes, NORM_POW);	
 }
+
 bool sortByScore(const struct count_ID &lhs, const struct count_ID &rhs) { 
-	return score(lhs) > score(rhs); 
+	return lhs.count == rhs.count ? score(lhs) > score(rhs) : lhs.count > rhs.count;
 }
 
 int fft_accelerator_fd;
@@ -275,32 +274,9 @@ std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID)
 {	
 	std::cout << "call to hash_create" << std::endl;
 	std::cout << "Song ID = " << song_ID << std::endl; 
-	//std::vector<std::vector<float>> fft;
-	//fft = read_fft(song_name);	
 
 	std::list<peak> pruned_peaks;
-	//pruned_peaks = generate_constellation_map(fft, NFFT);
 	pruned_peaks = read_constellation(song_name);			
-	/*
-	//write_constellation(pruned_peaks, song_name);
-	//check that read constellation is the same
-	if(song_ID)
-	{
-		std::list<peak> pruned_copy;
-		pruned_copy = read_constellation(song_name);
-		if(pruned_copy.front().freq == pruned_peaks.front().freq
-			&& pruned_copy.front().time == pruned_peaks.front().time
-			&& pruned_copy.back().freq == pruned_peaks.back().freq
-			&& pruned_copy.back().time == pruned_peaks.back().time)
-		{
-			std::cout << "Proper constellation stored\n";
-		}
-		else
-		{
-			std::cout << "Error storing/reading constellation\n";
-		}
-	}	
-	*/
 	
 	std::list<hash_pair> hash_entries;
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
@@ -448,45 +424,6 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 	}
 	return spec;
 }
-
-std::vector<std::vector<float>> read_fft(std::string filename)
-{
-	std::cout << "call to read_fft" << std::endl;
-	std::fstream file;
-	std::string line;
-	std::vector<std::vector<float>> fft;
-	file.open(filename.c_str());
-	bool first = true;
-	 
-	while(getline(file, line)){
-	   if (first) {
-               first = false;
-	       continue;
-	   }
-	   if(!line.empty()){
-		std::istringstream ss(line);
-		std::vector<float> line_vector;
-		do{
-		  std::string word;
-		  std::string::size_type sz;
-		  float temp;
-
-		  ss >> word;
-		  if(!word.empty()){
-		  	temp = std::stof(word, &sz);
-		  }
-		
-		  line_vector.push_back(temp);
-		
-		} while(ss);
-		fft.push_back(line_vector);
-	   }
-	}
-	file.close();
-	
-	return fft;
-}
-
 
 // Eitan's re-write:
 
