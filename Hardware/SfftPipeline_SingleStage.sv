@@ -187,24 +187,9 @@
  	//Shift buffer to hold N most recent samples
  	//reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
  	
- 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [511:0] = '{24'd0, 24'd21, 
-24'd33, 24'd23, 24'd19, 24'd10, 24'd42, 24'd26, 24'd6, 24'd31, 24'd5, 24'd3, 24'd33, 24'd13, 24'd19, 24'd25, 24'd34, 24'd42, 24'd33, 24'd44, 24'd27, 24'd25, 24'd17, 24'd19, 24'd42, 24'd26, 24'd26, 24'd9, 24'd44, 24'd6, 24'd4, 24'd12, 
-24'd26, 24'd19, 24'd31, 24'd2, 24'd32, 24'd17, 24'd41, 24'd7, 24'd41, 24'd13, 24'd8, 24'd1, 24'd24, 24'd41, 24'd23, 24'd40, 24'd8, 24'd21, 24'd0, 24'd43, 24'd27, 24'd32, 24'd12, 24'd9, 24'd34, 24'd2, 24'd5, 24'd17, 24'd6, 24'd23, 
-24'd12, 24'd11, 24'd27, 24'd35, 24'd14, 24'd8, 24'd30, 24'd9, 24'd38, 24'd27, 24'd1, 24'd4, 24'd15, 24'd35, 24'd23, 24'd6, 24'd15, 24'd3, 24'd15, 24'd2, 24'd8, 24'd39, 24'd19, 24'd34, 24'd10, 24'd27, 24'd12, 24'd5, 24'd31, 24'd22, 
-24'd5, 24'd29, 24'd43, 24'd24, 24'd15, 24'd16, 24'd16, 24'd40, 24'd26, 24'd41, 24'd44, 24'd18, 24'd3, 24'd8, 24'd44, 24'd43, 24'd4, 24'd14, 24'd1, 24'd3, 24'd18, 24'd9, 24'd15, 24'd36, 24'd6, 24'd19, 24'd44, 24'd38, 24'd0, 24'd24, 
-24'd2, 24'd19, 24'd42, 24'd18, 24'd15, 24'd8, 24'd16, 24'd40, 24'd2, 24'd21, 24'd41, 24'd38, 24'd8, 24'd39, 24'd13, 24'd5, 24'd16, 24'd15, 24'd37, 24'd39, 24'd41, 24'd28, 24'd36, 24'd0, 24'd22, 24'd4, 24'd30, 24'd39, 24'd2, 24'd30, 
-24'd5, 24'd22, 24'd7, 24'd1, 24'd14, 24'd14, 24'd6, 24'd20, 24'd1, 24'd24, 24'd37, 24'd35, 24'd22, 24'd15, 24'd12, 24'd43, 24'd38, 24'd38, 24'd15, 24'd31, 24'd37, 24'd1, 24'd4, 24'd14, 24'd1, 24'd37, 24'd7, 24'd18, 24'd12, 24'd24, 
-24'd4, 24'd20, 24'd7, 24'd34, 24'd5, 24'd9, 24'd4, 24'd38, 24'd17, 24'd33, 24'd38, 24'd42, 24'd28, 24'd34, 24'd16, 24'd2, 24'd18, 24'd37, 24'd13, 24'd13, 24'd8, 24'd18, 24'd20, 24'd28, 24'd9, 24'd13, 24'd28, 24'd10, 24'd23, 24'd39, 
-24'd32, 24'd42, 24'd1, 24'd37, 24'd20, 24'd42, 24'd14, 24'd6, 24'd10, 24'd7, 24'd30, 24'd37, 24'd41, 24'd0, 24'd4, 24'd29, 24'd36, 24'd32, 24'd27, 24'd9, 24'd0, 24'd16, 24'd9, 24'd36, 24'd38, 24'd11, 24'd13, 24'd14, 24'd33, 24'd3, 
-24'd37, 24'd5, 24'd34, 24'd6, 24'd25, 24'd37, 24'd1, 24'd19, 24'd35, 24'd19, 24'd16, 24'd25, 24'd4, 24'd12, 24'd35, 24'd29, 24'd30, 24'd13, 24'd20, 24'd35, 24'd1, 24'd10, 24'd17, 24'd25, 24'd11, 24'd7, 24'd27, 24'd6, 24'd37, 24'd0, 
-24'd26, 24'd19, 24'd22, 24'd5, 24'd37, 24'd30, 24'd18, 24'd1, 24'd13, 24'd39, 24'd16, 24'd15, 24'd26, 24'd21, 24'd6, 24'd35, 24'd15, 24'd2, 24'd18, 24'd11, 24'd25, 24'd19, 24'd0, 24'd29, 24'd37, 24'd25, 24'd4, 24'd19, 24'd20, 24'd39, 
-24'd42, 24'd27, 24'd35, 24'd35, 24'd18, 24'd13, 24'd12, 24'd39, 24'd23, 24'd23, 24'd7, 24'd38, 24'd23, 24'd29, 24'd7, 24'd31, 24'd40, 24'd43, 24'd38, 24'd33, 24'd29, 24'd5, 24'd7, 24'd4, 24'd19, 24'd36, 24'd11, 24'd5, 24'd30, 24'd35, 
-24'd26, 24'd25, 24'd12, 24'd41, 24'd27, 24'd43, 24'd17, 24'd19, 24'd42, 24'd41, 24'd24, 24'd43, 24'd17, 24'd23, 24'd8, 24'd43, 24'd36, 24'd33, 24'd18, 24'd40, 24'd1, 24'd43, 24'd4, 24'd25, 24'd41, 24'd44, 24'd0, 24'd22, 24'd16, 24'd14, 
-24'd33, 24'd24, 24'd7, 24'd10, 24'd41, 24'd0, 24'd16, 24'd1, 24'd35, 24'd11, 24'd5, 24'd18, 24'd0, 24'd6, 24'd28, 24'd14, 24'd0, 24'd42, 24'd8, 24'd39, 24'd28, 24'd16, 24'd7, 24'd29, 24'd39, 24'd31, 24'd21, 24'd0, 24'd26, 24'd40, 
-24'd16, 24'd14, 24'd38, 24'd32, 24'd9, 24'd3, 24'd18, 24'd15, 24'd1, 24'd19, 24'd19, 24'd44, 24'd4, 24'd16, 24'd15, 24'd24, 24'd19, 24'd40, 24'd13, 24'd18, 24'd10, 24'd12, 24'd16, 24'd20, 24'd30, 24'd22, 24'd10, 24'd12, 24'd19, 24'd9, 
-24'd10, 24'd16, 24'd37, 24'd31, 24'd8, 24'd20, 24'd18, 24'd4, 24'd44, 24'd33, 24'd38, 24'd11, 24'd21, 24'd21, 24'd13, 24'd7, 24'd9, 24'd40, 24'd14, 24'd22, 24'd30, 24'd17, 24'd31, 24'd19, 24'd34, 24'd15, 24'd17, 24'd43, 24'd25, 24'd26, 
-24'd13, 24'd25, 24'd3, 24'd25, 24'd13, 24'd24, 24'd9, 24'd11, 24'd33, 24'd5, 24'd5, 24'd12, 24'd8, 24'd3, 24'd4, 24'd28, 24'd20, 24'd20, 24'd41, 24'd28, 24'd25, 24'd18, 24'd30, 24'd36, 24'd3, 24'd23, 24'd32, 24'd31, 24'd23, 24'd19, 
-24'd16, 24'd9, 24'd34, 24'd25, 24'd18, 24'd37, 24'd38, 24'd23, 24'd10, 24'd35, 24'd20, 24'd41, 24'd8, 24'd15, 24'd24, 24'd7, 24'd12, 24'd16, 24'd9, 24'd40, 24'd34, 24'd3, 24'd33, 24'd35, 24'd14, 24'd43, 24'd29, 24'd19, 24'd21, 24'd17
+ 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [63:0] = '{24'd5, 24'd28, 24'd8, 24'd6, 
+24'd0, 24'd26, 24'd39, 24'd28, 24'd11, 24'd13, 24'd29, 24'd34, 24'd12, 24'd15, 24'd8, 24'd35, 24'd37, 24'd27, 24'd14, 24'd16, 24'd24, 24'd26, 24'd6, 24'd30, 24'd6, 24'd34, 24'd3, 24'd29, 24'd21, 24'd18, 24'd37, 24'd12, 24'd42, 24'd7, 
+24'd33, 24'd14, 24'd19, 24'd9, 24'd2, 24'd5, 24'd21, 24'd20, 24'd11, 24'd10, 24'd31, 24'd32, 24'd34, 24'd6, 24'd43, 24'd40, 24'd20, 24'd38, 24'd22, 24'd27, 24'd27, 24'd37, 24'd12, 24'd11, 24'd23, 24'd27, 24'd21, 24'd18, 24'd23, 24'd21
 };
  	/*
  	integer i;
@@ -480,12 +465,12 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_A;
-	assign ramBuffer0_dataOutReal_A = ramBuffer0_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer0_dataOutImag_A = ramBuffer0_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer0_dataOutImag_A = ramBuffer0_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer0_dataOutReal_A = ramBuffer0_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
-	assign ramBuffer0_dataOutReal_B = ramBuffer0_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer0_dataOutImag_B = ramBuffer0_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer0_dataOutImag_B = ramBuffer0_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer0_dataOutReal_B = ramBuffer0_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
  	
  	/*
 	bramNewer BRAM_0(
@@ -618,12 +603,12 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_A;
-	assign ramBuffer1_dataOutReal_A =  ramBuffer1_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer1_dataOutImag_A =  ramBuffer1_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer1_dataOutImag_A =  ramBuffer1_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer1_dataOutReal_A =  ramBuffer1_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_B;
-	assign ramBuffer1_dataOutReal_B =  ramBuffer1_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer1_dataOutImag_B =  ramBuffer1_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer1_dataOutImag_B =  ramBuffer1_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer1_dataOutReal_B =  ramBuffer1_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 	/*
 	bramNewer BRAM_1(
 		.address_a ( ramBuffer1_address_A ),
@@ -755,12 +740,12 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_A;
-	assign ramBuffer2_dataOutReal_A =  ramBuffer2_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer2_dataOutImag_A =  ramBuffer2_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer2_dataOutImag_A =  ramBuffer2_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer2_dataOutReal_A =  ramBuffer2_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_B;
-	assign ramBuffer2_dataOutReal_B =  ramBuffer2_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer2_dataOutImag_B =  ramBuffer2_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer2_dataOutImag_B =  ramBuffer2_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer2_dataOutReal_B =  ramBuffer2_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	/*
 	bramNewer BRAM_2(
@@ -892,12 +877,12 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_A;
-	assign ramBuffer3_dataOutReal_A =  ramBuffer3_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer3_dataOutImag_A =  ramBuffer3_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer3_dataOutImag_A =  ramBuffer3_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer3_dataOutReal_A =  ramBuffer3_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_B;
-	assign ramBuffer3_dataOutReal_B =  ramBuffer3_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer3_dataOutImag_B =  ramBuffer3_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer3_dataOutImag_B =  ramBuffer3_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer3_dataOutReal_B =  ramBuffer3_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	/*
 	bramNewer BRAM_3(
@@ -1152,7 +1137,23 @@
 		.BReal(ram_dataInReal_B),
 		.BImag(ram_dataInImag_B)
 		);
-		
+	/*	
+	//Instantiate B
+ 	butterfly B(
+		.aReal(ram_dataOutImag_A),
+		.aImag(ram_dataOutReal_A),
+		.bReal(ram_dataOutImag_B),
+		.bImag(ram_dataOutReal_B),
+		.wReal(wInReal),
+		.wImag(wInImag),
+	
+		//Connect outputs directly to BRAM buffer outside of this module
+		.AReal(ram_dataInReal_A),
+		.AImag(ram_dataInImag_A),
+		.BReal(ram_dataInReal_B),
+		.BImag(ram_dataInImag_B)
+		);
+	*/	
  	//MUX for selecting butterfly inputs
  	always @ (*) begin		
  		wInReal = realCoefficents[kValues[btflyCounter]];
