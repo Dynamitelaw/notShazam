@@ -19,17 +19,6 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-/*
-#define NFFT 256
-#define NBINS 6
-#define BIN0 0
-#define BIN1 5
-#define BIN2 10
-#define BIN3 20
-#define BIN4 40
-#define BIN5 80
-#define BIN6 120
-*/
 #define NFFT 512
 #define NBINS 6
 #define BIN0 0
@@ -90,17 +79,6 @@ std::vector<std::vector<float>> read_fft(std::string filename);
 
 std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID);
 
-std::vector<std::vector<float>> read_fft_noise(std::string filename);
-
-std::list<hash_pair> hash_create_noise(std::string song_name, uint16_t song_ID);
-
-std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft);
-
-std::list<peak_raw> get_peak_max_bin(std::vector<std::vector<float>> fft, 
-	int fft_res, int start, int end);
-
-std::list<peak> prune(std::list<peak_raw> peaks, int max_time);
-
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
 	std::string song_name, uint16_t song_ID);
 
@@ -110,8 +88,6 @@ std::unordered_map<uint16_t, count_ID> identify_sample(
 	std::list<database_info> song_list);
 
 std::list<peak> generate_constellation_map(std::vector<std::vector<float>> fft, int nfft);
-
-void write_constellation(std::list<peak> pruned, std::string filename);
 
 std::list<peak> read_constellation(std::string filename);
 
@@ -332,21 +308,6 @@ std::list<hash_pair> hash_create(std::string song_name, uint16_t song_ID)
 	return hash_entries;
 }
 
-std::list<hash_pair> hash_create_noise(std::string song_name, uint16_t song_ID)
-{	
-	std::cout << "call to hash_create_noise" << std::endl;
-	std::vector<std::vector<float>> fft;
-	fft = read_fft_noise(song_name);	
-
-	std::list<peak> pruned_peaks;
-	pruned_peaks = generate_constellation_map(fft, NFFT);
-
-	std::list<hash_pair> hash_entries;
-	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
-
-	return hash_entries;
-}
-
 std::list<hash_pair> hash_create_from_audio(float sec)
 {	
 	uint16_t song_ID = 0;
@@ -362,155 +323,6 @@ std::list<hash_pair> hash_create_from_audio(float sec)
 	hash_entries = generate_fingerprints(pruned_peaks, song_name, song_ID);
 
 	return hash_entries;
-}
-
-
-/* get peak max bins, returns for one bin */
-std::list<peak_raw> get_peak_max_bin(
-	std::vector<std::vector<float>> fft, 
-	int fft_res, int start, int end)
-{
-	std::cout << "call to get_peak_max_bin" << std::endl;
-	std::list<peak_raw> peaks;
-	uint16_t columns;
-	uint16_t sample;
-	struct peak_raw current;
-
-	columns = fft[0].size();
-	sample = 1;
-	// first bin
-	// Assumes first bin has only the zero freq.
-	if(!start && end){
-	   for(uint16_t j = 1; j < columns-2; j++){
-		if(fft[0][j] > fft[0][j-1] && //west
-			fft[0][j] > fft[0][j+1] && //east
-			fft[0][j] > fft[1][j]){ //south
-		
-		  current.freq = 0;
-		  current.ampl = fft[0][j];
-		  current.time = sample;
-		  peaks.push_back(current);
-		  sample++;
-		}
-	   }
-	}
-	// remaining bins
-	else{
-	 for(uint16_t i = start; i < end - 2; i++){
-	   for(uint16_t j = 1; j < columns-2; j++){
-		if(fft[i][j] > fft[i][j-1] && //west
-			fft[i][j] > fft[i][j+1] && //east
-			fft[i][j] > fft[i-1][j] && //north
-			fft[i][j] > fft[i+1][j]){ //south
-		
-		  current.freq = i;
-		  current.ampl = fft[i][j];
-		  current.time = sample;
-		  peaks.push_back(current);
-		  sample++;
-		}
-	   }
-	 }
-	}
-	return peaks;
-}
-
-/* prune a bin of peaks, returns processed std::list */
-std::list<peak> prune(std::list<peak_raw> peaks, int max_time)
-{
-	std::cout << "call to prune" << std::endl;
-	int time_bin_size;
-	int time;
-	float num;
-	int den;
-	float avg;
-	std::list<peak_raw> current;
-	std::list<peak> pruned;
-	struct peak new_peak; 
-	std::set<uint16_t> sample_set;
-	std::pair<std::set<uint16_t>::iterator,bool> ret;
-
-	num = 0;
-	den = 0;
-	for(std::list<peak_raw>::iterator it = peaks.begin(); 
-		    it != peaks.end(); ++it){
-		num += it->ampl;
-		den++;
-	}
-				
-	if(den){
-		avg = num/den;
-		std::list<peak_raw>::iterator it = peaks.begin(); 
-		
-		while(it !=peaks.end()){
-			if(it->ampl <= .125*avg)
-				{peaks.erase(it++);}
-			else											
-				{++it;}
-		}	
-	}  
-
-	time = 0;
-	time_bin_size = 50;
-	
-	while(time < max_time){
-
-	  num = 0;
-	  den = 0;
-	  
-	  for(std::list<peak_raw>::iterator it = peaks.begin(); 
-			  it != peaks.end(); ++it){	  
-		  
-		  if(it->time > time && it->time < time + time_bin_size){
-		
-			ret = sample_set.insert(it->time);
-			if(ret.second){
-			  current.push_back(*it);
-			  num += it->ampl;
-			  den++;
-			}
-			else{
-	  		  for(std::list<peak_raw>::iterator 
-				iter = current.begin(); 
-		    		iter != current.end(); ++iter){
-					
-				if(iter->time == it->time){
-					//greater, update list
-					if(it->ampl > iter->ampl){
-						num -= iter->ampl;
-						current.erase(iter);
-			  			current.push_back(*it);
-			  			num += it->ampl;
-					}
-					// there should only be one
-					// so leave this inner loop
-			   		break;		   	
-				}
-			  }
-			}
-		  }
-	  }	
-
-	  if(den){
-
-	  	avg = num/den;
-	  	for(std::list<peak_raw>::iterator it = current.begin(); 
-		    it != current.end(); ++it){
-		
-			if(it->ampl >= 1.85*avg)
-			{
-				new_peak.freq =	it->freq;
-				new_peak.time = it->time;
-				pruned.push_back(new_peak);
-			}
-		}	
-	  }  
-	  
-	  time += time_bin_size;
-	  current = std::list<peak_raw>();
-	}
-
-	return pruned;
 }
 
 std::list<hash_pair> generate_fingerprints(std::list<peak> pruned, 
@@ -561,41 +373,6 @@ std::list<hash_pair> generate_fingerprints(std::list<peak> pruned,
 	}	
 
 	return fingerprints;
-}
-
-
-/* Gets complete set of processed peaks */
-std::list<peak> max_bins(std::vector<std::vector<float>> fft, int nfft)
-{
-	std::list<peak> peaks;
-	std::list<peak_raw> temp_raw;
-	std::list<peak> temp;
-
-	temp_raw = get_peak_max_bin(fft, nfft/2, BIN0, BIN1);
-	temp = prune(temp_raw, fft[0].size());
-	peaks.splice(peaks.end(), temp);
-	
-	temp_raw = get_peak_max_bin(fft, nfft/2, BIN1, BIN2);
-	temp = prune(temp_raw, fft[0].size());
-	peaks.splice(peaks.end(), temp);
-	
-	temp_raw = get_peak_max_bin(fft, nfft/2, BIN2, BIN3);
-	temp = prune(temp_raw, fft[0].size());
-	peaks.splice(peaks.end(), temp);
-	
-	temp_raw = get_peak_max_bin(fft, nfft/2, BIN3, BIN4);
-	temp = prune(temp_raw, fft[0].size());
-	peaks.splice(peaks.end(), temp);
-	
-	temp_raw = get_peak_max_bin(fft, nfft/2, BIN4, BIN5);
-	temp = prune(temp_raw, fft[0].size());
-	peaks.splice(peaks.end(), temp);
-	
-	temp_raw = get_peak_max_bin(fft, nfft/2, BIN5, BIN6);
-	temp = prune(temp_raw, fft[0].size());
-	peaks.splice(peaks.end(), temp);
-	
-	return peaks;
 }
 
 
@@ -671,54 +448,6 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 	}
 	return spec;
 }
-
-std::vector<std::vector<float>> read_fft_noise(std::string filename)
-{
-	std::cout << "call to read_fft_noise" << std::endl;
-	std::fstream file;
-	std::string line;
-	std::vector<std::vector<float>> fft;
-	file.open(filename.c_str());
-	bool first = true;
-
-	int offset = 20000;
-	 
-	while(getline(file, line)){
-	   if (first) {
-               first = false;
-	       continue;
-	   }
-	   if(!line.empty()){
-		std::istringstream ss(line);
-		std::vector<float> line_vector;
-		int counter = 0;
-		do{
-		  std::string word;
-		  std::string::size_type sz;
-		  float temp;
-
-		  if (counter < offset) {
-			  counter++;
-			  continue;
-		  }
-
-		  ss >> word;
-		  if(!word.empty()){
-		  	temp = std::stof(word, &sz);
-		  }
-		
-		  line_vector.push_back(temp);
-		  counter++;
-		
-		} while(ss && counter <  offset + 11025/2);
-		fft.push_back(line_vector);
-	   }
-	}
-	file.close();
-	
-	return fft;
-}
-
 
 std::vector<std::vector<float>> read_fft(std::string filename)
 {
@@ -880,29 +609,6 @@ std::list<peak> generate_constellation_map(std::vector<std::vector<float>> fft, 
 	unpruned_map = get_raw_peaks(fft, nfft);
 	return prune_in_time(unpruned_map);
 }
-
-void write_constellation(std::list<peak> pruned, std::string filename){
-	
-	std::ofstream fout;
-	uint32_t peak_32;
-	struct peak temp;
-
-	fout.open(filename+".peak", std::ios::binary | std::ios::out);
-	for(std::list<peak>::iterator it = pruned.begin(); 
-			it != pruned.end(); it++){
-
-		temp = *it;
-	
-		peak_32 = temp.freq;
-		peak_32 = peak_32 << 16;
-		peak_32 |= temp.time;
-		
-		fout.write((char *)&peak_32,sizeof(peak_32));
-	}
-	
-	fout.close();
-}
-
 
 std::list<peak> read_constellation(std::string filename){
 
