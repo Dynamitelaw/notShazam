@@ -146,7 +146,7 @@ int main()
 	while(true)
 	{
 		std::string song_name;
-		std::cout << "Ready to identify. Press ENTER to identify the song playing.\n";
+		std::cout << "Ready to create db song entry. Enter the name of the song playing.\n";
 		std::cin >> song_name;
 
 		temp_s = line; 
@@ -154,13 +154,10 @@ int main()
 		// identify = hash_create_noise(temp_s, num_db);
 		pruned = create_map_from_audio(200);
 		std::cout << "Done listening.\n"; 
-		write_constellation(pruned, song_name + "_board.realpeak");
+		write_constellation(pruned, song_name + ".board");
 		std::cout << "Wrote constellation map for " << song_name << ".\n";
 	}
 		
-
-
-	
 	return 0;
 }
 
