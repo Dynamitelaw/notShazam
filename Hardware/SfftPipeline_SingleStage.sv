@@ -189,25 +189,25 @@
  	//Shift buffer to hold N most recent samples
  	//reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
  	
- 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{24'd2048, 
-24'd2187, 24'd2322, 24'd2446, 24'd2554, 24'd2643, 24'd2710, 24'd2751, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2554, 24'd2446, 24'd2322, 24'd2187, 24'd2048, 24'd1908, 24'd1773, 24'd1649, 24'd1541, 24'd1452, 24'd1385, 24'd1344, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1541, 24'd1649, 24'd1773, 
-24'd1908, 24'd2047, 24'd2187, 24'd2322, 24'd2446, 24'd2554, 24'd2643, 24'd2710, 24'd2751, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2554, 24'd2446, 24'd2322, 24'd2187, 24'd2048, 24'd1908, 24'd1773, 24'd1649, 24'd1541, 24'd1452, 24'd1385, 24'd1344, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1541, 
-24'd1649, 24'd1773, 24'd1908, 24'd2047, 24'd2187, 24'd2322, 24'd2446, 24'd2554, 24'd2643, 24'd2710, 24'd2751, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2554, 24'd2446, 24'd2322, 24'd2187, 24'd2048, 24'd1908, 24'd1773, 24'd1649, 24'd1541, 24'd1452, 24'd1385, 24'd1344, 24'd1331, 24'd1344, 24'd1385, 
-24'd1451, 24'd1541, 24'd1649, 24'd1773, 24'd1908, 24'd2047, 24'd2187, 24'd2322, 24'd2446, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2554, 24'd2446, 24'd2322, 24'd2187, 24'd2048, 24'd1908, 24'd1773, 24'd1649, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 
-24'd1344, 24'd1385, 24'd1451, 24'd1541, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2322, 24'd2446, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2554, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1773, 24'd1649, 24'd1541, 24'd1452, 24'd1385, 
-24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2322, 24'd2446, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1773, 24'd1649, 24'd1541, 
-24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2322, 24'd2446, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1773, 
-24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2322, 24'd2445, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 
-24'd1908, 24'd1773, 24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2321, 24'd2445, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 
-24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2321, 24'd2445, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 
-24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2321, 24'd2445, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 
-24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2321, 24'd2445, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 
-24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2321, 24'd2445, 24'd2554, 24'd2643, 24'd2710, 
-24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2321, 24'd2445, 24'd2554, 
-24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1385, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 24'd2187, 24'd2321, 
-24'd2445, 24'd2554, 24'd2643, 24'd2710, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1386, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 24'd1907, 24'd2047, 
-24'd2187, 24'd2321, 24'd2445, 24'd2554, 24'd2643, 24'd2709, 24'd2750, 24'd2764, 24'd2751, 24'd2710, 24'd2644, 24'd2555, 24'd2446, 24'd2322, 24'd2188, 24'd2048, 24'd1908, 24'd1774, 24'd1650, 24'd1541, 24'd1452, 24'd1386, 24'd1345, 24'd1331, 24'd1344, 24'd1385, 24'd1451, 24'd1540, 24'd1649, 24'd1773, 
-24'd1907};
+ 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [511:0] = '{24'd40, 24'd25, 
+24'd24, 24'd0, 24'd16, 24'd28, 24'd38, 24'd27, 24'd35, 24'd25, 24'd13, 24'd16, 24'd34, 24'd29, 24'd26, 24'd22, 24'd24, 24'd25, 24'd29, 24'd5, 24'd7, 24'd16, 24'd0, 24'd37, 24'd25, 24'd11, 24'd5, 24'd7, 24'd42, 24'd31, 24'd18, 24'd10, 
+24'd42, 24'd13, 24'd21, 24'd2, 24'd26, 24'd29, 24'd40, 24'd0, 24'd21, 24'd17, 24'd35, 24'd2, 24'd10, 24'd38, 24'd34, 24'd32, 24'd15, 24'd39, 24'd23, 24'd26, 24'd26, 24'd34, 24'd19, 24'd26, 24'd42, 24'd31, 24'd34, 24'd17, 24'd10, 24'd36, 
+24'd11, 24'd43, 24'd36, 24'd12, 24'd27, 24'd7, 24'd5, 24'd24, 24'd6, 24'd22, 24'd22, 24'd36, 24'd22, 24'd7, 24'd18, 24'd35, 24'd33, 24'd29, 24'd26, 24'd11, 24'd25, 24'd32, 24'd44, 24'd37, 24'd25, 24'd12, 24'd0, 24'd39, 24'd33, 24'd19, 
+24'd8, 24'd38, 24'd0, 24'd32, 24'd24, 24'd18, 24'd25, 24'd1, 24'd33, 24'd32, 24'd32, 24'd12, 24'd1, 24'd34, 24'd12, 24'd19, 24'd8, 24'd35, 24'd5, 24'd1, 24'd30, 24'd1, 24'd2, 24'd27, 24'd42, 24'd21, 24'd11, 24'd6, 24'd22, 24'd10, 
+24'd21, 24'd1, 24'd39, 24'd25, 24'd4, 24'd15, 24'd29, 24'd35, 24'd3, 24'd22, 24'd21, 24'd3, 24'd44, 24'd30, 24'd39, 24'd16, 24'd34, 24'd26, 24'd21, 24'd26, 24'd17, 24'd19, 24'd8, 24'd43, 24'd16, 24'd25, 24'd24, 24'd44, 24'd2, 24'd30, 
+24'd20, 24'd15, 24'd27, 24'd13, 24'd8, 24'd37, 24'd4, 24'd42, 24'd38, 24'd40, 24'd10, 24'd31, 24'd6, 24'd30, 24'd27, 24'd38, 24'd32, 24'd9, 24'd42, 24'd26, 24'd7, 24'd30, 24'd27, 24'd18, 24'd10, 24'd37, 24'd3, 24'd22, 24'd35, 24'd12, 
+24'd3, 24'd23, 24'd36, 24'd17, 24'd22, 24'd22, 24'd31, 24'd30, 24'd19, 24'd29, 24'd11, 24'd20, 24'd18, 24'd8, 24'd22, 24'd14, 24'd31, 24'd25, 24'd32, 24'd27, 24'd30, 24'd42, 24'd5, 24'd24, 24'd20, 24'd40, 24'd22, 24'd3, 24'd3, 24'd39, 
+24'd0, 24'd43, 24'd42, 24'd15, 24'd20, 24'd29, 24'd6, 24'd34, 24'd19, 24'd22, 24'd35, 24'd37, 24'd16, 24'd17, 24'd17, 24'd22, 24'd16, 24'd26, 24'd22, 24'd9, 24'd17, 24'd28, 24'd21, 24'd25, 24'd20, 24'd0, 24'd31, 24'd40, 24'd11, 24'd31, 
+24'd29, 24'd39, 24'd15, 24'd38, 24'd43, 24'd4, 24'd24, 24'd21, 24'd30, 24'd14, 24'd10, 24'd40, 24'd18, 24'd1, 24'd14, 24'd20, 24'd32, 24'd31, 24'd14, 24'd12, 24'd31, 24'd1, 24'd26, 24'd11, 24'd36, 24'd35, 24'd16, 24'd34, 24'd39, 24'd16, 
+24'd3, 24'd8, 24'd19, 24'd24, 24'd35, 24'd41, 24'd26, 24'd12, 24'd37, 24'd15, 24'd17, 24'd1, 24'd27, 24'd6, 24'd25, 24'd1, 24'd25, 24'd35, 24'd27, 24'd9, 24'd35, 24'd3, 24'd7, 24'd1, 24'd38, 24'd26, 24'd31, 24'd12, 24'd42, 24'd12, 
+24'd22, 24'd37, 24'd16, 24'd31, 24'd43, 24'd4, 24'd18, 24'd39, 24'd21, 24'd12, 24'd1, 24'd44, 24'd17, 24'd21, 24'd13, 24'd24, 24'd23, 24'd16, 24'd16, 24'd22, 24'd30, 24'd15, 24'd0, 24'd35, 24'd8, 24'd5, 24'd30, 24'd20, 24'd25, 24'd33, 
+24'd5, 24'd26, 24'd20, 24'd30, 24'd3, 24'd18, 24'd34, 24'd24, 24'd17, 24'd19, 24'd31, 24'd35, 24'd31, 24'd24, 24'd38, 24'd7, 24'd41, 24'd27, 24'd31, 24'd38, 24'd22, 24'd27, 24'd8, 24'd15, 24'd15, 24'd25, 24'd17, 24'd42, 24'd28, 24'd1, 
+24'd36, 24'd7, 24'd21, 24'd6, 24'd23, 24'd42, 24'd1, 24'd35, 24'd20, 24'd7, 24'd36, 24'd0, 24'd20, 24'd4, 24'd37, 24'd8, 24'd25, 24'd20, 24'd42, 24'd28, 24'd8, 24'd23, 24'd20, 24'd23, 24'd16, 24'd38, 24'd36, 24'd25, 24'd33, 24'd29, 
+24'd41, 24'd18, 24'd18, 24'd18, 24'd41, 24'd40, 24'd13, 24'd4, 24'd17, 24'd19, 24'd25, 24'd38, 24'd31, 24'd38, 24'd43, 24'd31, 24'd12, 24'd21, 24'd4, 24'd10, 24'd39, 24'd16, 24'd18, 24'd20, 24'd31, 24'd18, 24'd33, 24'd40, 24'd28, 24'd29, 
+24'd15, 24'd41, 24'd9, 24'd32, 24'd31, 24'd42, 24'd39, 24'd31, 24'd5, 24'd29, 24'd4, 24'd31, 24'd9, 24'd23, 24'd43, 24'd4, 24'd33, 24'd15, 24'd14, 24'd27, 24'd25, 24'd43, 24'd19, 24'd19, 24'd43, 24'd22, 24'd7, 24'd38, 24'd26, 24'd11, 
+24'd18, 24'd16, 24'd32, 24'd30, 24'd37, 24'd33, 24'd19, 24'd29, 24'd4, 24'd40, 24'd33, 24'd35, 24'd22, 24'd1, 24'd42, 24'd12, 24'd43, 24'd28, 24'd30, 24'd11, 24'd13, 24'd8, 24'd34, 24'd19, 24'd33, 24'd13, 24'd26, 24'd42, 24'd19, 24'd25, 
+24'd14, 24'd27, 24'd18, 24'd43, 24'd44, 24'd16, 24'd3, 24'd41, 24'd21, 24'd38, 24'd5, 24'd34, 24'd17, 24'd36, 24'd12, 24'd31, 24'd8, 24'd40, 24'd22, 24'd18, 24'd18, 24'd15, 24'd40, 24'd21, 24'd44, 24'd22, 24'd38, 24'd44, 24'd42, 24'd13
+};
  	
  	/*
  	integer i;
@@ -1267,35 +1267,62 @@ module butterfly(
 	);
 
 	//Sign extend coefficient to match bit width
-	reg [`SFFT_OUTPUT_WIDTH -1:0] wReal_Extended;
-	reg [`SFFT_OUTPUT_WIDTH -1:0] wImag_Extended;
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] wReal_Extended;
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] wImag_Extended;
 	
-	parameter extensionBits = `SFFT_OUTPUT_WIDTH - `SFFT_FIXED_POINT_ACCURACY -1;
+	parameter extensionBitsCoeff = `SFFT_OUTPUT_WIDTH -1;
 	
 	always @ (*) begin
-	    	wReal_Extended = { {extensionBits{wReal[`SFFT_FIXED_POINT_ACCURACY]}}, wReal};
-	    	wImag_Extended = { {extensionBits{wImag[`SFFT_FIXED_POINT_ACCURACY]}}, wImag};
+	    	wReal_Extended = { {extensionBitsCoeff{wReal[`SFFT_FIXED_POINT_ACCURACY]}}, wReal};
+	    	wImag_Extended = { {extensionBitsCoeff{wImag[`SFFT_FIXED_POINT_ACCURACY]}}, wImag};
 	end
 	
-	//We need to divide our b inputs by 2^FixedPointAccuracy due to the multiplication of 2 fixed point numbers
-	reg [`SFFT_OUTPUT_WIDTH -1:0] bReal_Adjusted;
-	reg [`SFFT_OUTPUT_WIDTH -1:0] bImag_Adjusted;
+	//Increase a bitwidth. Multiply a by 2^FIXEDPOINT
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] aReal_Extended;
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] aImag_Extended;
+	
+	parameter extensionBitsA = `SFFT_FIXED_POINT_ACCURACY;
 	
 	always @ (*) begin
-		//Right shift with sign extension
-	    	bReal_Adjusted = { {extensionBits{bReal[`SFFT_OUTPUT_WIDTH -1]}}, bReal[`SFFT_OUTPUT_WIDTH -1:`SFFT_FIXED_POINT_ACCURACY]};
-	    	bImag_Adjusted = { {extensionBits{bImag[`SFFT_OUTPUT_WIDTH -1]}}, bImag[`SFFT_OUTPUT_WIDTH -1:`SFFT_FIXED_POINT_ACCURACY]};
+		//Leftshift to multiply
+	    	aReal_Extended = {aReal, {extensionBitsA{1'b0}}};
+	    	aImag_Extended = {aImag, {extensionBitsA{1'b0}}};
+	end
+	
+	//Increase b bitwidth
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] bReal_Extended;
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] bImag_Extended;
+	
+	parameter extensionBitsB = `SFFT_FIXED_POINT_ACCURACY;
+	
+	always @ (*) begin
+		//Sign extension
+	    	bReal_Extended = { {extensionBitsB{bReal[`SFFT_OUTPUT_WIDTH -1]}}, bReal};
+	    	bImag_Extended = { {extensionBitsB{bImag[`SFFT_OUTPUT_WIDTH -1]}}, bImag};
 	end
 	
 	//Do butterfly calculation
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] AReal_Intermediate;
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] AImag_Intermediate;
+	
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] BReal_Intermediate;
+	reg [`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:0] BImag_Intermediate;
+	
 	always @ (*) begin
 		//A = a + wb
-		AReal = aReal + (wReal_Extended*bReal_Adjusted) - (wImag_Extended*bImag_Adjusted);
-		AImag = aImag + (wReal_Extended*bImag_Adjusted) + (wImag_Extended*bReal_Adjusted);
+		AReal_Intermediate = aReal_Extended + (wReal_Extended*bReal_Extended) - (wImag_Extended*bImag_Extended);
+		AImag_Intermediate = aImag_Extended + (wReal_Extended*bImag_Extended) + (wImag_Extended*bReal_Extended);
 		
 		//B = a - wb
-		BReal = aReal - (wReal_Extended*bReal_Adjusted) + (wImag_Extended*bImag_Adjusted);
-		BImag = aImag - (wReal_Extended*bImag_Adjusted) - (wImag_Extended*bReal_Adjusted);
+		BReal_Intermediate = aReal_Extended - (wReal_Extended*bReal_Extended) + (wImag_Extended*bImag_Extended);
+		BImag_Intermediate = aImag_Extended - (wReal_Extended*bImag_Extended) - (wImag_Extended*bReal_Extended);
+		
+		//Decrease magnitude of outputs by 2^7
+		AReal = AReal_Intermediate[`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:`SFFT_FIXED_POINT_ACCURACY];
+		AImag = AImag_Intermediate[`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:`SFFT_FIXED_POINT_ACCURACY];
+		
+		BReal = BReal_Intermediate[`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:`SFFT_FIXED_POINT_ACCURACY];
+		BImag = BImag_Intermediate[`SFFT_OUTPUT_WIDTH + `SFFT_FIXED_POINT_ACCURACY -1:`SFFT_FIXED_POINT_ACCURACY];
 	end
 endmodule  //butterfly
 

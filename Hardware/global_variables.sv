@@ -1,4 +1,4 @@
-//`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
+`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
 
 
 // FFT Macros
@@ -8,23 +8,23 @@
 `define FREQS (`NFFT / 2)
 `define FREQ_WIDTH 8 // if change NFFT, change this
 
-`define FINAL_AMPL_WIDTH 32 // Must be less than or equal to INPUT_AMPL_WIDTH
-`define INPUT_AMPL_WIDTH 32 
+`define FINAL_AMPL_WIDTH 64 // Must be less than or equal to INPUT_AMPL_WIDTH
+`define INPUT_AMPL_WIDTH 64 
 `define TIME_COUNTER_WIDTH 32
 
 `define PEAKS 6 // Changing this requires many changes in code
 
 `define SFFT_INPUT_WIDTH 24
 `define SFFT_OUTPUT_WIDTH `INPUT_AMPL_WIDTH
-//`define SFFT_FIXEDPOINT_INPUTSCALING  //define this macro if you want to scale adc inputs to match FixedPoint magnitudes. Increases accuracy, but could lead to overflow
-`define SFFT_FIXED_POINT_ACCURACY 7
+`define SFFT_FIXEDPOINT_INPUTSCALING  //define this macro if you want to scale adc inputs to match FixedPoint magnitudes. Increases accuracy, but could lead to overflow
+`define SFFT_FIXED_POINT_ACCURACY 11 
 `define SFFT_STAGECOUNTER_WIDTH 5  //>= log2(nFFT)
 
 //`define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calculation
 `define SFFT_DOWNSAMPLE_PRE_FACTOR 2
 `define nDOWNSAMPLE_PRE 1  // >= log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
 
-`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
+//`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
 `define SFFT_DOWNSAMPLE_POST_FACTOR 256
 `define nDOWNSAMPLE_POST 8  // >= log2(SFFT_DOWNSAMPLE_POST_FACTOR)
 
