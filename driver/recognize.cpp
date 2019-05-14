@@ -138,7 +138,7 @@ int main()
 	file.open("song_list.txt");
 	while(getline(file, line)){
 	   if(!line.empty()){
-		if (num_db % 6 != 0) { num_db++; continue;}
+		if (num_db % 6 != 2) { num_db++; continue;}
 
 		num_db++;
 		temp_s = "./"+ line;
@@ -184,7 +184,7 @@ int main()
 		temp_s = line; 
 		std::list<hash_pair> identify;
 		// identify = hash_create_noise(temp_s, num_db);
-		identify = hash_create_from_audio(15);
+		identify = hash_create_from_audio(25);
 		std::cout << "Done listening.\n"; 
 		
 

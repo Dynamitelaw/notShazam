@@ -9,8 +9,8 @@ CXXFLAGS = -g -Wall $(INCLUDES) -std=c++0x
 LDFLAGS = -g
 LDLIBS =
 
-executables = recognize db
-objects = recognize.o db.o
+executables = recognize db recognize_board
+objects = recognize.o db.o recognize_board.o
 
 .PHONY: default
 default: $(executables)
