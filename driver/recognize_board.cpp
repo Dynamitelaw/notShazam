@@ -27,12 +27,12 @@
 #define BIN3 40
 #define BIN4 80
 #define BIN5 160
-#define BIN6 240
+#define BIN6 160
 
 #define PRUNING_COEF 1.4f
 #define PRUNING_TIME_WINDOW 500
 #define NORM_POW 1.0f
-#define STD_DEV_COEF 1.25
+#define STD_DEV_COEF 2.3
 #define T_ZONE 4
 
 struct peak_raw {
@@ -138,7 +138,6 @@ int main()
 	file.open("song_list.txt");
 	while(getline(file, line)){
 	   if(!line.empty()){
-		if (num_db % 6 != 0) { num_db++; continue;}
 
 		num_db++;
 		temp_s = "./"+ line;
@@ -557,7 +556,7 @@ std::list<peak> read_constellation(std::string filename){
   	char * memblock;
 	int i;
 	
-	fin.open(filename+"_48.realpeak", std::ios::binary | std::ios::in 
+	fin.open(filename+".boardpeak", std::ios::binary | std::ios::in 
 			| std::ios::ate);
 
 	i = 0;

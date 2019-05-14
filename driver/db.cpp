@@ -27,12 +27,12 @@
 #define BIN3 40
 #define BIN4 80
 #define BIN5 160
-#define BIN6 240
+#define BIN6 160
 
 #define PRUNING_COEF 1.4f
 #define PRUNING_TIME_WINDOW 500
 #define NORM_POW 1.0f
-#define STD_DEV_COEF 1.25
+#define STD_DEV_COEF 2.3
 #define T_ZONE 4
 
 struct peak_raw {
@@ -152,7 +152,7 @@ int main()
 		temp_s = line; 
 		std::list<peak> pruned;
 		// identify = hash_create_noise(temp_s, num_db);
-		pruned = create_map_from_audio(200);
+		pruned = create_map_from_audio(125);
 		std::cout << "Done listening.\n"; 
 		write_constellation(pruned, song_name + ".board");
 		std::cout << "Wrote constellation map for " << song_name << ".\n";
