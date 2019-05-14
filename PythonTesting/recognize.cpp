@@ -14,7 +14,6 @@
 #include <cfloat>
 #include <cmath>
 
-/*
 #define NFFT 256
 #define NBINS 6
 #define BIN0 0
@@ -24,7 +23,7 @@
 #define BIN4 40
 #define BIN5 80
 #define BIN6 120
-*/
+/*
 #define NFFT 512
 #define NBINS 6
 #define BIN0 0
@@ -34,7 +33,7 @@
 #define BIN4 80
 #define BIN5 160
 #define BIN6 240
-
+*/
 #define PRUNING_COEF 1.4f
 #define PRUNING_TIME_WINDOW 500
 #define NORM_POW 1.0f
@@ -114,7 +113,7 @@ float score(const struct count_ID &c) {
 	return ((float) c.count)/std::pow(c.num_hashes, NORM_POW);	
 }
 bool sortByScore(const struct count_ID &lhs, const struct count_ID &rhs) { 
-	return score(lhs) > score(rhs); 
+	return lhs.count == rhs.count ? score(lhs) > score(rhs) : lhs.count > rhs.count;
 }
 
 int main()
@@ -148,7 +147,7 @@ int main()
 
 		num_db++;
 		   
-		temp_s = "./constellationFiles/"+line;
+		temp_s = "./"+line;
 		hash_count = 0;
 			
 		std::list<hash_pair> temp;
@@ -191,7 +190,7 @@ int main()
 	{
 		num_db++;
 		std::cout << "{" <<  num_db << "} ";
-		temp_s = "./constellationFiles/"+line; 
+		temp_s = "./"+line; 
 		std::list<hash_pair> identify;
 		// identify = hash_create_noise(temp_s, num_db);
 		identify = hash_create_noise(temp_s + "_NOISY", num_db);
@@ -845,7 +844,7 @@ std::list<peak> read_constellation(std::string filename){
   	char * memblock;
 	int i;
 	
-	fin.open(filename+".realpeak", std::ios::binary | std::ios::in 
+	fin.open(filename+"_48.magpeak", std::ios::binary | std::ios::in 
 			| std::ios::ate);
 
 	i = 0;
