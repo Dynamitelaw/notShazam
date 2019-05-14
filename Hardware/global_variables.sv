@@ -1,4 +1,4 @@
-`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
+//`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
 
 
 // FFT Macros
@@ -24,7 +24,7 @@
 `define SFFT_DOWNSAMPLE_PRE_FACTOR 2
 `define nDOWNSAMPLE_PRE 1  // >= log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
 
-//`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
+`define SFFT_DOWNSAMPLE_POST  //define this macro if you want to downsample the outgoing FFT calculation (will skip calculations)
 `define SFFT_DOWNSAMPLE_POST_FACTOR 256
 `define nDOWNSAMPLE_POST 8  // >= log2(SFFT_DOWNSAMPLE_POST_FACTOR)
 
