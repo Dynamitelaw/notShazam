@@ -141,7 +141,7 @@ int main()
 
 		num_db++;
 		   
-		temp_s = "./constellationFiles/"+ line;
+		temp_s = "./"+ line;
 		hash_count = 0;
 			
 		std::list<hash_pair> temp;
@@ -557,7 +557,7 @@ std::list<peak> read_constellation(std::string filename){
   	char * memblock;
 	int i;
 	
-	fin.open(filename+".realpeak", std::ios::binary | std::ios::in 
+	fin.open(filename+"_48.magpeak", std::ios::binary | std::ios::in 
 			| std::ios::ate);
 
 	i = 0;
