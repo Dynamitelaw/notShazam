@@ -1,4 +1,4 @@
-`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
+//`define RUNNING_SIMULATION  //define this to change ROM file locations to absolute paths fo vsim
 
 
 // FFT Macros
