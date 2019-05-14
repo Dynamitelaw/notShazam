@@ -121,7 +121,7 @@ module FFT_Accelerator(
 		timeCounter <= timeCounter + 1;
 	end
 	
-	
+	/*
 	//Instantiate hex decoders
 	hex7seg h5( .a(Output_Why[23:20]),.y(HEX5) ), // left digit
 		h4( .a(Output_Why[19:16]),.y(HEX4) ),
@@ -129,8 +129,8 @@ module FFT_Accelerator(
 		h2( .a(Output_Why[11:8]),.y(HEX2) ),
 		h1( .a(Output_Why[7:4]),.y(HEX1) ),
 		h0( .a(Output_Why[3:0]),.y(HEX0) );
-		
-	/*
+	*/	
+	
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
 		h4( .a(adc_out_buffer[19:16]),.y(HEX4) ),
@@ -138,7 +138,7 @@ module FFT_Accelerator(
 		h2( .a(adc_out_buffer[11:8]),.y(HEX2) ),
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
-	*/
+	
 
 	
 	//Map timer counter output
