@@ -16,11 +16,11 @@
 
 `define SFFT_INPUT_WIDTH 24
 `define SFFT_OUTPUT_WIDTH `INPUT_AMPL_WIDTH
-`define SFFT_FIXEDPOINT_INPUTSCALING  //define this macro if you want to scale adc inputs to match FixedPoint magnitudes. Increases accuracy, but could lead to overflow
+//`define SFFT_FIXEDPOINT_INPUTSCALING  //define this macro if you want to scale adc inputs to match FixedPoint magnitudes. Increases accuracy, but could lead to overflow
 `define SFFT_FIXED_POINT_ACCURACY 7
 `define SFFT_STAGECOUNTER_WIDTH 5  //>= log2(nFFT)
 
-`define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calculation
+//`define SFFT_DOWNSAMPLE_PRE  //define this macro if you want to downsample the incoming audio BEFORE the FFT calculation
 `define SFFT_DOWNSAMPLE_PRE_FACTOR 2
 `define nDOWNSAMPLE_PRE 1  // >= log2(SFFT_DOWNSAMPLE_PRE_FACTOR)
 
@@ -32,7 +32,7 @@
 `define AUDIO_IN_GAIN 9'h010
 `define AUDIO_OUT_GAIN 9'h061
 
-`define SAMPLE_RATE_CNTRL 9'd0  //see page 44 of datasheet of more info: https://statics.cirrus.com/pubs/proDatasheet/WM8731_v4.9.pdf
+`define SAMPLE_RATE_CNTRL 9'b0000_00000  //see page 44 of datasheet of more info: https://statics.cirrus.com/pubs/proDatasheet/WM8731_v4.9.pdf
 
 /*
 // BINS NFFT=16

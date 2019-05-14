@@ -179,7 +179,7 @@ int main()
     return -1;
   }
 	
-  print_spec();
+//  print_spec();
   
   int n = 5;
 
