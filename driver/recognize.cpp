@@ -435,7 +435,7 @@ std::vector<std::vector<float>> get_fft_from_audio(float sec) {
 	
 		for(uint32_t j = 0; j < N_FREQUENCIES; j++){
 			//std::cout << fft_temp[j] << " ";
-			spec[j].push_back(fft_temp[j]);
+			spec[j].push_back(std::abs(fft_temp[j]));
 		}	
 			//std::cout << std::endl;
 		if (time == ERR_IO || time == ERR_NVALID) {
