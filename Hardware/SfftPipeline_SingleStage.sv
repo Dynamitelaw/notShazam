@@ -4,13 +4,11 @@
  
 `include "global_variables.sv"
 
-`ifdef RUNNING_SIMULATION
-	`include "bram.sv"
-`else
-	//`include "bramNew.v"
-	`include "bramNewer.v"
-	//`include "bramNewest.v"
-`endif
+//`ifdef RUNNING_SIMULATION
+`include "bram.sv"
+//`else
+	//`include "bramNewer.v"
+//`endif
  
  
  /*
@@ -449,7 +447,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_0(
 	 	.readClk(clk),
@@ -472,7 +470,7 @@
 	 	.dataOutImag_B(ramBuffer0_dataOutImag_B)
 	 	);
 `else
-	 
+*/	 
 	 //Concatenate dataIn bus
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataInConcatenated_A;
 	 assign ramBuffer0_dataInConcatenated_A = {ramBuffer0_dataInReal_A, ramBuffer0_dataInImag_A};
@@ -488,7 +486,8 @@
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
 	assign ramBuffer0_dataOutReal_B = ramBuffer0_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
 	assign ramBuffer0_dataOutImag_B = ramBuffer0_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
- 
+ 	
+ 	/*
 	bramNewer BRAM_0(
 		.address_a ( ramBuffer0_address_A ),
 		.address_b ( ramBuffer0_address_B ),
@@ -500,7 +499,20 @@
 		.q_a ( ramBuffer0_dataOutConcatenated_A ),
 		.q_b ( ramBuffer0_dataOutConcatenated_B )
 		);
-`endif	
+	*/
+	
+	myNewerBram BRAM_0(
+		.clk(clk),
+		.aa(ramBuffer0_address_A), 
+		.ab(ramBuffer0_address_B),
+		.da(ramBuffer0_dataInConcatenated_A), 
+		.db(ramBuffer0_dataInConcatenated_B), 
+		.wa(ramBuffer0_writeEnable_A), 
+		.wb(ramBuffer0_writeEnable_B),
+		.qa(ramBuffer0_dataOutConcatenated_A), 
+		.qb(ramBuffer0_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 0 write access control
 	always @(*) begin		
@@ -573,7 +585,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_1(
 	 	.readClk(clk),
@@ -596,7 +608,7 @@
 	 	.dataOutImag_B(ramBuffer1_dataOutImag_B)
 	 	);
 `else
-	 
+*/	 
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataInConcatenated_A;
 	assign ramBuffer1_dataInConcatenated_A = {ramBuffer1_dataInReal_A, ramBuffer1_dataInImag_A};
@@ -612,7 +624,7 @@
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_B;
 	assign ramBuffer1_dataOutReal_B =  ramBuffer1_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
 	assign ramBuffer1_dataOutImag_B =  ramBuffer1_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
-
+	/*
 	bramNewer BRAM_1(
 		.address_a ( ramBuffer1_address_A ),
 		.address_b ( ramBuffer1_address_B ),
@@ -624,7 +636,19 @@
 		.q_a ( ramBuffer1_dataOutConcatenated_A ),
 		.q_b ( ramBuffer1_dataOutConcatenated_B )
 		);
-`endif	
+	*/	
+	myNewerBram BRAM_1(
+		.clk(clk),
+		.aa(ramBuffer1_address_A), 
+		.ab(ramBuffer1_address_B),
+		.da(ramBuffer1_dataInConcatenated_A), 
+		.db(ramBuffer1_dataInConcatenated_B), 
+		.wa(ramBuffer1_writeEnable_A), 
+		.wb(ramBuffer1_writeEnable_B),
+		.qa(ramBuffer1_dataOutConcatenated_A), 
+		.qb(ramBuffer1_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 1 write access control
 	always @(*) begin		
@@ -697,7 +721,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_2(
 	 	.readClk(clk),
@@ -720,7 +744,7 @@
 	 	.dataOutImag_B(ramBuffer2_dataOutImag_B)
 	 	);
 `else
-	
+*/	
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataInConcatenated_A;
 	assign ramBuffer2_dataInConcatenated_A = {ramBuffer2_dataInReal_A, ramBuffer2_dataInImag_A};
@@ -738,7 +762,7 @@
 	assign ramBuffer2_dataOutReal_B =  ramBuffer2_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
 	assign ramBuffer2_dataOutImag_B =  ramBuffer2_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
-	
+	/*
 	bramNewer BRAM_2(
 		.address_a ( ramBuffer2_address_A ),
 		.address_b ( ramBuffer2_address_B ),
@@ -750,7 +774,19 @@
 		.q_a ( ramBuffer2_dataOutConcatenated_A ),
 		.q_b ( ramBuffer2_dataOutConcatenated_B )
 		);
-`endif	
+	*/	
+	myNewerBram BRAM_2(
+		.clk(clk),
+		.aa(ramBuffer2_address_A), 
+		.ab(ramBuffer2_address_B),
+		.da(ramBuffer2_dataInConcatenated_A), 
+		.db(ramBuffer2_dataInConcatenated_B), 
+		.wa(ramBuffer2_writeEnable_A), 
+		.wb(ramBuffer2_writeEnable_B),
+		.qa(ramBuffer2_dataOutConcatenated_A), 
+		.qb(ramBuffer2_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 2 write access control
 	always @(*) begin		
@@ -823,7 +859,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_3(
 	 	.readClk(clk),
@@ -846,7 +882,7 @@
 	 	.dataOutImag_B(ramBuffer3_dataOutImag_B)
 	 	);
 `else 
-	
+*/	
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataInConcatenated_A;
 	assign ramBuffer3_dataInConcatenated_A = {ramBuffer3_dataInReal_A, ramBuffer3_dataInImag_A};
@@ -863,7 +899,7 @@
 	assign ramBuffer3_dataOutReal_B =  ramBuffer3_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
 	assign ramBuffer3_dataOutImag_B =  ramBuffer3_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
-	
+	/*
 	bramNewer BRAM_3(
 		.address_a ( ramBuffer3_address_A ),
 		.address_b ( ramBuffer3_address_B ),
@@ -875,7 +911,19 @@
 		.q_a ( ramBuffer3_dataOutConcatenated_A ),
 		.q_b ( ramBuffer3_dataOutConcatenated_B )
 		);
-`endif	
+	*/	
+	myNewerBram BRAM_3(
+		.clk(clk),
+		.aa(ramBuffer3_address_A), 
+		.ab(ramBuffer3_address_B),
+		.da(ramBuffer3_dataInConcatenated_A), 
+		.db(ramBuffer3_dataInConcatenated_B), 
+		.wa(ramBuffer3_writeEnable_A), 
+		.wb(ramBuffer3_writeEnable_B),
+		.qa(ramBuffer3_dataOutConcatenated_A), 
+		.qb(ramBuffer3_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 3 write access control
 	always @(*) begin		
