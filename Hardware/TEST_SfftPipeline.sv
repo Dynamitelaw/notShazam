@@ -39,7 +39,7 @@
 //`include "SfftPipeline.sv"
 `include "SfftPipeline_SingleStage.sv"
 
-`define CALCULATION_DELAY #10000
+`define CALCULATION_DELAY #80000
  
  module Sfft_Testbench();
  	reg reset = 0;
@@ -316,6 +316,7 @@
 		advanceSignal <= 0;
 		
 		`CALCULATION_DELAY
+		`CALCULATION_DELAY
 		$stop;
 	end
 	
@@ -323,6 +324,10 @@
 	always begin
 		#1  //2-step period
 		clk <= ~clk;
+	end
+	
+	always @(posedge clk) begin
+		output_address <= output_address + 1;
 	end
 	
  endmodule
