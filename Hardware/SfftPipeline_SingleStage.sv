@@ -185,13 +185,8 @@
  	
  	
  	//Shift buffer to hold N most recent samples
- 	//reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
+ 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
  	
- 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [63:0] = '{24'd5, 24'd28, 24'd8, 24'd6, 
-24'd0, 24'd26, 24'd39, 24'd28, 24'd11, 24'd13, 24'd29, 24'd34, 24'd12, 24'd15, 24'd8, 24'd35, 24'd37, 24'd27, 24'd14, 24'd16, 24'd24, 24'd26, 24'd6, 24'd30, 24'd6, 24'd34, 24'd3, 24'd29, 24'd21, 24'd18, 24'd37, 24'd12, 24'd42, 24'd7, 
-24'd33, 24'd14, 24'd19, 24'd9, 24'd2, 24'd5, 24'd21, 24'd20, 24'd11, 24'd10, 24'd31, 24'd32, 24'd34, 24'd6, 24'd43, 24'd40, 24'd20, 24'd38, 24'd22, 24'd27, 24'd27, 24'd37, 24'd12, 24'd11, 24'd23, 24'd27, 24'd21, 24'd18, 24'd23, 24'd21
-};
- 	/*
  	integer i;
  	always @ (posedge advanceSignal_Processed) begin
  		for (i=0; i<`NFFT; i=i+1) begin
@@ -205,7 +200,7 @@
  			end
  		end	
  	end
- 	*/
+ 	
  	 	
  	//Shuffle input buffer
  	logic [`SFFT_OUTPUT_WIDTH -1:0] shuffledSamples [`NFFT -1:0];
