@@ -4,13 +4,11 @@
  
 `include "global_variables.sv"
 
-`ifdef RUNNING_SIMULATION
-	`include "bram.sv"
-`else
-	//`include "bramNew.v"
-	`include "bramNewer.v"
-	//`include "bramNewest.v"
-`endif
+//`ifdef RUNNING_SIMULATION
+`include "bram.sv"
+//`else
+	//`include "bramNewer.v"
+//`endif
  
  
  /*
@@ -187,28 +185,8 @@
  	
  	
  	//Shift buffer to hold N most recent samples
- 	//reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
+ 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [`NFFT -1:0] = '{default:0};
  	
- 	reg [`SFFT_INPUT_WIDTH -1:0] SampleBuffers [511:0] = '{24'd0, 24'd21, 
-24'd33, 24'd23, 24'd19, 24'd10, 24'd42, 24'd26, 24'd6, 24'd31, 24'd5, 24'd3, 24'd33, 24'd13, 24'd19, 24'd25, 24'd34, 24'd42, 24'd33, 24'd44, 24'd27, 24'd25, 24'd17, 24'd19, 24'd42, 24'd26, 24'd26, 24'd9, 24'd44, 24'd6, 24'd4, 24'd12, 
-24'd26, 24'd19, 24'd31, 24'd2, 24'd32, 24'd17, 24'd41, 24'd7, 24'd41, 24'd13, 24'd8, 24'd1, 24'd24, 24'd41, 24'd23, 24'd40, 24'd8, 24'd21, 24'd0, 24'd43, 24'd27, 24'd32, 24'd12, 24'd9, 24'd34, 24'd2, 24'd5, 24'd17, 24'd6, 24'd23, 
-24'd12, 24'd11, 24'd27, 24'd35, 24'd14, 24'd8, 24'd30, 24'd9, 24'd38, 24'd27, 24'd1, 24'd4, 24'd15, 24'd35, 24'd23, 24'd6, 24'd15, 24'd3, 24'd15, 24'd2, 24'd8, 24'd39, 24'd19, 24'd34, 24'd10, 24'd27, 24'd12, 24'd5, 24'd31, 24'd22, 
-24'd5, 24'd29, 24'd43, 24'd24, 24'd15, 24'd16, 24'd16, 24'd40, 24'd26, 24'd41, 24'd44, 24'd18, 24'd3, 24'd8, 24'd44, 24'd43, 24'd4, 24'd14, 24'd1, 24'd3, 24'd18, 24'd9, 24'd15, 24'd36, 24'd6, 24'd19, 24'd44, 24'd38, 24'd0, 24'd24, 
-24'd2, 24'd19, 24'd42, 24'd18, 24'd15, 24'd8, 24'd16, 24'd40, 24'd2, 24'd21, 24'd41, 24'd38, 24'd8, 24'd39, 24'd13, 24'd5, 24'd16, 24'd15, 24'd37, 24'd39, 24'd41, 24'd28, 24'd36, 24'd0, 24'd22, 24'd4, 24'd30, 24'd39, 24'd2, 24'd30, 
-24'd5, 24'd22, 24'd7, 24'd1, 24'd14, 24'd14, 24'd6, 24'd20, 24'd1, 24'd24, 24'd37, 24'd35, 24'd22, 24'd15, 24'd12, 24'd43, 24'd38, 24'd38, 24'd15, 24'd31, 24'd37, 24'd1, 24'd4, 24'd14, 24'd1, 24'd37, 24'd7, 24'd18, 24'd12, 24'd24, 
-24'd4, 24'd20, 24'd7, 24'd34, 24'd5, 24'd9, 24'd4, 24'd38, 24'd17, 24'd33, 24'd38, 24'd42, 24'd28, 24'd34, 24'd16, 24'd2, 24'd18, 24'd37, 24'd13, 24'd13, 24'd8, 24'd18, 24'd20, 24'd28, 24'd9, 24'd13, 24'd28, 24'd10, 24'd23, 24'd39, 
-24'd32, 24'd42, 24'd1, 24'd37, 24'd20, 24'd42, 24'd14, 24'd6, 24'd10, 24'd7, 24'd30, 24'd37, 24'd41, 24'd0, 24'd4, 24'd29, 24'd36, 24'd32, 24'd27, 24'd9, 24'd0, 24'd16, 24'd9, 24'd36, 24'd38, 24'd11, 24'd13, 24'd14, 24'd33, 24'd3, 
-24'd37, 24'd5, 24'd34, 24'd6, 24'd25, 24'd37, 24'd1, 24'd19, 24'd35, 24'd19, 24'd16, 24'd25, 24'd4, 24'd12, 24'd35, 24'd29, 24'd30, 24'd13, 24'd20, 24'd35, 24'd1, 24'd10, 24'd17, 24'd25, 24'd11, 24'd7, 24'd27, 24'd6, 24'd37, 24'd0, 
-24'd26, 24'd19, 24'd22, 24'd5, 24'd37, 24'd30, 24'd18, 24'd1, 24'd13, 24'd39, 24'd16, 24'd15, 24'd26, 24'd21, 24'd6, 24'd35, 24'd15, 24'd2, 24'd18, 24'd11, 24'd25, 24'd19, 24'd0, 24'd29, 24'd37, 24'd25, 24'd4, 24'd19, 24'd20, 24'd39, 
-24'd42, 24'd27, 24'd35, 24'd35, 24'd18, 24'd13, 24'd12, 24'd39, 24'd23, 24'd23, 24'd7, 24'd38, 24'd23, 24'd29, 24'd7, 24'd31, 24'd40, 24'd43, 24'd38, 24'd33, 24'd29, 24'd5, 24'd7, 24'd4, 24'd19, 24'd36, 24'd11, 24'd5, 24'd30, 24'd35, 
-24'd26, 24'd25, 24'd12, 24'd41, 24'd27, 24'd43, 24'd17, 24'd19, 24'd42, 24'd41, 24'd24, 24'd43, 24'd17, 24'd23, 24'd8, 24'd43, 24'd36, 24'd33, 24'd18, 24'd40, 24'd1, 24'd43, 24'd4, 24'd25, 24'd41, 24'd44, 24'd0, 24'd22, 24'd16, 24'd14, 
-24'd33, 24'd24, 24'd7, 24'd10, 24'd41, 24'd0, 24'd16, 24'd1, 24'd35, 24'd11, 24'd5, 24'd18, 24'd0, 24'd6, 24'd28, 24'd14, 24'd0, 24'd42, 24'd8, 24'd39, 24'd28, 24'd16, 24'd7, 24'd29, 24'd39, 24'd31, 24'd21, 24'd0, 24'd26, 24'd40, 
-24'd16, 24'd14, 24'd38, 24'd32, 24'd9, 24'd3, 24'd18, 24'd15, 24'd1, 24'd19, 24'd19, 24'd44, 24'd4, 24'd16, 24'd15, 24'd24, 24'd19, 24'd40, 24'd13, 24'd18, 24'd10, 24'd12, 24'd16, 24'd20, 24'd30, 24'd22, 24'd10, 24'd12, 24'd19, 24'd9, 
-24'd10, 24'd16, 24'd37, 24'd31, 24'd8, 24'd20, 24'd18, 24'd4, 24'd44, 24'd33, 24'd38, 24'd11, 24'd21, 24'd21, 24'd13, 24'd7, 24'd9, 24'd40, 24'd14, 24'd22, 24'd30, 24'd17, 24'd31, 24'd19, 24'd34, 24'd15, 24'd17, 24'd43, 24'd25, 24'd26, 
-24'd13, 24'd25, 24'd3, 24'd25, 24'd13, 24'd24, 24'd9, 24'd11, 24'd33, 24'd5, 24'd5, 24'd12, 24'd8, 24'd3, 24'd4, 24'd28, 24'd20, 24'd20, 24'd41, 24'd28, 24'd25, 24'd18, 24'd30, 24'd36, 24'd3, 24'd23, 24'd32, 24'd31, 24'd23, 24'd19, 
-24'd16, 24'd9, 24'd34, 24'd25, 24'd18, 24'd37, 24'd38, 24'd23, 24'd10, 24'd35, 24'd20, 24'd41, 24'd8, 24'd15, 24'd24, 24'd7, 24'd12, 24'd16, 24'd9, 24'd40, 24'd34, 24'd3, 24'd33, 24'd35, 24'd14, 24'd43, 24'd29, 24'd19, 24'd21, 24'd17
-};
- 	/*
  	integer i;
  	always @ (posedge advanceSignal_Processed) begin
  		for (i=0; i<`NFFT; i=i+1) begin
@@ -222,7 +200,7 @@
  			end
  		end	
  	end
- 	*/
+ 	
  	 	
  	//Shuffle input buffer
  	logic [`SFFT_OUTPUT_WIDTH -1:0] shuffledSamples [`NFFT -1:0];
@@ -449,7 +427,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer0_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_0(
 	 	.readClk(clk),
@@ -472,7 +450,7 @@
 	 	.dataOutImag_B(ramBuffer0_dataOutImag_B)
 	 	);
 `else
-	 
+*/	 
 	 //Concatenate dataIn bus
 	 wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataInConcatenated_A;
 	 assign ramBuffer0_dataInConcatenated_A = {ramBuffer0_dataInReal_A, ramBuffer0_dataInImag_A};
@@ -482,13 +460,14 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_A;
-	assign ramBuffer0_dataOutReal_A = ramBuffer0_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer0_dataOutImag_A = ramBuffer0_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer0_dataOutImag_A = ramBuffer0_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer0_dataOutReal_A = ramBuffer0_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer0_dataOutConcatenated_B;
-	assign ramBuffer0_dataOutReal_B = ramBuffer0_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer0_dataOutImag_B = ramBuffer0_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
- 
+	assign ramBuffer0_dataOutImag_B = ramBuffer0_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer0_dataOutReal_B = ramBuffer0_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+ 	
+ 	/*
 	bramNewer BRAM_0(
 		.address_a ( ramBuffer0_address_A ),
 		.address_b ( ramBuffer0_address_B ),
@@ -500,7 +479,20 @@
 		.q_a ( ramBuffer0_dataOutConcatenated_A ),
 		.q_b ( ramBuffer0_dataOutConcatenated_B )
 		);
-`endif	
+	*/
+	
+	myNewerBram BRAM_0(
+		.clk(clk),
+		.aa(ramBuffer0_address_A), 
+		.ab(ramBuffer0_address_B),
+		.da(ramBuffer0_dataInConcatenated_A), 
+		.db(ramBuffer0_dataInConcatenated_B), 
+		.wa(ramBuffer0_writeEnable_A), 
+		.wb(ramBuffer0_writeEnable_B),
+		.qa(ramBuffer0_dataOutConcatenated_A), 
+		.qb(ramBuffer0_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 0 write access control
 	always @(*) begin		
@@ -573,7 +565,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer1_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_1(
 	 	.readClk(clk),
@@ -596,7 +588,7 @@
 	 	.dataOutImag_B(ramBuffer1_dataOutImag_B)
 	 	);
 `else
-	 
+*/	 
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataInConcatenated_A;
 	assign ramBuffer1_dataInConcatenated_A = {ramBuffer1_dataInReal_A, ramBuffer1_dataInImag_A};
@@ -606,13 +598,13 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_A;
-	assign ramBuffer1_dataOutReal_A =  ramBuffer1_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer1_dataOutImag_A =  ramBuffer1_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer1_dataOutImag_A =  ramBuffer1_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer1_dataOutReal_A =  ramBuffer1_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer1_dataOutConcatenated_B;
-	assign ramBuffer1_dataOutReal_B =  ramBuffer1_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer1_dataOutImag_B =  ramBuffer1_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
-
+	assign ramBuffer1_dataOutImag_B =  ramBuffer1_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer1_dataOutReal_B =  ramBuffer1_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	/*
 	bramNewer BRAM_1(
 		.address_a ( ramBuffer1_address_A ),
 		.address_b ( ramBuffer1_address_B ),
@@ -624,7 +616,19 @@
 		.q_a ( ramBuffer1_dataOutConcatenated_A ),
 		.q_b ( ramBuffer1_dataOutConcatenated_B )
 		);
-`endif	
+	*/	
+	myNewerBram BRAM_1(
+		.clk(clk),
+		.aa(ramBuffer1_address_A), 
+		.ab(ramBuffer1_address_B),
+		.da(ramBuffer1_dataInConcatenated_A), 
+		.db(ramBuffer1_dataInConcatenated_B), 
+		.wa(ramBuffer1_writeEnable_A), 
+		.wb(ramBuffer1_writeEnable_B),
+		.qa(ramBuffer1_dataOutConcatenated_A), 
+		.qb(ramBuffer1_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 1 write access control
 	always @(*) begin		
@@ -697,7 +701,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer2_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_2(
 	 	.readClk(clk),
@@ -720,7 +724,7 @@
 	 	.dataOutImag_B(ramBuffer2_dataOutImag_B)
 	 	);
 `else
-	
+*/	
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataInConcatenated_A;
 	assign ramBuffer2_dataInConcatenated_A = {ramBuffer2_dataInReal_A, ramBuffer2_dataInImag_A};
@@ -731,14 +735,14 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_A;
-	assign ramBuffer2_dataOutReal_A =  ramBuffer2_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer2_dataOutImag_A =  ramBuffer2_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer2_dataOutImag_A =  ramBuffer2_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer2_dataOutReal_A =  ramBuffer2_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer2_dataOutConcatenated_B;
-	assign ramBuffer2_dataOutReal_B =  ramBuffer2_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer2_dataOutImag_B =  ramBuffer2_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer2_dataOutImag_B =  ramBuffer2_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer2_dataOutReal_B =  ramBuffer2_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
-	
+	/*
 	bramNewer BRAM_2(
 		.address_a ( ramBuffer2_address_A ),
 		.address_b ( ramBuffer2_address_B ),
@@ -750,7 +754,19 @@
 		.q_a ( ramBuffer2_dataOutConcatenated_A ),
 		.q_b ( ramBuffer2_dataOutConcatenated_B )
 		);
-`endif	
+	*/	
+	myNewerBram BRAM_2(
+		.clk(clk),
+		.aa(ramBuffer2_address_A), 
+		.ab(ramBuffer2_address_B),
+		.da(ramBuffer2_dataInConcatenated_A), 
+		.db(ramBuffer2_dataInConcatenated_B), 
+		.wa(ramBuffer2_writeEnable_A), 
+		.wb(ramBuffer2_writeEnable_B),
+		.qa(ramBuffer2_dataOutConcatenated_A), 
+		.qb(ramBuffer2_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 2 write access control
 	always @(*) begin		
@@ -823,7 +839,7 @@
  	
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutReal_B;
  	wire [`SFFT_OUTPUT_WIDTH -1:0] ramBuffer3_dataOutImag_B;
-	
+/*	
 `ifdef RUNNING_SIMULATION
 	pipelineBuffer_RAM BRAM_3(
 	 	.readClk(clk),
@@ -846,7 +862,7 @@
 	 	.dataOutImag_B(ramBuffer3_dataOutImag_B)
 	 	);
 `else 
-	
+*/	
 	//Concatenate dataIn bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataInConcatenated_A;
 	assign ramBuffer3_dataInConcatenated_A = {ramBuffer3_dataInReal_A, ramBuffer3_dataInImag_A};
@@ -856,14 +872,14 @@
 
 	//Concatenate dataOut bus
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_A;
-	assign ramBuffer3_dataOutReal_A =  ramBuffer3_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer3_dataOutImag_A =  ramBuffer3_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer3_dataOutImag_A =  ramBuffer3_dataOutConcatenated_A[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer3_dataOutReal_A =  ramBuffer3_dataOutConcatenated_A[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
 	wire [(2*`SFFT_OUTPUT_WIDTH) -1:0] ramBuffer3_dataOutConcatenated_B;
-	assign ramBuffer3_dataOutReal_B =  ramBuffer3_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
-	assign ramBuffer3_dataOutImag_B =  ramBuffer3_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
+	assign ramBuffer3_dataOutImag_B =  ramBuffer3_dataOutConcatenated_B[`SFFT_OUTPUT_WIDTH -1:0];
+	assign ramBuffer3_dataOutReal_B =  ramBuffer3_dataOutConcatenated_B[(2*`SFFT_OUTPUT_WIDTH) -1 :`SFFT_OUTPUT_WIDTH ];
 
-	
+	/*
 	bramNewer BRAM_3(
 		.address_a ( ramBuffer3_address_A ),
 		.address_b ( ramBuffer3_address_B ),
@@ -875,7 +891,19 @@
 		.q_a ( ramBuffer3_dataOutConcatenated_A ),
 		.q_b ( ramBuffer3_dataOutConcatenated_B )
 		);
-`endif	
+	*/	
+	myNewerBram BRAM_3(
+		.clk(clk),
+		.aa(ramBuffer3_address_A), 
+		.ab(ramBuffer3_address_B),
+		.da(ramBuffer3_dataInConcatenated_A), 
+		.db(ramBuffer3_dataInConcatenated_B), 
+		.wa(ramBuffer3_writeEnable_A), 
+		.wb(ramBuffer3_writeEnable_B),
+		.qa(ramBuffer3_dataOutConcatenated_A), 
+		.qb(ramBuffer3_dataOutConcatenated_B)
+		);
+//`endif	
 	
 	//Buffer 3 write access control
 	always @(*) begin		
@@ -1104,7 +1132,23 @@
 		.BReal(ram_dataInReal_B),
 		.BImag(ram_dataInImag_B)
 		);
-		
+	/*	
+	//Instantiate B
+ 	butterfly B(
+		.aReal(ram_dataOutImag_A),
+		.aImag(ram_dataOutReal_A),
+		.bReal(ram_dataOutImag_B),
+		.bImag(ram_dataOutReal_B),
+		.wReal(wInReal),
+		.wImag(wInImag),
+	
+		//Connect outputs directly to BRAM buffer outside of this module
+		.AReal(ram_dataInReal_A),
+		.AImag(ram_dataInImag_A),
+		.BReal(ram_dataInReal_B),
+		.BImag(ram_dataInImag_B)
+		);
+	*/	
  	//MUX for selecting butterfly inputs
  	always @ (*) begin		
  		wInReal = realCoefficents[kValues[btflyCounter]];
