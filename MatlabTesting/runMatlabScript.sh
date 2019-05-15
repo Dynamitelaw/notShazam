@@ -1,4 +1,8 @@
 #!/bin/sh
+#########################################################
+# Run this script to generate ROM files pre-compilation
+#########################################################
+
 set -x
 
 #Regenerate ROM files
