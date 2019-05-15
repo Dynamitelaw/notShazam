@@ -124,13 +124,11 @@ int main()
 	std::string temp_s;
 	
 	std::string output;
-	int hash_count;
 	
 	std::fstream file;
 	std::string line;
 	std::vector<std::string> song_file_list;
 	
-	uint16_t num_db = 0;	
 
 	// open device:
 	static const char filename[] = "/dev/fft_accelerator";
@@ -151,7 +149,6 @@ int main()
 
 		temp_s = line; 
 		std::list<peak> pruned;
-		// identify = hash_create_noise(temp_s, num_db);
 		pruned = create_map_from_audio(125);
 		std::cout << "Done listening.\n"; 
 		write_constellation(pruned, song_name + ".board");

@@ -138,6 +138,7 @@ int main()
 	file.open("song_list.txt");
 	while(getline(file, line)){
 	   if(!line.empty()){
+		// skip most songs since board does not have enough ram to handle 30
 		if (num_db % 6 != 2) { num_db++; continue;}
 
 		num_db++;
