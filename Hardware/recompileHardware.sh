@@ -1,4 +1,8 @@
 #!/bin/sh
+###########################################
+# Run this script on PC to create rbf/dtb
+###########################################
+
 set -x
 
 date
@@ -7,7 +11,7 @@ date
 git rm output_files/*.rbf
 git commit -m "deleted old rbf"
 
-#CAT globalVariables used in compilation
+#CAT globalVariables used in compilation for logging purposes
 cat global_variables.sv
 
 #Regenerate ROM files

@@ -1,4 +1,8 @@
 #!/bin/sh
+###########################################
+# Run this script on DE1 to load new rbf/dtb
+###########################################
+
 set -x
 
 #Mount boot partition

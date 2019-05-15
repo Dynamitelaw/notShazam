@@ -3,6 +3,7 @@
 // ==================================================================
 //
 // Modified 2019 by Stephen A. Edwards
+// Further modifies by Jose Rubianes(jer2202) & Tomin Perea-Chamblee(tep2116) & Eitan Kaplan(ek2928)
 //
 // Permission:
 //

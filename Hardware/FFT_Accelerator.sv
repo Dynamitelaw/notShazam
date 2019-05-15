@@ -1,12 +1,18 @@
-// CSEE 4840 Design Project
-// By: Jose Rubianes & Tomin Perea-Chamblee & Eitan Kaplan
+/*
+Columbia University
+CSEE 4840 Design Project
+By: Jose Rubianes(jer2202) & Tomin Perea-Chamblee(tep2116) & Eitan Kaplan(ek2928)
+
+This file contains the top level module for our FFT accelerator.
+Takes in audio samples from codec, and coninuously computes the FFT.
+
+Design parameters and functional behaviour can be adjusted in global_variables.sv
+*/
 
 
+`include "global_variables.sv"
 `include "./AudioCodecDrivers/audio_driver.sv"
-//`include "SfftPipeline.sv"
 `include "SfftPipeline_SingleStage.sv"
-//`include "peaks.sv"
-//`include "peaksSequential.sv"
 
 
 module FFT_Accelerator( 
@@ -36,12 +42,6 @@ module FFT_Accelerator(
 		  output logic [7:0] readdata
 		  );
 
-	
-	/*
-	//Debounce button inputs 
-	wire KEY3db, KEY2db, KEY1db, KEY0db;  //debounced buttons
-	debouncer db(.clk(clk), .buttonsIn(KEY), .buttonsOut({KEY3db, KEY2db, KEY1db, KEY0db}));
-	*/
 	
 	//Instantiate audio controller
 	reg [23:0] dac_left_in;
@@ -110,7 +110,7 @@ module FFT_Accelerator(
 	 	.OutputBeingRead(sampleBeingTaken),
  		.outputReadError(outputReadError),
  		.output_address(output_address),
- 		.SFFT_OutReal(SFFT_OUT),
+ 		.SFFT_OutReal(SFFT_Out),  //This port in unused, but things break if you delete it. Don't ask me why
 	 	.OutputValid(SfftOutputValid),
 	 	.Output_Why(Output_Why)
 	 	);
@@ -120,16 +120,7 @@ module FFT_Accelerator(
 	always @(posedge SfftOutputValid) begin
 		timeCounter <= timeCounter + 1;
 	end
-	
-	/*
-	//Instantiate hex decoders
-	hex7seg h5( .a(Output_Why[23:20]),.y(HEX5) ), // left digit
-		h4( .a(Output_Why[19:16]),.y(HEX4) ),
-		h3( .a(Output_Why[15:12]),.y(HEX3) ),
-		h2( .a(Output_Why[11:8]),.y(HEX2) ),
-		h1( .a(Output_Why[7:4]),.y(HEX1) ),
-		h0( .a(Output_Why[3:0]),.y(HEX0) );
-	*/	
+
 	
 	//Instantiate hex decoders
 	hex7seg h5( .a(adc_out_buffer[23:20]),.y(HEX5) ), // left digit
@@ -139,9 +130,8 @@ module FFT_Accelerator(
 		h1( .a(adc_out_buffer[7:4]),.y(HEX1) ),
 		h0( .a(adc_out_buffer[3:0]),.y(HEX0) );
 	
-
 	
-	//Map timer counter output
+	//Map timer(Sample) counter output
 	parameter readOutSize = 2048;
 	reg [7:0] timer_buffer [3:0];
 	integer i;
@@ -164,19 +154,15 @@ module FFT_Accelerator(
 			//NOTE: Each 32bit word is written in reverse byte order, due to endian-ness of software. Avoids need for ntohl conversion
 			if (address % 4 == 0) begin
 				readdata = Output_Why[7:0];
-				//readdata = 8'h11;
 			end
 			else if (address % 4 == 1) begin
 				readdata = Output_Why[15:8];
-				//readdata = 8'h22;
 			end
 			else if (address % 4 == 2) begin
 				readdata = Output_Why[23:16];
-				//readdata = 8'h33;
 			end
 			else if (address % 4 == 3) begin
 				readdata = Output_Why[31:24];
-				//readdata = 8'h44;
 			end
 		end
 		else if (address[15:2] == `NFFT/2) begin
@@ -190,7 +176,7 @@ module FFT_Accelerator(
 	end
 	
 		
-	//Sample inputs
+	//Sample inputs/Audio passthrough
 	always @(posedge advance) begin
 		counter <= counter + 1;
 		dac_left_in <= adc_left_out;
@@ -230,22 +216,4 @@ module hex7seg(input logic [3:0] a,
 		endcase
 	end
 endmodule
-
-
-//Debouncer for push buttons
-module debouncer(input clk, input [3:0] buttonsIn, output logic [3:0] buttonsOut);
-	logic [20:0] timer = 21'b0;
-	
-	always_ff @(posedge clk) begin
-		timer <= timer - 21'b1;
-	end
-	
-	always_ff @(negedge clk) begin
-		if (timer == 0)
-			buttonsOut <= buttonsIn;
-	end
-
-endmodule
-
-
 
